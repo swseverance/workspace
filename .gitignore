@@ -48,3 +48,11 @@ Thumbs.db
 .nx/polygraph
 .nx/self-healing
 .nx/migrate-runs
+.angular
+
+__screenshots__/
+vitest.config.*.timestamp*
+.vitest
+
+# Local App Hosting overrides (may contain secrets, used for emulator runs)
+apphosting.local.yaml

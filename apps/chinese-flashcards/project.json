@@ -1,0 +1,93 @@
+{
+  "name": "chinese-flashcards",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/chinese-flashcards/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/chinese-flashcards",
+        "browser": "apps/chinese-flashcards/src/main.ts",
+        "tsConfig": "apps/chinese-flashcards/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/chinese-flashcards/public"
+          }
+        ],
+        "styles": ["apps/chinese-flashcards/src/styles.scss"],
+        "server": "apps/chinese-flashcards/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/chinese-flashcards/src/server.ts"
+        },
+        "outputMode": "server",
+        "security": {
+          "allowedHosts": []
+        }
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "readyWhen": {
+        "signal": true
+      },
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "development",
+      "configurations": {
+        "production": {
+          "buildTarget": "chinese-flashcards:build:production"
+        },
+        "development": {
+          "buildTarget": "chinese-flashcards:build:development"
+        }
+      }
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "readyWhen": {
+        "signal": true
+      },
+      "dependsOn": ["build"],
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "chinese-flashcards:build",
+        "staticFilePath": "dist/apps/chinese-flashcards/browser",
+        "spa": true
+      }
+    }
+  }
+}

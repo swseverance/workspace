@@ -1,0 +1,26 @@
+{
+  "apphosting": [
+    {
+      "backendId": "weight-tracker",
+      "rootDir": "/apps/weight-tracker",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "functions"
+      ]
+    },
+    {
+      "backendId": "chinese-flashcards",
+      "rootDir": "/apps/chinese-flashcards",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "functions"
+      ]
+    }
+  ]
+}
