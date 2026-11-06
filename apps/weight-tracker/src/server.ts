@@ -6,6 +6,7 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,17 +18,13 @@ initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/**', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+app.use(
+  createProxyMiddleware({
+    target: `https://${process.env['FIREBASE_PROJECT_ID']}.firebaseapp.com`,
+    changeOrigin: true,
+    pathFilter: '/__/auth/**',
+  }),
+);
 
 /**
  * Serve static files from /browser

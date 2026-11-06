@@ -7,6 +7,7 @@ import {
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createFlashcardsRouter } from './flashcards-api';
@@ -18,6 +19,14 @@ initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+app.use(
+  createProxyMiddleware({
+    target: `https://${process.env['FIREBASE_PROJECT_ID']}.firebaseapp.com`,
+    changeOrigin: true,
+    pathFilter: '/__/auth/**',
+  }),
+);
 
 app.use(express.json());
 app.use('/api/flashcards', createFlashcardsRouter());
