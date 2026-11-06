@@ -1,0 +1,100 @@
+{
+  "name": "ghreactions",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/ghreactions/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/ghreactions",
+        "browser": "apps/ghreactions/src/main.ts",
+        "tsConfig": "apps/ghreactions/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/ghreactions/public"
+          }
+        ],
+        "styles": ["apps/ghreactions/src/styles.scss"],
+        "server": "apps/ghreactions/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/ghreactions/src/server.ts"
+        },
+        "outputMode": "server",
+        "security": {
+          "allowedHosts": []
+        }
+      },
+      "configurations": {
+        "production": {
+          "outputHashing": "all",
+          "fileReplacements": [
+            {
+              "replace": "apps/ghreactions/src/environments/environment.ts",
+              "with": "apps/ghreactions/src/environments/environment.prod.ts"
+            }
+          ]
+        },
+        "development": {
+          "outputHashing": "all",
+          "fileReplacements": [
+            {
+              "replace": "apps/ghreactions/src/environments/environment.ts",
+              "with": "apps/ghreactions/src/environments/environment.dev.ts"
+            }
+          ]
+        },
+        "local": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "readyWhen": {
+        "signal": true
+      },
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "local",
+      "configurations": {
+        "production": {
+          "buildTarget": "ghreactions:build:production"
+        },
+        "development": {
+          "buildTarget": "ghreactions:build:development"
+        },
+        "local": {
+          "buildTarget": "ghreactions:build:local"
+        }
+      }
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false,
+        "buildTarget": "ghreactions:build:local"
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "readyWhen": {
+        "signal": true
+      },
+      "dependsOn": ["build"],
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "ghreactions:build",
+        "staticFilePath": "dist/apps/ghreactions/browser",
+        "spa": true
+      }
+    }
+  }
+}

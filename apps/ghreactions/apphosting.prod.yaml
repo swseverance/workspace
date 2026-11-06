@@ -1,0 +1,9 @@
+env:
+  - variable: FIREBASE_PROJECT_ID
+    value: ghreactionsprod
+    availability:
+      - RUNTIME
+
+scripts:
+  buildCommand: npx nx build ghreactions --configuration=production
+  runCommand: node dist/apps/ghreactions/server/server.mjs
