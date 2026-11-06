@@ -22,7 +22,7 @@
           }
         ],
         "styles": [
-          "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
+          "apps/weight-tracker/src/theme.less",
           "apps/weight-tracker/src/styles.scss"
         ],
         "server": "apps/weight-tracker/src/main.server.ts",

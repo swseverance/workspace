@@ -1,0 +1,41 @@
+<form
+  nz-form
+  nzLayout="vertical"
+  [formGroup]="form"
+  (ngSubmit)="!loading() && onSubmit()"
+>
+  <nz-form-item>
+    <nz-form-label nzRequired>Weight (lbs)</nz-form-label>
+    <nz-form-control [nzErrorTip]="'Required'">
+      <input
+        nz-input
+        type="number"
+        inputmode="decimal"
+        step="0.1"
+        min="1"
+        formControlName="weight"
+      />
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="footer">
+    @if (isEditing) {
+    <button type="button" nz-button nzDanger (click)="onDelete()">
+      Delete
+    </button>
+    }
+
+    <div class="actions">
+      <button type="button" nz-button (click)="cancel()">Cancel</button>
+      <button
+        type="submit"
+        nz-button
+        nzType="primary"
+        [disabled]="form.invalid"
+        [nzLoading]="loading()"
+      >
+        Save
+      </button>
+    </div>
+  </div>
+</form>

@@ -9,6 +9,11 @@ import {
   ReCaptchaEnterpriseProvider,
 } from 'firebase/app-check';
 import { Auth, connectAuthEmulator, getAuth } from 'firebase/auth';
+import {
+  connectFirestoreEmulator,
+  Firestore,
+  getFirestore,
+} from 'firebase/firestore';
 
 export * from './auth-interceptor';
 export * from './recaptcha-interceptor';
@@ -51,6 +56,25 @@ export const AUTH = new InjectionToken<Auth | null>('AUTH', {
     }
 
     return auth;
+  },
+});
+
+export const FIRESTORE = new InjectionToken<Firestore | null>('FIRESTORE', {
+  providedIn: 'root',
+  factory: () => {
+    const app = inject(FIREBASE_APP);
+
+    if (!app) {
+      return null;
+    }
+
+    const firestore = getFirestore(app);
+
+    if (inject(ENVIRONMENT).name === 'local') {
+      connectFirestoreEmulator(firestore, 'localhost', 8080);
+    }
+
+    return firestore;
   },
 });
 

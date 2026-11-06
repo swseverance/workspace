@@ -22,7 +22,7 @@
           }
         ],
         "styles": [
-          "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
+          "apps/chinese-flashcards/src/theme.less",
           "apps/chinese-flashcards/src/styles.scss"
         ],
         "server": "apps/chinese-flashcards/src/main.server.ts",

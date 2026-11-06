@@ -1,0 +1,13 @@
+<app-page>
+  <header><strong>Login</strong></header>
+
+  <main>
+    @if (authenticated() === false) {
+    <button nz-button nzType="primary" (click)="login()">
+      Sign in with Google
+    </button>
+    } @else if (authenticated() === true) {
+    <a nz-button nzType="primary" routerLink="/dashboard">Go to Dashboard</a>
+    }
+  </main>
+</app-page>

@@ -1,0 +1,43 @@
+:host {
+  height: 100%;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+main {
+  height: 100%;
+  margin: -8px;
+  display: flex;
+  flex-direction: column;
+}
+
+nz-spin,
+nz-list-empty {
+  margin: auto;
+}
+
+.viewport {
+  flex: 1 1 auto;
+  height: 100%;
+}
+
+.row {
+  height: 56px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #f0f0f0;
+
+  .date {
+    flex: 1 1 auto;
+  }
+
+  .weight {
+    font-weight: 600;
+  }
+}

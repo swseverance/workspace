@@ -3,7 +3,7 @@ env:
     value: weight-tracker-2592f
     availability:
       - RUNTIME
-      
+
 scripts:
   buildCommand: npx nx build weight-tracker --configuration=production
   runCommand: node dist/apps/weight-tracker/server/server.mjs
