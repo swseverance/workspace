@@ -10,7 +10,8 @@
     "deploy:weight-tracker:prod:firestore": "npm exec firebase-tools -- deploy --config apps/weight-tracker/firebase.json --only firestore --project weight-tracker-2592f",
     "deploy:weight-tracker:prod": "npm run deploy:weight-tracker:prod:apphosting && npm run deploy:weight-tracker:prod:firestore",
     "emulate:chinese-flashcards": "npm exec firebase-tools -- emulators:start --config apps/chinese-flashcards/firebase.json --project chineseflashcards-4aea7",
-    "emulate:weight-tracker": "npm exec firebase-tools -- emulators:start --config apps/weight-tracker/firebase.json --project weight-tracker-2592f"
+    "emulate:weight-tracker": "npm exec firebase-tools -- emulators:start --config apps/weight-tracker/firebase.json --project weight-tracker-2592f",
+    "prepare": "husky"
   },
   "private": true,
   "devDependencies": {
@@ -35,9 +36,12 @@
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^4.0.0",
     "@vitest/ui": "^4.0.0",
+    "husky": "^9.1.7",
     "jsdom": "^27.1.0",
+    "lint-staged": "^17.6.0",
     "nx": "24.0.0",
     "prettier": "^3.8.1",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
     "vite": "^8.0.0",
@@ -48,6 +52,9 @@
     "libs/*"
   ],
   "packageManager": "npm@11.19.0",
+  "lint-staged": {
+    "*.{ts,html,scss,css,json,md,yaml,yml}": "prettier --write"
+  },
   "dependencies": {
     "@angular-devkit/build-angular": "~22.2.0",
     "@angular/common": "~22.2.0",

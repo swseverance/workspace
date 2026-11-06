@@ -45,9 +45,15 @@
               "maximumError": "8kb"
             }
           ],
-          "outputHashing": "all"
+          "outputHashing": "all",
+          "fileReplacements": [
+            {
+              "replace": "apps/chinese-flashcards/src/environments/environment.ts",
+              "with": "apps/chinese-flashcards/src/environments/environment.prod.ts"
+            }
+          ]
         },
-        "development": {
+        "local": {
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true
@@ -60,20 +66,21 @@
         "signal": true
       },
       "executor": "@angular/build:dev-server",
-      "defaultConfiguration": "development",
+      "defaultConfiguration": "local",
       "configurations": {
         "production": {
           "buildTarget": "chinese-flashcards:build:production"
         },
-        "development": {
-          "buildTarget": "chinese-flashcards:build:development"
+        "local": {
+          "buildTarget": "chinese-flashcards:build:local"
         }
       }
     },
     "test": {
       "executor": "@angular/build:unit-test",
       "options": {
-        "watch": false
+        "watch": false,
+        "buildTarget": "chinese-flashcards:build:local"
       }
     },
     "serve-static": {

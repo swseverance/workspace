@@ -45,9 +45,15 @@
               "maximumError": "8kb"
             }
           ],
-          "outputHashing": "all"
+          "outputHashing": "all",
+          "fileReplacements": [
+            {
+              "replace": "apps/weight-tracker/src/environments/environment.ts",
+              "with": "apps/weight-tracker/src/environments/environment.prod.ts"
+            }
+          ]
         },
-        "development": {
+        "local": {
           "optimization": false,
           "extractLicenses": false,
           "sourceMap": true
@@ -60,20 +66,21 @@
         "signal": true
       },
       "executor": "@angular/build:dev-server",
-      "defaultConfiguration": "development",
+      "defaultConfiguration": "local",
       "configurations": {
         "production": {
           "buildTarget": "weight-tracker:build:production"
         },
-        "development": {
-          "buildTarget": "weight-tracker:build:development"
+        "local": {
+          "buildTarget": "weight-tracker:build:local"
         }
       }
     },
     "test": {
       "executor": "@angular/build:unit-test",
       "options": {
-        "watch": false
+        "watch": false,
+        "buildTarget": "weight-tracker:build:local"
       }
     },
     "serve-static": {
