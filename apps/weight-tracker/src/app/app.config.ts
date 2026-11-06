@@ -2,6 +2,7 @@ import { registerLocaleData } from '@angular/common';
 import en from '@angular/common/locales/en';
 import {
   ApplicationConfig,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import {
@@ -9,6 +10,7 @@ import {
   withEventReplay,
 } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { ENVIRONMENT } from '@org/environment';
 import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
@@ -25,5 +27,9 @@ export const appConfig: ApplicationConfig = {
     { provide: ENVIRONMENT, useValue: environment },
     provideNzI18n(en_US),
     provideNzDateFnsAdapter(),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };

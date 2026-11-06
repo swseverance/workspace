@@ -7,6 +7,7 @@ import {
 import en from '@angular/common/locales/en';
 import {
   ApplicationConfig,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import {
@@ -14,6 +15,7 @@ import {
   withEventReplay,
 } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import {
   DeleteOutline,
   EditOutline,
@@ -50,5 +52,9 @@ export const appConfig: ApplicationConfig = {
       DeleteOutline,
       SearchOutline,
     ]),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
   ],
 };

@@ -43,7 +43,8 @@
               "replace": "apps/weight-tracker/src/environments/environment.ts",
               "with": "apps/weight-tracker/src/environments/environment.prod.ts"
             }
-          ]
+          ],
+          "serviceWorker": "apps/weight-tracker/ngsw-config.json"
         },
         "local": {
           "optimization": false,

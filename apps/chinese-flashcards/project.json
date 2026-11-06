@@ -43,7 +43,8 @@
               "replace": "apps/chinese-flashcards/src/environments/environment.ts",
               "with": "apps/chinese-flashcards/src/environments/environment.prod.ts"
             }
-          ]
+          ],
+          "serviceWorker": "apps/chinese-flashcards/ngsw-config.json"
         },
         "local": {
           "optimization": false,
