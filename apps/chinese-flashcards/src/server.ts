@@ -6,8 +6,10 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
+import * as logger from 'firebase-functions/logger';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createFlashcardsRouter } from './flashcards-api';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -17,17 +19,8 @@ initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/**', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+app.use(express.json());
+app.use('/api/flashcards', createFlashcardsRouter());
 
 /**
  * Serve static files from /browser
@@ -63,7 +56,7 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
       throw error;
     }
 
-    console.log(`Node Express server listening on http://localhost:${port}`);
+    logger.info(`Node Express server listening on http://localhost:${port}`);
     // Set when Nx waits for this server to be ready
     if (process.env['NX_READY_SIGNAL_SOCKET']) {
       try {

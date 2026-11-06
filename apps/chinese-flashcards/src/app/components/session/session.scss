@@ -1,0 +1,87 @@
+:host {
+  height: 100%;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.count {
+  margin-left: auto;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 0.875rem;
+}
+
+main {
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+nz-spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+.card {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  border-radius: 4px;
+  padding: 24px;
+}
+
+.button-container {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: flex;
+  gap: 8px;
+}
+
+.chinese {
+  font-size: 3rem;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pinyin {
+  font-size: 2rem;
+  color: #1890ff;
+}
+
+.translation {
+  font-size: 2rem;
+}
+
+.notes {
+  font-size: 2rem;
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+
+  button {
+    width: 100px;
+  }
+}

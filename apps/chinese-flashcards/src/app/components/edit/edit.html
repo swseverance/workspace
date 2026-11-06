@@ -1,0 +1,59 @@
+<form
+  nz-form
+  nzLayout="vertical"
+  [formGroup]="form"
+  (ngSubmit)="!loading() && onSubmit()"
+>
+  <nz-form-item>
+    <nz-form-label nzRequired>Chinese</nz-form-label>
+    <nz-form-control [nzErrorTip]="'Required'">
+      <input nz-input formControlName="chinese" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>Pinyin</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="pinyin" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>Translation</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="translation" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>Notes</nz-form-label>
+    <nz-form-control>
+      <input nz-input formControlName="notes" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label>Type</nz-form-label>
+    <nz-form-control>
+      <nz-radio-group formControlName="type">
+        <label nz-radio [nzValue]="FlashcardType.WORD">Word</label>
+        <label nz-radio [nzValue]="FlashcardType.SENTENCE">Sentence</label>
+      </nz-radio-group>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item></nz-form-item>
+
+  <div class="footer">
+    <button type="button" nz-button (click)="cancel()">Cancel</button>
+    <button
+      type="submit"
+      nz-button
+      nzType="primary"
+      [disabled]="form.invalid"
+      [nzLoading]="loading()"
+    >
+      Save
+    </button>
+  </div>
+</form>

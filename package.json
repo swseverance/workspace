@@ -11,6 +11,7 @@
     "deploy:weight-tracker:prod": "npm run deploy:weight-tracker:prod:apphosting && npm run deploy:weight-tracker:prod:firestore",
     "emulate:chinese-flashcards": "npm exec firebase-tools -- emulators:start --config apps/chinese-flashcards/firebase.json --project chineseflashcards-4aea7",
     "emulate:weight-tracker": "npm exec firebase-tools -- emulators:start --config apps/weight-tracker/firebase.json --project weight-tracker-2592f",
+    "kill-ports": "lsof -ti:4200,8080,9099 | xargs kill -9",
     "prepare": "husky"
   },
   "private": true,
@@ -57,6 +58,7 @@
   },
   "dependencies": {
     "@angular-devkit/build-angular": "~22.2.0",
+    "@angular/cdk": "~22.2.0",
     "@angular/common": "~22.2.0",
     "@angular/compiler": "~22.2.0",
     "@angular/core": "~22.2.0",
@@ -68,6 +70,7 @@
     "express": "^4.21.2",
     "firebase": "^13.2.0",
     "firebase-admin": "^14.5.0",
+    "firebase-functions": "^7.4.0",
     "ng-zorro-antd": "^22.2.0",
     "rxjs": "~7.8.0"
   }

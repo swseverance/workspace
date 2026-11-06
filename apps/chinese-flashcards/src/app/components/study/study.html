@@ -1,0 +1,32 @@
+<app-page>
+  <header>
+    <a nz-button nzType="default" nzShape="circle" routerLink="/dashboard">
+      <nz-icon nzType="left" [style.color]="'#1890ff'" />
+    </a>
+
+    <strong>Study</strong>
+  </header>
+
+  <main>
+    @if (loading()) {
+    <nz-spin />
+    } @else if (groups().length === 0) {
+    <nz-empty nzNotFoundContent="No flashcards found" />
+    } @else {
+    <nz-list nzBordered>
+      @for (group of groups(); track group.confidence) {
+      <nz-list-item
+        class="group-row"
+        [routerLink]="['/dashboard/study', type, group.confidence]"
+      >
+        <span>Level {{ group.confidence }}</span>
+        <nz-badge
+          [nzCount]="group.count"
+          [nzStyle]="{ backgroundColor: '#1890ff' }"
+        />
+      </nz-list-item>
+      }
+    </nz-list>
+    }
+  </main>
+</app-page>

@@ -1,2 +1,16 @@
-{{ environment.name }}
-<router-outlet></router-outlet>
+<nz-layout>
+  <nz-header>
+    <strong>Chinese Flashcards</strong>
+
+    @if (authenticated()) {
+    <button nz-button (click)="logout()" nzType="default">Logout</button>
+    }
+  </nz-header>
+  <nz-content>
+    @if (displayLoader()) {
+    <nz-spin />
+    }
+
+    <router-outlet (activate)="displayLoader.set(false)" />
+  </nz-content>
+</nz-layout>

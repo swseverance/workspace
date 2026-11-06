@@ -1,0 +1,46 @@
+:host {
+  height: 100%;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+main {
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+nz-spin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+.viewport {
+  flex: 1;
+  min-height: 0;
+}
+
+.card-row {
+  height: 56px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chinese {
+  font-size: 1.25rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+}

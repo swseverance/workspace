@@ -1,8 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/out-tsc",
+    "outDir": "../../dist/out-tsc/libs/environment",
+    "tsBuildInfoFile": "../../dist/out-tsc/libs/environment/tsconfig.lib.tsbuildinfo",
     "rootDir": "src",
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

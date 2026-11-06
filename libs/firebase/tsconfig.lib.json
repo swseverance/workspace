@@ -1,9 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/out-tsc",
+    "outDir": "../../dist/out-tsc/libs/firebase",
+    "tsBuildInfoFile": "../../dist/out-tsc/libs/firebase/tsconfig.lib.tsbuildinfo",
+    "rootDir": "src",
+    "composite": true,
     "declaration": true,
     "declarationMap": true,
+    "sourceMap": true,
     "inlineSources": true,
     "types": []
   },
@@ -22,5 +26,13 @@
     "src/**/*.test.jsx",
     "src/**/*.spec.jsx",
     "src/test-setup.ts"
+  ],
+  "references": [
+    {
+      "path": "../window/tsconfig.lib.json"
+    },
+    {
+      "path": "../environment/tsconfig.lib.json"
+    }
   ]
 }

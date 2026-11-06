@@ -1,0 +1,80 @@
+<app-page>
+  <header>
+    <a
+      nz-button
+      nzType="default"
+      nzShape="circle"
+      [routerLink]="['/dashboard/study', type]"
+    >
+      <nz-icon nzType="left" [style.color]="'#1890ff'" />
+    </a>
+    <strong>Level {{ confidence }}</strong>
+    <span class="count">{{ cards().length }} remaining</span>
+  </header>
+
+  <main>
+    @if (loading()) {
+    <nz-spin />
+    } @else if (current) {
+    <div class="button-container">
+      <button
+        nz-button
+        nzType="text"
+        nzShape="circle"
+        class="edit-btn"
+        (click)="!ref && openEdit()"
+      >
+        <nz-icon nzType="edit" [style.color]="'#1890ff'" />
+      </button>
+
+      <button
+        nz-button
+        nzType="text"
+        nzShape="circle"
+        class="delete-btn"
+        (click)="!ref && openDelete()"
+      >
+        <nz-icon nzType="delete" [style.color]="'#ff4d4f'" />
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="chinese">{{ current.chinese }}</div>
+
+      @if (revealed()) {
+      <div class="details">
+        <div class="pinyin">{{ current.pinyin }}</div>
+        <div class="translation">{{ current.translation }}</div>
+        @if (current.notes) {
+        <div class="notes">{{ current.notes }}</div>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="actions">
+      <button
+        nz-button
+        nzDanger
+        [nzLoading]="updating() === 'reset'"
+        (click)="updating() !== 'reset' && setConfidence(0, 'reset')"
+      >
+        Reset
+      </button>
+
+      <button nz-button nzType="default" (click)="!updating() && toggle()">
+        Reveal
+      </button>
+
+      <button
+        nz-button
+        nzType="primary"
+        [nzLoading]="updating() === 'increment'"
+        (click)="updating() !== 'increment' && setConfidence(current.confidence + 1, 'increment')"
+      >
+        Got it
+      </button>
+    </div>
+    }
+  </main>
+</app-page>

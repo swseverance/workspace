@@ -10,6 +10,9 @@ import {
 } from 'firebase/app-check';
 import { Auth, connectAuthEmulator, getAuth } from 'firebase/auth';
 
+export * from './auth-interceptor';
+export * from './recaptcha-interceptor';
+
 declare global {
   interface Window {
     FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean;
