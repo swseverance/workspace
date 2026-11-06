@@ -1,3 +1,5 @@
+import { Environment } from '@org/environment';
+
 export const environment = {
   name: 'prod',
   firebaseConfig: {
@@ -11,4 +13,4 @@ export const environment = {
     measurementId: 'G-NSTV9QHVW4',
   },
   reCAPTCHA: '6LehvhMuAAAAADNI4mj6qS8viPxvBKKKK9qrrRlK',
-};
+} satisfies Environment;

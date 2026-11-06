@@ -2,7 +2,7 @@ import { InjectionToken } from '@angular/core';
 
 export type EnvironmentName = 'prod' | 'dev' | 'local';
 
-export const ENVIRONMENT = new InjectionToken<{
+export type Environment = {
   name: EnvironmentName;
   firebaseConfig: {
     apiKey: string;
@@ -14,4 +14,6 @@ export const ENVIRONMENT = new InjectionToken<{
     measurementId: string;
   };
   reCAPTCHA: string;
-}>('ENVIRONMENT');
+};
+
+export const ENVIRONMENT = new InjectionToken<Environment>('ENVIRONMENT');
