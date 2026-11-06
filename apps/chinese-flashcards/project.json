@@ -21,7 +21,10 @@
             "input": "apps/chinese-flashcards/public"
           }
         ],
-        "styles": ["apps/chinese-flashcards/src/styles.scss"],
+        "styles": [
+          "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
+          "apps/chinese-flashcards/src/styles.scss"
+        ],
         "server": "apps/chinese-flashcards/src/main.server.ts",
         "ssr": {
           "entry": "apps/chinese-flashcards/src/server.ts"
