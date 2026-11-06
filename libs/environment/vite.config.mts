@@ -17,6 +17,7 @@ export default defineConfig(() => ({
     name: 'environment',
     watch: false,
     globals: true,
+    passWithNoTests: true,
     environment: 'jsdom',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],

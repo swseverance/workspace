@@ -29,7 +29,8 @@
         "outputMode": "server",
         "security": {
           "allowedHosts": []
-        }
+        },
+        "externalDependencies": ["firebase-admin"]
       },
       "configurations": {
         "production": {

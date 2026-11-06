@@ -5,11 +5,14 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
+import { initializeApp } from 'firebase-admin/app';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
+
+initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
