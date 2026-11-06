@@ -2,7 +2,8 @@ export const environment = {
   name: 'prod',
   firebaseConfig: {
     apiKey: 'AIzaSyCz7Y12_ncs9HXUo0Imgvl5V9mSzC2imhw',
-    authDomain: 'chineseflashcards-4aea7.firebaseapp.com',
+    authDomain:
+      'chinese-flashcards--chineseflashcards-4aea7.us-east4.hosted.app',
     projectId: 'chineseflashcards-4aea7',
     storageBucket: 'chineseflashcards-4aea7.firebasestorage.app',
     messagingSenderId: '321324490138',
