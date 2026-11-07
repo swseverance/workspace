@@ -7,9 +7,11 @@ An [Nx](https://nx.dev) monorepo containing Angular apps and shared libraries.
 | App                | Environment | URL                                                                                                                                        |
 | ------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | ghreactions        | dev         | [ghreactions--ghreactionsdev.us-east4.hosted.app](https://ghreactions--ghreactionsdev.us-east4.hosted.app)                                 |
-| ghreactions        | prod        | [ghreactions--ghreactionsprod.us-east4.hosted.app](https://ghreactions--ghreactionsprod.us-east4.hosted.app)                               |
+| ghreactions        | prod        | [ghreactions.io](https://ghreactions.io)                                                                                                   |
 | weight-tracker     | prod        | [weight-tracker--weight-tracker-2592f.us-east4.hosted.app](https://weight-tracker--weight-tracker-2592f.us-east4.hosted.app)               |
 | chinese-flashcards | prod        | [chinese-flashcards--chineseflashcards-4aea7.us-east4.hosted.app](https://chinese-flashcards--chineseflashcards-4aea7.us-east4.hosted.app) |
+| tcpl-exercises     | dev         | [tcpl-exercises--tcpl-exercises-dev.us-east4.hosted.app](https://tcpl-exercises--tcpl-exercises-dev.us-east4.hosted.app)                   |
+| tcpl-exercises     | prod        | [tcpl-exercises--tcpl-exercises-prod.us-east4.hosted.app](https://tcpl-exercises--tcpl-exercises-prod.us-east4.hosted.app)                 |
 
 ## Generate a new app
 
