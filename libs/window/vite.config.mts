@@ -8,7 +8,7 @@ export default defineConfig(() => ({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [angular()],
+  plugins: [angular({ tsconfig: 'tsconfig.lib.json' })],
   // Uncomment this if you are using workers.
   // worker: {
   //  plugins: [],
