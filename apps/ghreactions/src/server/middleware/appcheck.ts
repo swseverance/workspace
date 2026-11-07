@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express';
 import { getAppCheck } from 'firebase-admin/app-check';
+import * as logger from 'firebase-functions/logger';
+import { serializeError } from '../serialize-error';
 
 export const appCheckMiddleware: RequestHandler = async (req, res, next) => {
   try {
@@ -8,7 +10,7 @@ export const appCheckMiddleware: RequestHandler = async (req, res, next) => {
     );
     next();
   } catch (err) {
-    console.error('[App Check] verifyToken failed:', err);
+    logger.error('[App Check] verifyToken failed:', serializeError(err));
     res.status(401).json({ message: 'Unauthorized' });
   }
 };

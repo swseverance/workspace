@@ -6,6 +6,7 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
+import * as logger from 'firebase-functions/logger';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { analyticsHandler } from './server/api/analytics.handler';
@@ -69,7 +70,7 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
       throw error;
     }
 
-    console.log(`Node Express server listening on http://localhost:${port}`);
+    logger.info(`Node Express server listening on http://localhost:${port}`);
     // Set when Nx waits for this server to be ready
     if (process.env['NX_READY_SIGNAL_SOCKET']) {
       try {

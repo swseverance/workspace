@@ -1,6 +1,8 @@
 import { RequestHandler } from 'express';
 import { getFirestore } from 'firebase-admin/firestore';
+import * as logger from 'firebase-functions/logger';
 import { AnalyticsResponse } from '../../models/analytics';
+import { serializeError } from '../serialize-error';
 
 export const analyticsHandler: RequestHandler = async (_req, res) => {
   try {
@@ -8,7 +10,7 @@ export const analyticsHandler: RequestHandler = async (_req, res) => {
     const response: AnalyticsResponse = { users: snapshot.data().count };
     res.json(response);
   } catch (error) {
-    console.error(error);
+    logger.error('analytics', serializeError(error));
     res.status(500).json({ message: 'Internal server error' });
   }
 };

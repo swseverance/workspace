@@ -9,6 +9,7 @@ import {
   FlashcardType,
   UpdateFlashcardArgs,
 } from './app/models';
+import { serializeError } from './serialize-error';
 
 type AuthedRequest = Request & { uid: string };
 
@@ -123,7 +124,7 @@ async function requireAppCheck(
     await getAppCheck().verifyToken(token);
     next();
   } catch (error) {
-    logger.error('verifyToken()', error);
+    logger.error('verifyToken()', serializeError(error));
     res.status(401).json({ error: 'App Check token required' });
   }
 }
@@ -145,7 +146,7 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
     ).uid;
     next();
   } catch (error) {
-    logger.error('verifyIdToken()', error);
+    logger.error('verifyIdToken()', serializeError(error));
     res.status(401).json({ error: 'Must be signed in' });
   }
 }
@@ -180,7 +181,7 @@ export function createFlashcardsRouter(): Router {
         flashcard: toFlashcard(ref.id, snap.data() as ReadFlashcard),
       });
     } catch (error) {
-      logger.error('create flashcard', error);
+      logger.error('create flashcard', serializeError(error));
       res.status(500).json({ error: 'Failed to create flashcard' });
     }
   });
@@ -211,7 +212,7 @@ export function createFlashcardsRouter(): Router {
           .sort((a, b) => a.confidence - b.confidence),
       });
     } catch (error) {
-      logger.error('get groups', error);
+      logger.error('get groups', serializeError(error));
       res.status(500).json({ error: 'Failed to load flashcards' });
     }
   });
@@ -244,7 +245,7 @@ export function createFlashcardsRouter(): Router {
         ),
       });
     } catch (error) {
-      logger.error('get flashcards', error);
+      logger.error('get flashcards', serializeError(error));
       res.status(500).json({ error: 'Failed to load flashcards' });
     }
   });
@@ -281,7 +282,7 @@ export function createFlashcardsRouter(): Router {
 
       res.json({ flashcard: toFlashcard(id, updated.data() as ReadFlashcard) });
     } catch (error) {
-      logger.error('update flashcard', error);
+      logger.error('update flashcard', serializeError(error));
       res.status(500).json({ error: 'Failed to update flashcard' });
     }
   });
@@ -309,7 +310,7 @@ export function createFlashcardsRouter(): Router {
 
       res.status(204).end();
     } catch (error) {
-      logger.error('delete flashcard', error);
+      logger.error('delete flashcard', serializeError(error));
       res.status(500).json({ error: 'Failed to delete flashcard' });
     }
   });
