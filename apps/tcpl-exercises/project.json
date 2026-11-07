@@ -1,0 +1,123 @@
+{
+  "name": "tcpl-exercises",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/tcpl-exercises/src",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/tcpl-exercises",
+        "browser": "apps/tcpl-exercises/src/main.ts",
+        "tsConfig": "apps/tcpl-exercises/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/tcpl-exercises/public"
+          }
+        ],
+        "styles": [
+          {
+            "input": "apps/tcpl-exercises/src/themes/light-theme.less",
+            "bundleName": "light-theme"
+          },
+          {
+            "input": "apps/tcpl-exercises/src/themes/dark-theme.less",
+            "bundleName": "dark-theme"
+          },
+          "apps/tcpl-exercises/src/styles.scss"
+        ],
+        "server": "apps/tcpl-exercises/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/tcpl-exercises/src/server.ts"
+        },
+        "outputMode": "server",
+        "security": {
+          "allowedHosts": []
+        },
+        "externalDependencies": ["firebase-admin"]
+      },
+      "configurations": {
+        "production": {
+          "outputHashing": "all",
+          "optimization": {
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            }
+          },
+          "fileReplacements": [
+            {
+              "replace": "apps/tcpl-exercises/src/environments/environment.ts",
+              "with": "apps/tcpl-exercises/src/environments/environment.prod.ts"
+            }
+          ]
+        },
+        "development": {
+          "outputHashing": "all",
+          "optimization": {
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            }
+          },
+          "fileReplacements": [
+            {
+              "replace": "apps/tcpl-exercises/src/environments/environment.ts",
+              "with": "apps/tcpl-exercises/src/environments/environment.dev.ts"
+            }
+          ]
+        },
+        "local": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "readyWhen": {
+        "signal": true
+      },
+      "executor": "@angular/build:dev-server",
+      "defaultConfiguration": "local",
+      "configurations": {
+        "production": {
+          "buildTarget": "tcpl-exercises:build:production"
+        },
+        "development": {
+          "buildTarget": "tcpl-exercises:build:development"
+        },
+        "local": {
+          "buildTarget": "tcpl-exercises:build:local"
+        }
+      }
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false,
+        "buildTarget": "tcpl-exercises:build:local"
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "readyWhen": {
+        "signal": true
+      },
+      "dependsOn": ["build"],
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "tcpl-exercises:build",
+        "staticFilePath": "dist/apps/tcpl-exercises/browser",
+        "spa": true
+      }
+    }
+  }
+}

@@ -1,0 +1,28 @@
+scripts:
+  buildCommand: npx nx build tcpl-exercises --configuration=development
+  runCommand: node dist/apps/tcpl-exercises/server/server.mjs
+
+env:
+  - variable: FIREBASE_PROJECT_ID
+    value: tcpl-exercises-dev
+    availability:
+      - RUNTIME
+  - variable: VERCEL_PROJECT_ID
+    value: prj_0meBl6c4rXbP51iv7xkZs8eow1Rw # tcpl-exercises-dev
+    availability:
+      - RUNTIME
+  # Scoped to only the tcpl-exercises-dev project. Secrets are per-GCP-project
+  # resources, so this is a separate secret from the one apphosting.prod.yaml
+  # references even though they share the same name.
+  - variable: VERCEL_TOKEN
+    secret: VERCEL_TOKEN
+    availability:
+      - RUNTIME
+  - variable: UPSTASH_REDIS_REST_TOKEN
+    secret: UPSTASH_REDIS_REST_TOKEN
+    availability:
+      - RUNTIME
+  - variable: ENVIRONMENT_NAME
+    value: dev
+    availability:
+      - RUNTIME

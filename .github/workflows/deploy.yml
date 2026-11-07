@@ -45,17 +45,16 @@ jobs:
       - name: Build affected projects for this environment
         run: |
           # `nx affected -t build` with no --configuration uses each
-          # project's defaultConfiguration, which is "production" for all
-          # three apps — correct for a push to main, but wrong on develop,
-          # where the real Cloud Build deploy uses --configuration=development.
-          # weight-tracker/chinese-flashcards have no "development"
-          # configuration at all and aren't deployed from develop, so on
-          # develop we only ever build ghreactions, matching what actually
-          # gets deployed below.
+          # project's defaultConfiguration, which is "production" — correct
+          # for a push to main, but wrong on develop, where the real Cloud
+          # Build deploy uses --configuration=development. Only apps with a
+          # dev environment are deployed from develop, so build just those.
           if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            if echo "${{ steps.affected.outputs.affected }}" | grep -qx ghreactions; then
-              npx nx build ghreactions --configuration=development
-            fi
+            for app in ghreactions tcpl-exercises; do
+              if echo "${{ steps.affected.outputs.affected }}" | grep -qx "$app"; then
+                npx nx build "$app" --configuration=development
+              fi
+            done
           else
             npx nx affected -t build --parallel=3 --base="${{ steps.affected.outputs.base }}" --head="${{ github.sha }}"
           fi
@@ -66,15 +65,23 @@ jobs:
           workload_identity_provider: projects/1007948396460/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
           service_account: github-deployer@swseverance-ci.iam.gserviceaccount.com
 
-      # develop -> dev releases (only ghreactions has a dev environment today)
+      # develop -> dev releases (only apps with a dev environment)
       - name: Deploy ghreactions (dev)
         if: github.ref == 'refs/heads/develop' && contains(steps.affected.outputs.affected, 'ghreactions')
         run: npm run deploy:ghreactions:dev
+
+      - name: Deploy tcpl-exercises (dev)
+        if: github.ref == 'refs/heads/develop' && contains(steps.affected.outputs.affected, 'tcpl-exercises')
+        run: npm run deploy:tcpl-exercises:dev
 
       # main -> prod releases for every app with changes
       - name: Deploy ghreactions (prod)
         if: github.ref == 'refs/heads/main' && contains(steps.affected.outputs.affected, 'ghreactions')
         run: npm run deploy:ghreactions:prod
+
+      - name: Deploy tcpl-exercises (prod)
+        if: github.ref == 'refs/heads/main' && contains(steps.affected.outputs.affected, 'tcpl-exercises')
+        run: npm run deploy:tcpl-exercises:prod
 
       - name: Deploy weight-tracker (prod)
         if: github.ref == 'refs/heads/main' && contains(steps.affected.outputs.affected, 'weight-tracker')
