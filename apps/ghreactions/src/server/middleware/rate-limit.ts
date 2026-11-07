@@ -4,7 +4,7 @@ import * as logger from 'firebase-functions/logger';
 import { redis, redisKey } from '../redis/redis';
 import { serializeError } from '../serialize-error';
 
-const ratelimit = new Ratelimit({
+export const ratelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(100, '15 m'),
   prefix: redisKey('ratelimit'),

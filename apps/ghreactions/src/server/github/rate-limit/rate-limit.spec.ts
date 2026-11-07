@@ -1,5 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from 'vitest';
 import { RateLimitError } from '../../../models/errors';
+import { redis } from '../../redis/redis';
 import {
   blockUntil,
   checkRateLimit,
@@ -7,14 +16,11 @@ import {
   retryAt,
 } from './rate-limit';
 
-const { mockGet, mockSet } = vi.hoisted(() => ({
-  mockGet: vi.fn(),
-  mockSet: vi.fn(),
-}));
-
-vi.mock('@upstash/redis', () => ({
-  Redis: { fromEnv: vi.fn().mockReturnValue({ get: mockGet, set: mockSet }) },
-}));
+// Spy on the shared client rather than vi.mock('@upstash/redis'): the test
+// runner doesn't isolate spec files, so another file may already have loaded
+// the real module.
+let mockGet: MockInstance;
+let mockSet: MockInstance;
 
 const NOW = 1_700_000_000;
 
@@ -33,7 +39,8 @@ function makeResponse(
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  mockGet = vi.spyOn(redis, 'get').mockResolvedValue(null);
+  mockSet = vi.spyOn(redis, 'set').mockResolvedValue('OK');
   vi.useFakeTimers();
   vi.setSystemTime(NOW * 1000);
   vi.stubEnv('FIREBASE_PROJECT_ID', 'proj');
@@ -42,6 +49,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.useRealTimers();
   vi.unstubAllEnvs();
 });

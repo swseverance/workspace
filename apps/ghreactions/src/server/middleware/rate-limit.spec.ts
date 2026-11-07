@@ -1,19 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { rateLimitMiddleware } from './rate-limit';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from 'vitest';
+import { ratelimit, rateLimitMiddleware } from './rate-limit';
 
-const { mockLimit } = vi.hoisted(() => ({ mockLimit: vi.fn() }));
-
-vi.mock('@upstash/ratelimit', () => {
-  class Ratelimit {
-    limit = mockLimit;
-    static slidingWindow = vi.fn();
-  }
-  return { Ratelimit };
-});
-
-vi.mock('@upstash/redis', () => ({
-  Redis: { fromEnv: vi.fn().mockReturnValue({}) },
-}));
+// Spy on the shared limiter rather than vi.mock('@upstash/ratelimit'): the
+// test runner doesn't isolate spec files, so module mocks are order-dependent.
+let mockLimit: MockInstance;
 
 function makeReq(token?: string) {
   return { headers: { 'x-firebase-appcheck': token } } as any;
@@ -26,9 +24,11 @@ function makeRes() {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  mockLimit = vi.spyOn(ratelimit, 'limit');
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
+
+afterEach(() => vi.restoreAllMocks());
 
 describe('rateLimitMiddleware', () => {
   it('calls next() when under the limit', async () => {

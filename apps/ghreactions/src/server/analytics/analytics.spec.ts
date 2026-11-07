@@ -1,32 +1,37 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from 'vitest';
+import { redis } from '../redis/redis';
 import { getStats, recordSearch } from './analytics';
 
-const { mockIncr, mockPfadd, mockGet, mockPfcount } = vi.hoisted(() => ({
-  mockIncr: vi.fn(),
-  mockPfadd: vi.fn(),
-  mockGet: vi.fn(),
-  mockPfcount: vi.fn(),
-}));
-
-vi.mock('@upstash/redis', () => ({
-  Redis: {
-    fromEnv: vi.fn().mockReturnValue({
-      incr: mockIncr,
-      pfadd: mockPfadd,
-      get: mockGet,
-      pfcount: mockPfcount,
-    }),
-  },
-}));
+// Spy on the shared client rather than vi.mock('@upstash/redis'): the test
+// runner doesn't isolate spec files, so another file may already have loaded
+// the real module.
+let mockIncr: MockInstance;
+let mockPfadd: MockInstance;
+let mockGet: MockInstance;
+let mockPfcount: MockInstance;
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  mockIncr = vi.spyOn(redis, 'incr').mockResolvedValue(1);
+  mockPfadd = vi.spyOn(redis, 'pfadd').mockResolvedValue(1);
+  mockGet = vi.spyOn(redis, 'get').mockResolvedValue(null);
+  mockPfcount = vi.spyOn(redis, 'pfcount').mockResolvedValue(0);
   vi.stubEnv('FIREBASE_PROJECT_ID', 'proj');
   vi.stubEnv('ENVIRONMENT_NAME', 'test');
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
 
 describe('recordSearch', () => {
   it('counts the search and the lowercased username, per environment', async () => {
