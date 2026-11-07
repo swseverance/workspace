@@ -1,8 +1,10 @@
-import { getFirestore } from 'firebase-admin/firestore';
 import { RateLimitError } from '../../../models/errors';
-import type { RateLimitData, RateLimitWrite } from '../../../models/firebase';
+import { redis } from '../../redis/redis';
 
 const THRESHOLD = 100;
+const KEY = 'rate-limits:github';
+
+type RateLimitHash = { remaining: number; reset: number };
 
 export function isPrimaryLimitCloseToBeingBreached(res: Response): boolean {
   const remaining = res.headers.get('x-ratelimit-remaining');
@@ -23,28 +25,28 @@ export function isSecondaryLimitBreached(res: Response): boolean {
 
 export async function checkRateLimit(): Promise<void> {
   try {
-    const doc = await getFirestore().doc('rate-limits/github').get();
-    if (!doc.exists) return;
-    const { remaining } = doc.data() as RateLimitData;
+    const remaining = await redis.hget<number>(KEY, 'remaining');
+    if (remaining === null) return;
     if (remaining < THRESHOLD) throw new RateLimitError();
   } catch (err) {
     if (err instanceof RateLimitError) throw err;
-    // Firestore unavailable — fail open
+    // Redis unavailable — fail open
   }
 }
 
-export function updateRateLimit(remaining: number, reset: number): void {
-  const ref = getFirestore().doc('rate-limits/github');
-  ref.firestore
-    .runTransaction(async (t) => {
-      const doc = await t.get(ref);
-      if (doc.exists) {
-        const current = doc.data() as RateLimitData;
-        if (current.reset === reset && current.remaining <= remaining) return;
-      }
-      t.set(ref, { remaining, reset } satisfies RateLimitWrite);
-    })
-    .catch(() => {});
+export async function updateRateLimit(
+  remaining: number,
+  reset: number,
+): Promise<void> {
+  try {
+    const current = await redis.hmget<RateLimitHash>(KEY, 'remaining', 'reset');
+    if (current && current.reset === reset && current.remaining <= remaining)
+      return;
+
+    await redis.hset(KEY, { remaining, reset });
+  } catch {
+    // Redis unavailable — ignore
+  }
 }
 
 /**
