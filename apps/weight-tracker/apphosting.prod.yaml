@@ -3,6 +3,10 @@ env:
     value: weight-tracker-2592f
     availability:
       - RUNTIME
+  - variable: ENVIRONMENT_NAME
+    value: prod
+    availability:
+      - RUNTIME
 
 scripts:
   buildCommand: npx nx build weight-tracker --configuration=production
