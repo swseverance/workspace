@@ -53,9 +53,35 @@ app.use(
 app.use('/**', (req, res, next) => {
   angularApp
     .handle(req)
-    .then((response) =>
-      response ? writeResponseToNodeResponse(response, res) : next(),
-    )
+    .then(async (response) => {
+      if (!response) {
+        next();
+        return;
+      }
+
+      if (!response.headers.get('content-type')?.includes('text/html')) {
+        await writeResponseToNodeResponse(response, res);
+        return;
+      }
+
+      const html = await response.text();
+      const injected = html.replace(
+        '<html',
+        `<html data-server="${process.env['ENVIRONMENT_NAME'] ?? ''}"`,
+      );
+
+      const headers = new Headers(response.headers);
+      headers.delete('content-length');
+
+      await writeResponseToNodeResponse(
+        new Response(injected, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        }),
+        res,
+      );
+    })
     .catch(next);
 });
 
