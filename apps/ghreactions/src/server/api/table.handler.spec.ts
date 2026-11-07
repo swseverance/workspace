@@ -1,22 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RateLimitError, UserNotFoundError } from '../../models/errors';
 import { ReactableType } from '../../models/github';
+import { analytics } from '../analytics/analytics';
 import { api as commitCommentsApi } from '../github/fetch-commit-comments/fetch-commit-comments';
 import { api as issueCommentsApi } from '../github/fetch-issue-comments/fetch-issue-comments';
 import { api as issuesApi } from '../github/fetch-issues/fetch-issues';
 import { api as pullRequestsApi } from '../github/fetch-pull-requests/fetch-pull-requests';
 import { rateLimit } from '../github/rate-limit/rate-limit';
 import { tableHandler } from './table.handler';
-
-const { mockSet, mockDoc } = vi.hoisted(() => {
-  const mockSet = vi.fn().mockResolvedValue(undefined);
-  const mockDoc = vi.fn().mockReturnValue({ set: mockSet });
-  return { mockSet, mockDoc };
-});
-
-vi.mock('firebase-admin/firestore', () => ({
-  getFirestore: vi.fn().mockReturnValue({ doc: mockDoc }),
-}));
 
 function makeReq(query: Record<string, unknown>) {
   return { query } as any;
@@ -32,10 +23,7 @@ function makeRes() {
 const page = { rows: [], nextCursor: null };
 
 beforeEach(() => {
-  mockDoc.mockReturnValue({ set: mockSet });
-  mockSet.mockResolvedValue(undefined);
-  mockSet.mockClear();
-  mockDoc.mockClear();
+  analytics.recordSearch = vi.fn().mockResolvedValue(undefined);
 
   rateLimit.checkRateLimit = vi.fn().mockResolvedValue(undefined);
   commitCommentsApi.fetchCommitComments = vi.fn().mockResolvedValue(page);
@@ -270,7 +258,7 @@ describe('tableHandler', () => {
       expect(res.status).toHaveBeenCalledWith(400);
     });
 
-    it('upserts user with trimmed username after successful fetch', async () => {
+    it('records a new search with the trimmed username', async () => {
       await tableHandler(
         makeReq({
           username: '  Swseverance  ',
@@ -280,11 +268,21 @@ describe('tableHandler', () => {
         makeRes(),
         vi.fn(),
       );
-      expect(mockDoc).toHaveBeenCalledWith('users/swseverance');
-      expect(mockSet).toHaveBeenCalledWith(
-        { username: 'swseverance' },
-        { merge: true },
+      expect(analytics.recordSearch).toHaveBeenCalledWith('Swseverance');
+    });
+
+    it('does not record a search when scrolling to a later page', async () => {
+      await tableHandler(
+        makeReq({
+          username: 'Swseverance',
+          type: ReactableType.Issue,
+          state: 'OPEN',
+          cursor: 'abc123',
+        }),
+        makeRes(),
+        vi.fn(),
       );
+      expect(analytics.recordSearch).not.toHaveBeenCalled();
     });
 
     it('returns the page from the fetch function', async () => {
@@ -307,10 +305,11 @@ describe('tableHandler', () => {
   });
 
   describe('error handling', () => {
-    it('returns 429 when rate limited', async () => {
+    it('returns 429 with Retry-After when rate limited', async () => {
+      const retryAt = Math.floor(Date.now() / 1000) + 600;
       rateLimit.checkRateLimit = vi
         .fn()
-        .mockRejectedValue(new RateLimitError());
+        .mockRejectedValue(new RateLimitError(retryAt));
       const res = makeRes();
 
       await tableHandler(
@@ -323,11 +322,16 @@ describe('tableHandler', () => {
         vi.fn(),
       );
 
+      expect(res.set).toHaveBeenCalledWith(
+        'Retry-After',
+        expect.stringMatching(/^(599|600)$/),
+      );
       expect(res.status).toHaveBeenCalledWith(429);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Rate limited by GitHub, please try again later',
+        message:
+          "GitHub's rate limit has been reached. Please try again in 10 minutes.",
       });
-      expect(mockSet).not.toHaveBeenCalled();
+      expect(analytics.recordSearch).not.toHaveBeenCalled();
     });
 
     it('returns empty page when user is not found', async () => {
@@ -347,7 +351,7 @@ describe('tableHandler', () => {
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ message: error.message });
-      expect(mockSet).not.toHaveBeenCalled();
+      expect(analytics.recordSearch).not.toHaveBeenCalled();
     });
 
     it('returns 500 for unexpected errors', async () => {
@@ -368,9 +372,9 @@ describe('tableHandler', () => {
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'something went wrong',
+        message: 'Internal server error',
       });
-      expect(mockSet).not.toHaveBeenCalled();
+      expect(analytics.recordSearch).not.toHaveBeenCalled();
     });
   });
 });

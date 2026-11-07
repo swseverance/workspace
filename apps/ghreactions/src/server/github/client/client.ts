@@ -1,7 +1,9 @@
 import { RateLimitError, UserNotFoundError } from '../../../models/errors';
-import { rateLimit } from '../rate-limit/rate-limit';
+import { GitHubErrorBody, rateLimit } from '../rate-limit/rate-limit';
 
 export const PAGE_SIZE = 100;
+
+type GraphQLResponse<T> = GitHubErrorBody & { data?: T };
 
 export const truncate = (text: string, limit = 120): string =>
   text.length > limit ? text.slice(0, limit).trimEnd() + '…' : text;
@@ -45,40 +47,29 @@ export async function gql<T>(
     body: JSON.stringify({ query, variables }),
   });
 
-  const remainingHeader = res.headers.get('x-ratelimit-remaining');
-  const resetHeader = res.headers.get('x-ratelimit-reset');
+  // Not every response is JSON (e.g. an HTML 502 from a proxy).
+  const body: GraphQLResponse<T> | null = await res.json().catch(() => null);
 
-  // Both headers are absent on, e.g., an auth failure response — that's not
-  // the same as GitHub reporting an actual remaining count of zero, so don't
-  // record it as if it were.
-  if (remainingHeader !== null && resetHeader !== null) {
-    rateLimit.updateRateLimit(Number(remainingHeader), Number(resetHeader));
+  // Awaited rather than fire-and-forget: Cloud Run may throttle CPU once the
+  // response is sent, so a background write could silently never land.
+  const retryAt = rateLimit.retryAt(res, body);
+  if (retryAt !== null) {
+    await rateLimit.blockUntil(retryAt);
+    if (rateLimit.isRateLimited(res, body)) throw new RateLimitError(retryAt);
   }
 
-  if (
-    rateLimit.isPrimaryLimitCloseToBeingBreached(res) ||
-    rateLimit.isSecondaryLimitBreached(res)
-  ) {
-    throw new RateLimitError();
-  }
-
-  const json: {
-    data?: T;
-    errors?: { type: string; message?: string }[];
-    message?: string;
-  } = await res.json();
-
-  if (json.errors?.some((e) => e.type === 'NOT_FOUND'))
+  if (body === null) throw new Error(`GitHub API error: ${res.status}`);
+  if (body.errors?.some((e) => e.type === 'NOT_FOUND'))
     throw new UserNotFoundError();
-  if (json.errors?.length)
-    throw new Error(json.errors[0].message ?? 'GitHub API error');
+  if (body.errors?.length)
+    throw new Error(body.errors[0].message ?? 'GitHub API error');
   // A response with neither `data` nor `errors` isn't a GraphQL result at
   // all — e.g. a flat `{ "message": "Bad credentials" }` body on auth
   // failure. Surface that reason instead of crashing downstream on `.search`.
-  if (json.data === undefined)
-    throw new Error(json.message ?? `GitHub API error: ${res.status}`);
+  if (body.data === undefined)
+    throw new Error(body.message ?? `GitHub API error: ${res.status}`);
 
-  return json.data;
+  return body.data;
 }
 
 /**
