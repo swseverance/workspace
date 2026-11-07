@@ -36,10 +36,15 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
   vi.setSystemTime(NOW * 1000);
+  vi.stubEnv('FIREBASE_PROJECT_ID', 'proj');
+  vi.stubEnv('ENVIRONMENT_NAME', 'test');
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllEnvs();
+});
 
 describe('isRateLimited', () => {
   it('is false for a normal response', () => {
@@ -177,9 +182,13 @@ describe('checkRateLimit', () => {
 describe('blockUntil', () => {
   it('stores the time with a matching expiry', async () => {
     await blockUntil(NOW + 120);
-    expect(mockSet).toHaveBeenCalledWith('github:blocked-until', NOW + 120, {
-      exat: NOW + 120,
-    });
+    expect(mockSet).toHaveBeenCalledWith(
+      'proj:test:github:blocked-until',
+      NOW + 120,
+      {
+        exat: NOW + 120,
+      },
+    );
   });
 
   it('skips times that are not in the future', async () => {

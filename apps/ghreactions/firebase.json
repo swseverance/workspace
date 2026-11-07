@@ -1,18 +1,9 @@
 {
-  "firestore": {
-    "database": "(default)",
-    "location": "nam5",
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
   "emulators": {
     "apphosting": {
       "rootDirectory": "./",
       "startCommand": "npx nx serve ghreactions",
       "port": 4200
-    },
-    "firestore": {
-      "port": 8080
     },
     "auth": {
       "port": 9099

@@ -1,24 +1,15 @@
 import { RequestHandler } from 'express';
-import { getFirestore } from 'firebase-admin/firestore';
 import * as logger from 'firebase-functions/logger';
 import { RateLimitError, UserNotFoundError } from '../../models/errors';
-import type { UserWrite } from '../../models/firebase';
 import { ReactableType } from '../../models/github';
 import { tableQuerySchema } from '../../validators/validators';
+import { analytics } from '../analytics/analytics';
 import { api as commitCommentsApi } from '../github/fetch-commit-comments/fetch-commit-comments';
 import { api as issueCommentsApi } from '../github/fetch-issue-comments/fetch-issue-comments';
 import { api as issuesApi } from '../github/fetch-issues/fetch-issues';
 import { api as pullRequestsApi } from '../github/fetch-pull-requests/fetch-pull-requests';
 import { rateLimit } from '../github/rate-limit/rate-limit';
 import { serializeError } from '../serialize-error';
-
-const upsertUser = (username: string): void => {
-  const data: UserWrite = { username };
-  getFirestore()
-    .doc(`users/${username}`)
-    .set(data, { merge: true })
-    .catch(() => {});
-};
 
 export const tableHandler: RequestHandler = async (req, res) => {
   const parsed = tableQuerySchema.safeParse(req.query);
@@ -49,9 +40,12 @@ export const tableHandler: RequestHandler = async (req, res) => {
         break;
     }
 
-    res.json(page);
+    // A cursor means the user is scrolling an existing search, not starting
+    // one. Awaited before responding because Cloud Run may throttle CPU once
+    // the response is sent.
+    if (!data.cursor) await analytics.recordSearch(data.username);
 
-    upsertUser(data.username.toLowerCase());
+    res.json(page);
   } catch (err) {
     if (err instanceof RateLimitError) {
       const seconds = Math.max(1, err.retryAt - Math.floor(Date.now() / 1000));
