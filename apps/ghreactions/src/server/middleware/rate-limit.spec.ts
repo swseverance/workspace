@@ -58,6 +58,7 @@ describe('rateLimitMiddleware', () => {
 
     await rateLimitMiddleware(makeReq('token'), res, next);
 
+    expect(res.setHeader).toHaveBeenCalledWith('Retry-After', 1);
     expect(res.status).toHaveBeenCalledWith(429);
     expect(res.json).toHaveBeenCalledWith({
       message: 'Too many requests. Please try again later',

@@ -307,10 +307,11 @@ describe('tableHandler', () => {
   });
 
   describe('error handling', () => {
-    it('returns 429 when rate limited', async () => {
+    it('returns 429 with Retry-After when rate limited', async () => {
+      const retryAt = Math.floor(Date.now() / 1000) + 600;
       rateLimit.checkRateLimit = vi
         .fn()
-        .mockRejectedValue(new RateLimitError());
+        .mockRejectedValue(new RateLimitError(retryAt));
       const res = makeRes();
 
       await tableHandler(
@@ -323,9 +324,14 @@ describe('tableHandler', () => {
         vi.fn(),
       );
 
+      expect(res.set).toHaveBeenCalledWith(
+        'Retry-After',
+        expect.stringMatching(/^(599|600)$/),
+      );
       expect(res.status).toHaveBeenCalledWith(429);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'Rate limited by GitHub, please try again later',
+        message:
+          "GitHub's rate limit has been reached. Please try again in 10 minutes.",
       });
       expect(mockSet).not.toHaveBeenCalled();
     });
@@ -368,7 +374,7 @@ describe('tableHandler', () => {
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
-        message: 'something went wrong',
+        message: 'Internal server error',
       });
       expect(mockSet).not.toHaveBeenCalled();
     });

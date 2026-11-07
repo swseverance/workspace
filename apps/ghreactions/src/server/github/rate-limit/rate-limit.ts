@@ -1,51 +1,105 @@
+import * as logger from 'firebase-functions/logger';
 import { RateLimitError } from '../../../models/errors';
 import { redis } from '../../redis/redis';
+import { serializeError } from '../../serialize-error';
 
+// Stop calling GitHub once fewer than this many points remain in the window,
+// leaving headroom for requests already in flight.
 const THRESHOLD = 100;
-const KEY = 'rate-limits:github';
+// GitHub's guidance when a limit is hit without an explicit retry time.
+const DEFAULT_BACKOFF_SECONDS = 60;
+// Primary windows are hourly, so no legitimate wait is longer than this.
+const MAX_BACKOFF_SECONDS = 60 * 60;
 
-type RateLimitHash = { remaining: number; reset: number };
+const KEY = 'github:blocked-until';
 
-export function isPrimaryLimitCloseToBeingBreached(res: Response): boolean {
-  const remaining = res.headers.get('x-ratelimit-remaining');
-  // A missing header (e.g. an auth failure response) is not the same as an
-  // actual remaining count of zero — don't mistake one for the other.
-  return remaining !== null && Number(remaining) < THRESHOLD;
+export type GitHubErrorBody = {
+  message?: string;
+  errors?: { type?: string; message?: string }[];
+};
+
+const nowSeconds = () => Math.floor(Date.now() / 1000);
+
+function numericHeader(res: Response, name: string): number | null {
+  const value = res.headers.get(name);
+  if (value === null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function isSecondaryLimitBreached(res: Response): boolean {
-  const remaining = res.headers.get('x-ratelimit-remaining');
+const mentionsRateLimit = (message?: string) =>
+  message !== undefined && /rate limit/i.test(message);
+
+/**
+ * Whether this response is GitHub refusing the request because of a primary
+ * or secondary rate limit. GraphQL reports these as 200 (or 403) with an
+ * error body, not just via status codes.
+ */
+export function isRateLimited(
+  res: Response,
+  body: GitHubErrorBody | null,
+): boolean {
   return (
-    res.status === 403 ||
     res.status === 429 ||
     res.headers.has('retry-after') ||
-    (remaining !== null && Number(remaining) === 0)
+    numericHeader(res, 'x-ratelimit-remaining') === 0 ||
+    mentionsRateLimit(body?.message) ||
+    (body?.errors ?? []).some(
+      (e) => e.type === 'RATE_LIMITED' || mentionsRateLimit(e.message),
+    )
   );
 }
 
+/**
+ * The epoch second before which GitHub shouldn't be called again, following
+ * GitHub's documented order: `retry-after`, then `x-ratelimit-reset` once the
+ * window is (nearly) spent, then a one-minute default. Null if no wait is needed.
+ */
+export function retryAt(
+  res: Response,
+  body: GitHubErrorBody | null,
+): number | null {
+  const now = nowSeconds();
+  const cap = (at: number) => Math.min(at, now + MAX_BACKOFF_SECONDS);
+
+  const retryAfter = numericHeader(res, 'retry-after');
+  if (retryAfter !== null) return cap(now + retryAfter);
+
+  const remaining = numericHeader(res, 'x-ratelimit-remaining');
+  if (remaining !== null && remaining < THRESHOLD) {
+    const reset = numericHeader(res, 'x-ratelimit-reset');
+    return cap(
+      reset !== null && reset > now ? reset : now + DEFAULT_BACKOFF_SECONDS,
+    );
+  }
+
+  if (isRateLimited(res, body)) return now + DEFAULT_BACKOFF_SECONDS;
+
+  return null;
+}
+
+/** Throws RateLimitError if GitHub calls are currently paused. */
 export async function checkRateLimit(): Promise<void> {
+  let blockedUntil: number | null;
   try {
-    const remaining = await redis.hget<number>(KEY, 'remaining');
-    if (remaining === null) return;
-    if (remaining < THRESHOLD) throw new RateLimitError();
+    blockedUntil = await redis.get<number>(KEY);
   } catch (err) {
-    if (err instanceof RateLimitError) throw err;
-    // Redis unavailable — fail open
+    logger.error('[GitHub rate limit] read failed:', serializeError(err));
+    return; // fail open
+  }
+
+  if (blockedUntil !== null && blockedUntil > nowSeconds()) {
+    throw new RateLimitError(blockedUntil);
   }
 }
 
-export async function updateRateLimit(
-  remaining: number,
-  reset: number,
-): Promise<void> {
+/** Pauses GitHub calls across all instances until the given epoch second. */
+export async function blockUntil(until: number): Promise<void> {
+  if (until <= nowSeconds()) return;
   try {
-    const current = await redis.hmget<RateLimitHash>(KEY, 'remaining', 'reset');
-    if (current && current.reset === reset && current.remaining <= remaining)
-      return;
-
-    await redis.hset(KEY, { remaining, reset });
-  } catch {
-    // Redis unavailable — ignore
+    await redis.set(KEY, until, { exat: until });
+  } catch (err) {
+    logger.error('[GitHub rate limit] write failed:', serializeError(err));
   }
 }
 
@@ -55,8 +109,8 @@ export async function updateRateLimit(
  * bindings, so vi.mock/vi.spyOn can't intercept a relative import).
  */
 export const rateLimit = {
-  isPrimaryLimitCloseToBeingBreached,
-  isSecondaryLimitBreached,
+  isRateLimited,
+  retryAt,
   checkRateLimit,
-  updateRateLimit,
+  blockUntil,
 };

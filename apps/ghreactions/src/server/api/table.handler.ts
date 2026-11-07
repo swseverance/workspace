@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { getFirestore } from 'firebase-admin/firestore';
+import * as logger from 'firebase-functions/logger';
 import { RateLimitError, UserNotFoundError } from '../../models/errors';
 import type { UserWrite } from '../../models/firebase';
 import { ReactableType } from '../../models/github';
@@ -9,6 +10,7 @@ import { api as issueCommentsApi } from '../github/fetch-issue-comments/fetch-is
 import { api as issuesApi } from '../github/fetch-issues/fetch-issues';
 import { api as pullRequestsApi } from '../github/fetch-pull-requests/fetch-pull-requests';
 import { rateLimit } from '../github/rate-limit/rate-limit';
+import { serializeError } from '../serialize-error';
 
 const upsertUser = (username: string): void => {
   const data: UserWrite = { username };
@@ -52,9 +54,14 @@ export const tableHandler: RequestHandler = async (req, res) => {
     upsertUser(data.username.toLowerCase());
   } catch (err) {
     if (err instanceof RateLimitError) {
+      const seconds = Math.max(1, err.retryAt - Math.floor(Date.now() / 1000));
+      const minutes = Math.ceil(seconds / 60);
       res
+        .set('Retry-After', String(seconds))
         .status(429)
-        .json({ message: 'Rate limited by GitHub, please try again later' });
+        .json({
+          message: `GitHub's rate limit has been reached. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+        });
       return;
     }
 
@@ -63,10 +70,8 @@ export const tableHandler: RequestHandler = async (req, res) => {
       return;
     }
 
-    res
-      .status(500)
-      .json({
-        message: err instanceof Error ? err.message : 'Internal server error',
-      });
+    // Upstream error text (e.g. "Bad credentials") is for us, not the user.
+    logger.error('[table]', serializeError(err));
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
