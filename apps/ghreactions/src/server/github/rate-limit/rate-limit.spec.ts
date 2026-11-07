@@ -1,241 +1,211 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RateLimitError } from '../../../models/errors';
 import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from 'vitest';
+import { RateLimitError } from '../../../models/errors';
+import { redis } from '../../redis/redis';
+import {
+  blockUntil,
   checkRateLimit,
-  isPrimaryLimitCloseToBeingBreached,
-  isSecondaryLimitBreached,
-  updateRateLimit,
+  isRateLimited,
+  retryAt,
 } from './rate-limit';
 
-vi.mock('firebase-admin/firestore', () => ({
-  getFirestore: vi.fn(),
-}));
+// Spy on the shared client rather than vi.mock('@upstash/redis'): the test
+// runner doesn't isolate spec files, so another file may already have loaded
+// the real module.
+let mockGet: MockInstance;
+let mockSet: MockInstance;
 
-import { getFirestore } from 'firebase-admin/firestore';
+const NOW = 1_700_000_000;
 
-function makeDoc(data: { remaining: number; reset?: number } | null) {
-  return {
-    exists: data !== null,
-    data: () => data,
-  };
-}
-
-function makeFirestore(doc: ReturnType<typeof makeDoc>) {
-  return {
-    doc: vi.fn().mockReturnValue({
-      get: vi.fn().mockResolvedValue(doc),
-      set: vi.fn().mockResolvedValue(undefined),
-    }),
-  };
-}
-
-function makeTransactionFirestore(doc: ReturnType<typeof makeDoc>) {
-  const tSet = vi.fn();
-  const runTransaction = vi
-    .fn()
-    .mockImplementation(async (fn: (t: any) => Promise<void>) => {
-      await fn({ get: vi.fn().mockResolvedValue(doc), set: tSet });
-    });
-  vi.mocked(getFirestore).mockReturnValue({
-    doc: vi.fn().mockReturnValue({ firestore: { runTransaction } }),
-  } as any);
-  return { tSet, runTransaction };
-}
-
-function makeResponse(options: {
-  status?: number;
-  remaining?: number;
-  remainingHeaderMissing?: boolean;
-  hasRetryAfter?: boolean;
-}): Response {
-  const {
-    status = 200,
-    remaining = 4000,
-    remainingHeaderMissing = false,
-    hasRetryAfter = false,
-  } = options;
+function makeResponse(
+  options: { status?: number; headers?: Record<string, string> } = {},
+): Response {
+  const { status = 200, headers = {} } = options;
+  const map = new Map(Object.entries(headers));
   return {
     status,
     headers: {
-      get: (k: string) =>
-        k === 'x-ratelimit-remaining' && !remainingHeaderMissing
-          ? String(remaining)
-          : null,
-      has: (k: string) => k === 'retry-after' && hasRetryAfter,
+      get: (k: string) => map.get(k) ?? null,
+      has: (k: string) => map.has(k),
     },
   } as unknown as Response;
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  mockGet = vi.spyOn(redis, 'get').mockResolvedValue(null);
+  mockSet = vi.spyOn(redis, 'set').mockResolvedValue('OK');
+  vi.useFakeTimers();
+  vi.setSystemTime(NOW * 1000);
+  vi.stubEnv('FIREBASE_PROJECT_ID', 'proj');
+  vi.stubEnv('ENVIRONMENT_NAME', 'test');
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+});
 
-describe('isPrimaryLimitCloseToBeingBreached', () => {
-  it('returns false when remaining is above threshold', () => {
-    expect(
-      isPrimaryLimitCloseToBeingBreached(makeResponse({ remaining: 4000 })),
-    ).toBe(false);
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+  vi.unstubAllEnvs();
+});
+
+describe('isRateLimited', () => {
+  it('is false for a normal response', () => {
+    const res = makeResponse({ headers: { 'x-ratelimit-remaining': '4000' } });
+    expect(isRateLimited(res, { data: {} } as never)).toBe(false);
   });
 
-  it('returns false when remaining equals threshold', () => {
-    expect(
-      isPrimaryLimitCloseToBeingBreached(makeResponse({ remaining: 100 })),
-    ).toBe(false);
+  it('is true for 429', () => {
+    expect(isRateLimited(makeResponse({ status: 429 }), null)).toBe(true);
   });
 
-  it('returns true when remaining is below threshold', () => {
+  it('is true when retry-after is present', () => {
+    const res = makeResponse({ headers: { 'retry-after': '30' } });
+    expect(isRateLimited(res, null)).toBe(true);
+  });
+
+  it('is true when remaining is 0 (GraphQL primary limit is a 200)', () => {
+    const res = makeResponse({ headers: { 'x-ratelimit-remaining': '0' } });
+    expect(isRateLimited(res, null)).toBe(true);
+  });
+
+  it('is true for a RATE_LIMITED GraphQL error', () => {
     expect(
-      isPrimaryLimitCloseToBeingBreached(makeResponse({ remaining: 99 })),
+      isRateLimited(makeResponse(), { errors: [{ type: 'RATE_LIMITED' }] }),
     ).toBe(true);
   });
 
-  it('returns true when remaining is 0', () => {
+  it('is true for a secondary-limit message body', () => {
     expect(
-      isPrimaryLimitCloseToBeingBreached(makeResponse({ remaining: 0 })),
+      isRateLimited(makeResponse({ status: 403 }), {
+        message: 'You have exceeded a secondary rate limit.',
+      }),
     ).toBe(true);
   });
 
-  it('returns false when the header is missing (e.g. an auth failure response)', () => {
+  it('is false for a 403 that is not about rate limiting', () => {
     expect(
-      isPrimaryLimitCloseToBeingBreached(
-        makeResponse({ remainingHeaderMissing: true }),
-      ),
+      isRateLimited(makeResponse({ status: 403 }), {
+        message: 'Resource protected by organization SAML enforcement.',
+      }),
+    ).toBe(false);
+  });
+
+  it('is false when rate-limit headers are absent (e.g. an auth failure)', () => {
+    expect(
+      isRateLimited(makeResponse({ status: 401 }), {
+        message: 'Bad credentials',
+      }),
     ).toBe(false);
   });
 });
 
-describe('isSecondaryLimitBreached', () => {
-  it('returns false for a normal response', () => {
-    expect(isSecondaryLimitBreached(makeResponse({}))).toBe(false);
+describe('retryAt', () => {
+  it('is null when plenty of the window remains', () => {
+    const res = makeResponse({
+      headers: {
+        'x-ratelimit-remaining': '4000',
+        'x-ratelimit-reset': String(NOW + 1800),
+      },
+    });
+    expect(retryAt(res, null)).toBeNull();
   });
 
-  it('returns true for status 403', () => {
-    expect(isSecondaryLimitBreached(makeResponse({ status: 403 }))).toBe(true);
+  it('is null when rate-limit headers are absent', () => {
+    expect(retryAt(makeResponse({ status: 401 }), null)).toBeNull();
   });
 
-  it('returns true for status 429', () => {
-    expect(isSecondaryLimitBreached(makeResponse({ status: 429 }))).toBe(true);
+  it('prefers retry-after', () => {
+    const res = makeResponse({
+      headers: {
+        'retry-after': '30',
+        'x-ratelimit-remaining': '0',
+        'x-ratelimit-reset': String(NOW + 1800),
+      },
+    });
+    expect(retryAt(res, null)).toBe(NOW + 30);
   });
 
-  it('returns true when retry-after header is present', () => {
+  it('waits for the reset once remaining drops below the threshold', () => {
+    const res = makeResponse({
+      headers: {
+        'x-ratelimit-remaining': '99',
+        'x-ratelimit-reset': String(NOW + 1800),
+      },
+    });
+    expect(retryAt(res, null)).toBe(NOW + 1800);
+  });
+
+  it('falls back to one minute when the reset is missing or already past', () => {
+    const res = makeResponse({
+      headers: {
+        'x-ratelimit-remaining': '0',
+        'x-ratelimit-reset': String(NOW - 5),
+      },
+    });
+    expect(retryAt(res, null)).toBe(NOW + 60);
+  });
+
+  it('waits one minute for a rate limit with no timing headers', () => {
     expect(
-      isSecondaryLimitBreached(makeResponse({ hasRetryAfter: true })),
-    ).toBe(true);
+      retryAt(makeResponse(), { errors: [{ type: 'RATE_LIMITED' }] }),
+    ).toBe(NOW + 60);
   });
 
-  it('returns true when remaining is 0', () => {
-    expect(isSecondaryLimitBreached(makeResponse({ remaining: 0 }))).toBe(true);
-  });
-
-  it('returns false when the header is missing (e.g. an auth failure response)', () => {
-    expect(
-      isSecondaryLimitBreached(makeResponse({ remainingHeaderMissing: true })),
-    ).toBe(false);
+  it('never waits longer than an hour', () => {
+    const res = makeResponse({ headers: { 'retry-after': '999999' } });
+    expect(retryAt(res, null)).toBe(NOW + 3600);
   });
 });
 
 describe('checkRateLimit', () => {
-  it('does not throw when no document exists', async () => {
-    vi.mocked(getFirestore).mockReturnValue(
-      makeFirestore(makeDoc(null)) as any,
-    );
-
+  it('passes when nothing is blocked', async () => {
+    mockGet.mockResolvedValue(null);
     await expect(checkRateLimit()).resolves.toBeUndefined();
   });
 
-  it('does not throw when remaining is above threshold', async () => {
-    vi.mocked(getFirestore).mockReturnValue(
-      makeFirestore(makeDoc({ remaining: 500 })) as any,
-    );
-
+  it('passes once the block has expired', async () => {
+    mockGet.mockResolvedValue(NOW - 1);
     await expect(checkRateLimit()).resolves.toBeUndefined();
   });
 
-  it('throws RateLimitError when remaining is below threshold', async () => {
-    vi.mocked(getFirestore).mockReturnValue(
-      makeFirestore(makeDoc({ remaining: 50 })) as any,
-    );
-
-    await expect(checkRateLimit()).rejects.toThrow(RateLimitError);
+  it('throws RateLimitError carrying the retry time while blocked', async () => {
+    mockGet.mockResolvedValue(NOW + 120);
+    const error = await checkRateLimit().catch((e) => e);
+    expect(error).toBeInstanceOf(RateLimitError);
+    expect(error).toMatchObject({ retryAt: NOW + 120 });
   });
 
-  it('throws RateLimitError when remaining is 0', async () => {
-    vi.mocked(getFirestore).mockReturnValue(
-      makeFirestore(makeDoc({ remaining: 0 })) as any,
-    );
-
-    await expect(checkRateLimit()).rejects.toThrow(RateLimitError);
-  });
-
-  it('fails open when Firestore throws', async () => {
-    vi.mocked(getFirestore).mockReturnValue({
-      doc: vi.fn().mockReturnValue({
-        get: vi.fn().mockRejectedValue(new Error('Firestore unavailable')),
-      }),
-    } as any);
-
+  it('fails open when Redis throws', async () => {
+    mockGet.mockRejectedValue(new Error('Redis unavailable'));
     await expect(checkRateLimit()).resolves.toBeUndefined();
   });
 });
 
-describe('updateRateLimit', () => {
-  it('writes when no document exists', async () => {
-    const { tSet, runTransaction } = makeTransactionFirestore(makeDoc(null));
-    updateRateLimit(4000, 1700000000);
-    await runTransaction.mock.results[0].value;
-    expect(tSet).toHaveBeenCalledWith(expect.anything(), {
-      remaining: 4000,
-      reset: 1700000000,
-    });
-  });
-
-  it('writes when incoming remaining is lower in the same reset window', async () => {
-    const { tSet, runTransaction } = makeTransactionFirestore(
-      makeDoc({ remaining: 500, reset: 1700000000 }),
+describe('blockUntil', () => {
+  it('stores the time with a matching expiry', async () => {
+    await blockUntil(NOW + 120);
+    expect(mockSet).toHaveBeenCalledWith(
+      'proj:test:github:blocked-until',
+      NOW + 120,
+      {
+        exat: NOW + 120,
+      },
     );
-    updateRateLimit(400, 1700000000);
-    await runTransaction.mock.results[0].value;
-    expect(tSet).toHaveBeenCalledWith(expect.anything(), {
-      remaining: 400,
-      reset: 1700000000,
-    });
   });
 
-  it('skips write when incoming remaining is higher in the same reset window', async () => {
-    const { tSet, runTransaction } = makeTransactionFirestore(
-      makeDoc({ remaining: 400, reset: 1700000000 }),
-    );
-    updateRateLimit(500, 1700000000);
-    await runTransaction.mock.results[0].value;
-    expect(tSet).not.toHaveBeenCalled();
+  it('skips times that are not in the future', async () => {
+    await blockUntil(NOW);
+    expect(mockSet).not.toHaveBeenCalled();
   });
 
-  it('skips write when incoming remaining equals current in the same reset window', async () => {
-    const { tSet, runTransaction } = makeTransactionFirestore(
-      makeDoc({ remaining: 400, reset: 1700000000 }),
-    );
-    updateRateLimit(400, 1700000000);
-    await runTransaction.mock.results[0].value;
-    expect(tSet).not.toHaveBeenCalled();
-  });
-
-  it('writes when the reset window has changed', async () => {
-    const { tSet, runTransaction } = makeTransactionFirestore(
-      makeDoc({ remaining: 400, reset: 1700000000 }),
-    );
-    updateRateLimit(5000, 1700003600);
-    await runTransaction.mock.results[0].value;
-    expect(tSet).toHaveBeenCalledWith(expect.anything(), {
-      remaining: 5000,
-      reset: 1700003600,
-    });
-  });
-
-  it('silently swallows transaction errors', () => {
-    const runTransaction = vi
-      .fn()
-      .mockRejectedValue(new Error('transaction failed'));
-    vi.mocked(getFirestore).mockReturnValue({
-      doc: vi.fn().mockReturnValue({ firestore: { runTransaction } }),
-    } as any);
-    expect(() => updateRateLimit(4000, 1700000000)).not.toThrow();
+  it('swallows Redis errors', async () => {
+    mockSet.mockRejectedValue(new Error('Redis unavailable'));
+    await expect(blockUntil(NOW + 120)).resolves.toBeUndefined();
   });
 });

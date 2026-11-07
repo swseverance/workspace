@@ -24,8 +24,9 @@
   <h2 nz-typography>How it works</h2>
 
   <p nz-typography>
-    Results are fetched from the GitHub GraphQL API. All data is public — no
-    information is stored or transmitted beyond your browser and GitHub.
+    Results are fetched live from the GitHub GraphQL API, and all of it is
+    public. We don't store results or the usernames you search — only anonymous
+    totals.
   </p>
 
   <h2 nz-typography>Built with</h2>
@@ -39,13 +40,12 @@
 
   @defer (on idle) { @if (analytics$ | async; as analytics) {
   <nz-card>
-    <nz-statistic
-      [nzValue]="analytics.users"
-      nzTitle="Usernames searched globally"
-      [nzValueStyle]="{
-            color: themeService!.theme === 'ghreactions-light-theme' ? '#1890ff' : '#177ddc'
-          }"
-    />
+    <p class="stats">
+      <span class="stat">{{ analytics.searches | number }}</span>
+      {{ analytics.searches === 1 ? 'search' : 'searches' }} across
+      <span class="stat">{{ analytics.profiles | number }}</span>
+      GitHub {{ analytics.profiles === 1 ? 'profile' : 'profiles' }}
+    </p>
   </nz-card>
   } }
 </div>

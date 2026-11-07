@@ -5,8 +5,12 @@ export class BadRequestError extends Error {
 }
 
 export class RateLimitError extends Error {
-  constructor() {
+  /** Epoch second after which it's OK to retry. */
+  readonly retryAt: number;
+
+  constructor(retryAt: number) {
     super('Rate limited by GitHub');
+    this.retryAt = retryAt;
   }
 }
 

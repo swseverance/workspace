@@ -13,6 +13,17 @@ import { GHReactionsRow, TablePage } from '../../models/table';
 
 const BLOCK_SIZE = 100;
 
+// Error messages can echo request input (e.g. "unsupported type: <value>"
+// from a shared link), and ag-grid renders overlay templates as HTML.
+const escapeHtml = (text: string) =>
+  text.replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[
+        c
+      ]!,
+  );
+
 @Injectable({
   providedIn: 'root',
 })
@@ -75,7 +86,7 @@ export class Data {
               params.api.setGridOption('loading', false);
               params.api.setGridOption(
                 'overlayNoRowsTemplate',
-                `<span class="ghreactions-server-error">${error.error?.message ?? 'Something went wrong'}</span>`,
+                `<span class="ghreactions-server-error">${escapeHtml(error.error?.message ?? 'Something went wrong')}</span>`,
               );
               params.successCallback([], 0);
               params.api.showNoRowsOverlay();

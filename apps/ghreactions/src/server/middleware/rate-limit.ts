@@ -1,13 +1,44 @@
-import { rateLimit } from 'express-rate-limit';
+import { Ratelimit } from '@upstash/ratelimit';
+import { RequestHandler } from 'express';
+import * as logger from 'firebase-functions/logger';
+import { redis, redisKey } from '../redis/redis';
+import { serializeError } from '../serialize-error';
 
-export const rateLimitMiddleware = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100,
-  keyGenerator: (req) => req.headers['x-firebase-appcheck'] as string,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (_, res) =>
-    res
-      .status(429)
-      .json({ message: 'Too many requests. Please try again later' }),
+export const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(100, '15 m'),
+  prefix: redisKey('ratelimit'),
 });
+
+export const rateLimitMiddleware: RequestHandler = async (req, res, next) => {
+  const identifier = req.headers['x-firebase-appcheck'] as string;
+
+  try {
+    const { success, limit, remaining, reset } =
+      await ratelimit.limit(identifier);
+
+    // `reset` is an epoch in ms; RateLimit-Reset and Retry-After are both
+    // "seconds from now".
+    const secondsUntilReset = Math.max(
+      1,
+      Math.ceil((reset - Date.now()) / 1000),
+    );
+
+    res.setHeader('RateLimit-Limit', limit);
+    res.setHeader('RateLimit-Remaining', remaining);
+    res.setHeader('RateLimit-Reset', secondsUntilReset);
+
+    if (!success) {
+      res.setHeader('Retry-After', secondsUntilReset);
+      res
+        .status(429)
+        .json({ message: 'Too many requests. Please try again later' });
+      return;
+    }
+
+    next();
+  } catch (err) {
+    logger.error('[Rate Limit] Redis unavailable:', serializeError(err));
+    next();
+  }
+};

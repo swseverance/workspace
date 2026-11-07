@@ -7,8 +7,9 @@ function makeResponse(options: {
   status?: number;
   headers?: Record<string, string>;
   body?: { data?: unknown; errors?: { type: string }[]; message?: string };
+  nonJson?: boolean;
 }): Response {
-  const { status = 200, headers = {}, body = {} } = options;
+  const { status = 200, headers = {}, body = {}, nonJson = false } = options;
   const map = new Map(Object.entries(headers));
   return {
     status,
@@ -16,19 +17,20 @@ function makeResponse(options: {
       get: (k: string) => map.get(k) ?? null,
       has: (k: string) => map.has(k),
     },
-    json: () => Promise.resolve(body),
+    json: () =>
+      nonJson ? Promise.reject(new SyntaxError()) : Promise.resolve(body),
   } as unknown as Response;
 }
 
+const inHalfAnHour = String(Math.floor(Date.now() / 1000) + 1800);
+
 const defaultHeaders = {
   'x-ratelimit-remaining': '4000',
-  'x-ratelimit-reset': '1700000000',
+  'x-ratelimit-reset': inHalfAnHour,
 };
 
 beforeEach(() => {
-  rateLimit.updateRateLimit = vi.fn();
-  rateLimit.isPrimaryLimitCloseToBeingBreached = vi.fn().mockReturnValue(false);
-  rateLimit.isSecondaryLimitBreached = vi.fn().mockReturnValue(false);
+  rateLimit.blockUntil = vi.fn().mockResolvedValue(undefined);
 });
 
 describe('toReactions', () => {
@@ -83,24 +85,40 @@ describe('gql', () => {
     );
   });
 
-  it('calls updateRateLimit with parsed header values', async () => {
+  it('does not pause GitHub calls while plenty of the window remains', async () => {
     vi.mocked(fetch).mockResolvedValue(
       makeResponse({ headers: defaultHeaders, body: { data: {} } }),
     );
 
     await gql('{ viewer { login } }', {});
 
-    expect(rateLimit.updateRateLimit).toHaveBeenCalledWith(4000, 1700000000);
+    expect(rateLimit.blockUntil).not.toHaveBeenCalled();
   });
 
-  it('does not call updateRateLimit when rate-limit headers are absent (e.g. an auth failure)', async () => {
+  it('pauses until the reset when the window is nearly spent, but still returns the data', async () => {
+    const data = { viewer: { login: 'sam' } };
+    vi.mocked(fetch).mockResolvedValue(
+      makeResponse({
+        headers: {
+          'x-ratelimit-remaining': '50',
+          'x-ratelimit-reset': inHalfAnHour,
+        },
+        body: { data },
+      }),
+    );
+
+    await expect(gql('{ viewer { login } }', {})).resolves.toEqual(data);
+    expect(rateLimit.blockUntil).toHaveBeenCalledWith(Number(inHalfAnHour));
+  });
+
+  it('does not pause when rate-limit headers are absent (e.g. an auth failure)', async () => {
     vi.mocked(fetch).mockResolvedValue(
       makeResponse({ status: 401, body: { message: 'Bad credentials' } }),
     );
 
     await expect(gql('{ viewer { login } }', {})).rejects.toThrow();
 
-    expect(rateLimit.updateRateLimit).not.toHaveBeenCalled();
+    expect(rateLimit.blockUntil).not.toHaveBeenCalled();
   });
 
   it('throws with the response message when the body has neither data nor errors', async () => {
@@ -121,24 +139,55 @@ describe('gql', () => {
     );
   });
 
-  it('throws RateLimitError when primary limit is close to breached', async () => {
+  it('falls back to the HTTP status when the body is not JSON', async () => {
     vi.mocked(fetch).mockResolvedValue(
-      makeResponse({ headers: defaultHeaders }),
+      makeResponse({ status: 502, nonJson: true }),
     );
-    vi.mocked(rateLimit.isPrimaryLimitCloseToBeingBreached).mockReturnValue(
-      true,
+
+    await expect(gql('{ viewer { login } }', {})).rejects.toThrow(
+      'GitHub API error: 502',
+    );
+  });
+
+  it('throws RateLimitError for a GraphQL primary-limit response (200 with remaining 0)', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      makeResponse({
+        headers: {
+          'x-ratelimit-remaining': '0',
+          'x-ratelimit-reset': inHalfAnHour,
+        },
+        body: { errors: [{ type: 'RATE_LIMITED' }] },
+      }),
+    );
+
+    const error = await gql('{ viewer { login } }', {}).catch((e) => e);
+
+    expect(error).toBeInstanceOf(RateLimitError);
+    expect(error).toMatchObject({ retryAt: Number(inHalfAnHour) });
+    expect(rateLimit.blockUntil).toHaveBeenCalledWith(Number(inHalfAnHour));
+  });
+
+  it('throws RateLimitError for a secondary-limit response with retry-after', async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      makeResponse({
+        status: 403,
+        headers: { 'retry-after': '60' },
+        body: { message: 'You have exceeded a secondary rate limit.' },
+      }),
     );
 
     await expect(gql('{ viewer { login } }', {})).rejects.toThrow(
       RateLimitError,
     );
+    expect(rateLimit.blockUntil).toHaveBeenCalled();
   });
 
-  it('throws RateLimitError when secondary limit is breached', async () => {
+  it('throws RateLimitError for a secondary-limit message with no timing headers', async () => {
     vi.mocked(fetch).mockResolvedValue(
-      makeResponse({ headers: defaultHeaders }),
+      makeResponse({
+        body: { message: 'You have exceeded a secondary rate limit.' },
+      }),
     );
-    vi.mocked(rateLimit.isSecondaryLimitBreached).mockReturnValue(true);
 
     await expect(gql('{ viewer { login } }', {})).rejects.toThrow(
       RateLimitError,

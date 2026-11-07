@@ -11,6 +11,10 @@ env:
     secret: GHREACTIONS_TOKEN
     availability:
       - RUNTIME
+  - variable: UPSTASH_REDIS_REST_TOKEN
+    secret: UPSTASH_REDIS_REST_TOKEN
+    availability:
+      - RUNTIME
 
 scripts:
   buildCommand: npx nx build ghreactions --configuration=development
