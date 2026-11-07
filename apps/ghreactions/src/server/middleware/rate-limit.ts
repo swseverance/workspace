@@ -1,13 +1,35 @@
-import { rateLimit } from 'express-rate-limit';
+import { Ratelimit } from '@upstash/ratelimit';
+import { RequestHandler } from 'express';
+import * as logger from 'firebase-functions/logger';
+import { redis } from '../redis/redis';
+import { serializeError } from '../serialize-error';
 
-export const rateLimitMiddleware = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 100,
-  keyGenerator: (req) => req.headers['x-firebase-appcheck'] as string,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (_, res) =>
-    res
-      .status(429)
-      .json({ message: 'Too many requests. Please try again later' }),
+const ratelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(100, '15 m'),
 });
+
+export const rateLimitMiddleware: RequestHandler = async (req, res, next) => {
+  const identifier = req.headers['x-firebase-appcheck'] as string;
+
+  try {
+    const { success, limit, remaining, reset } =
+      await ratelimit.limit(identifier);
+
+    res.setHeader('RateLimit-Limit', limit);
+    res.setHeader('RateLimit-Remaining', remaining);
+    res.setHeader('RateLimit-Reset', reset);
+
+    if (!success) {
+      res
+        .status(429)
+        .json({ message: 'Too many requests. Please try again later' });
+      return;
+    }
+
+    next();
+  } catch (err) {
+    logger.error('[Rate Limit] Redis unavailable:', serializeError(err));
+    next();
+  }
+};
