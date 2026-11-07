@@ -7,40 +7,22 @@
   gap: 8px;
 }
 
-form {
-  display: flex;
-  flex-flow: row wrap;
-  gap: 8px;
-
-  > div {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  &.desktop {
-    .username,
-    .type,
-    .state,
-    .reactions {
-      min-width: 200px;
-      flex: 0 0 200px;
-    }
-
-    .search {
-      justify-content: flex-end;
-    }
-  }
-
-  &.mobile {
-    .username,
-    .type,
-    .state,
-    .reactions {
-      flex: 0 0 calc((100% - 8px) / 2);
-    }
+// nz-col defaults to a 50% (nzXs="12") span, which is what we want on
+// mobile. Above 768px, override to a fixed width instead — a row of
+// 200px columns, same as before, just driven by CSS now rather than a
+// `mobile`-flag-selected class on the form.
+.field-col {
+  @media (min-width: 768px) {
+    flex: 0 0 200px;
+    max-width: 200px;
   }
 }
+
+// The search button's column is left unstyled on purpose: with no span
+// of its own, it naturally wraps onto its own line after the field
+// columns above fill exactly two full rows on mobile (12 + 12 = 24,
+// twice), or sits inline after them on desktop once they're fixed-width
+// — either way sized to its own content, never stretched.
 
 button {
   height: 34px;
@@ -62,6 +44,10 @@ section {
 ::ng-deep app-main {
   .ant-collapse-panel > .ant-collapse-body {
     padding: 8px;
+  }
+
+  .ant-form-item {
+    margin-bottom: 0;
   }
 
   .centered-header .ag-header-cell-label {

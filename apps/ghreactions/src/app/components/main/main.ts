@@ -15,6 +15,7 @@ import { colorSchemeDark, themeQuartz } from 'ag-grid-community';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -40,6 +41,7 @@ import { TYPE_CONFIG, TYPE_OPTIONS } from './options';
     NzSelectModule,
     NzButtonModule,
     NzCollapseModule,
+    NzGridModule,
     NzIconModule,
     AgGridAngular,
   ],
