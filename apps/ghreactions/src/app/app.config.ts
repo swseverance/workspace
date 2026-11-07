@@ -19,7 +19,7 @@ import {
   MoonOutline,
   SunOutline,
 } from '@ant-design/icons-angular/icons';
-import { ENVIRONMENT } from '@org/environment';
+import { provideEnvironment } from '@org/environment';
 import { recaptchaInterceptor } from '@org/firebase';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
@@ -37,7 +37,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(appRoutes),
     provideHttpClient(withFetch(), withInterceptors([recaptchaInterceptor])),
-    { provide: ENVIRONMENT, useValue: environment },
+    provideEnvironment(environment),
     provideNzI18n(en_US),
     provideNzIcons([GithubOutline, MoonOutline, SunOutline]),
   ],

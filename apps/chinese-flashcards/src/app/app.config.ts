@@ -23,7 +23,7 @@ import {
   LeftOutline,
   SearchOutline,
 } from '@ant-design/icons-angular/icons';
-import { ENVIRONMENT } from '@org/environment';
+import { provideEnvironment } from '@org/environment';
 import { authInterceptor, recaptchaInterceptor } from '@org/firebase';
 import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
@@ -42,7 +42,7 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor, recaptchaInterceptor]),
     ),
-    { provide: ENVIRONMENT, useValue: environment },
+    provideEnvironment(environment),
     provideNzI18n(en_US),
     provideNzDateFnsAdapter(),
     provideNzIcons([
