@@ -3,6 +3,14 @@ env:
     value: ghreactionsprod
     availability:
       - RUNTIME
+  - variable: ENVIRONMENT_NAME
+    value: prod
+    availability:
+      - RUNTIME
+  - variable: GHREACTIONS_TOKEN
+    secret: GHREACTIONS_TOKEN
+    availability:
+      - RUNTIME
 
 scripts:
   buildCommand: npx nx build ghreactions --configuration=production

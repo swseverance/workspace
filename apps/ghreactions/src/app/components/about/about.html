@@ -1,0 +1,51 @@
+<nz-page-header>
+  <nz-page-header-title>About</nz-page-header-title>
+</nz-page-header>
+
+<div class="content">
+  <h1 nz-typography>GitHub Reactions</h1>
+
+  <p nz-typography>
+    GitHub Reactions is a search tool that lets you explore GitHub activity
+    across any public account. Enter a username to browse their issues, pull
+    requests, and comments — along with the reactions each one has received.
+  </p>
+
+  <a nz-button nzType="primary" routerLink="/search">Begin your search</a>
+
+  <h2 nz-typography>What you can search</h2>
+
+  <ul nz-typography>
+    <li>Issues opened or by a user</li>
+    <li>Pull requests opened by a user</li>
+    <li>Comments made by a user</li>
+  </ul>
+
+  <h2 nz-typography>How it works</h2>
+
+  <p nz-typography>
+    Results are fetched from the GitHub GraphQL API. All data is public — no
+    information is stored or transmitted beyond your browser and GitHub.
+  </p>
+
+  <h2 nz-typography>Built with</h2>
+
+  <ul nz-typography>
+    <li>Angular with server-side rendering</li>
+    <li>AG Grid for virtualized result tables</li>
+    <li>NG-Zorro for UI components</li>
+    <li>GitHub GraphQL API</li>
+  </ul>
+
+  @defer (on idle) { @if (analytics$ | async; as analytics) {
+  <nz-card>
+    <nz-statistic
+      [nzValue]="analytics.users"
+      nzTitle="Usernames searched globally"
+      [nzValueStyle]="{
+            color: themeService!.theme === 'ghreactions-light-theme' ? '#1890ff' : '#177ddc'
+          }"
+    />
+  </nz-card>
+  } }
+</div>

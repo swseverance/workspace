@@ -54,5 +54,5 @@ __screenshots__/
 vitest.config.*.timestamp*
 .vitest
 
-# Local App Hosting overrides (may contain secrets, used for emulator runs)
-apphosting.local.yaml
+# Local App Hosting emulator overrides (may contain secrets)
+apphosting.emulator.yaml

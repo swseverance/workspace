@@ -1,0 +1,82 @@
+:host {
+  flex: 1 1 auto;
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 8px;
+}
+
+form {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 8px;
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &.desktop {
+    .username,
+    .type,
+    .state,
+    .reactions {
+      min-width: 200px;
+      flex: 0 0 200px;
+    }
+
+    .search {
+      justify-content: flex-end;
+    }
+  }
+
+  &.mobile {
+    .username,
+    .type,
+    .state,
+    .reactions {
+      flex: 0 0 calc((100% - 8px) / 2);
+    }
+  }
+}
+
+button {
+  height: 34px;
+}
+
+section {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  ag-grid-angular {
+    flex: 1 1 auto;
+    min-height: 0;
+    --ag-wrapper-border-radius: 0;
+  }
+}
+
+::ng-deep app-main {
+  .ant-collapse-panel > .ant-collapse-body {
+    padding: 8px;
+  }
+
+  .centered-header .ag-header-cell-label {
+    justify-content: center;
+  }
+}
+
+::ng-deep .ghreactions-light-theme app-main {
+  .ghreactions-server-error {
+    color: #ff4d4f;
+  }
+}
+
+::ng-deep .ghreactions-dark-theme app-main {
+  .ghreactions-server-error {
+    color: #a61d24;
+  }
+}

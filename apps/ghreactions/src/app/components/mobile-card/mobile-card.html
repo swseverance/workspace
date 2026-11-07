@@ -1,0 +1,22 @@
+@if (row) {
+<nz-descriptions nzSize="small" [nzColumn]="1" [nzBordered]="true">
+  <nz-descriptions-item nzTitle="Repository"
+    >{{ row.repository }}</nz-descriptions-item
+  >
+  <nz-descriptions-item nzTitle="Content">
+    <a [href]="row.url" target="_blank" rel="noopener noreferrer"
+      >{{ row.content }}</a
+    >
+  </nz-descriptions-item>
+  <nz-descriptions-item nzTitle="Type"> {{ row.type }} </nz-descriptions-item>
+  <nz-descriptions-item nzTitle="State"> {{ row.state }} </nz-descriptions-item>
+  <nz-descriptions-item nzTitle="Updated"
+    >{{ row.updatedAt | date: 'MM/dd/yy' }}</nz-descriptions-item
+  >
+  <nz-descriptions-item nzTitle="Reactions">
+    @for (r of reactions; track r.emoji) {
+    <span class="reaction">{{ r.emoji }} {{ r.count }}</span>
+    } @empty { None }
+  </nz-descriptions-item>
+</nz-descriptions>
+}

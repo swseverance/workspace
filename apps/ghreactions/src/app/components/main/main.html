@@ -1,0 +1,95 @@
+<nz-collapse>
+  <nz-collapse-panel nzActive nzHeader="Search">
+    <form
+      [formGroup]="form"
+      (ngSubmit)="onSearch()"
+      [class]="mobile ? 'mobile' : 'desktop'"
+    >
+      <div class="username">
+        <label for="username">Username</label>
+
+        <input
+          nz-input
+          formControlName="username"
+          type="text"
+          id="username"
+          placeholder="GitHub username"
+          autocapitalize="none"
+          autocorrect="off"
+        />
+      </div>
+
+      <div class="type">
+        <label for="type">Type</label>
+
+        <nz-select formControlName="type" nzId="type">
+          @for (option of typeOptions; track option.value) {
+          <nz-option [nzLabel]="option.label" [nzValue]="option.value" />
+          }
+        </nz-select>
+      </div>
+
+      <div class="state">
+        <label for="state">State</label>
+
+        <nz-select formControlName="state" nzMode="multiple" nzId="state">
+          @for (option of typeConfig[form.value.type!].stateOptions; track
+          option.value) {
+          <nz-option [nzLabel]="option.label" [nzValue]="option.value" />
+          }
+        </nz-select>
+      </div>
+
+      <div class="reactions">
+        <label for="reactions">Reactions</label>
+
+        <nz-select
+          formControlName="reactions"
+          nzMode="multiple"
+          nzId="reactions"
+        >
+          @for (option of typeConfig[form.value.type!].reactionsOptions; track
+          option.value) {
+          <nz-option [nzLabel]="option.label" [nzValue]="option.value" />
+          }
+        </nz-select>
+      </div>
+
+      <div class="search">
+        <button
+          nz-button
+          nzType="primary"
+          [disabled]="!form.valid"
+          type="submit"
+        >
+          Search
+        </button>
+      </div>
+    </form>
+  </nz-collapse-panel>
+</nz-collapse>
+
+<section>
+  @defer (on idle) { @if (mobile) {
+  <ag-grid-angular
+    [theme]="themeService!.theme === 'ghreactions-light-theme' ? lightTheme : darkTheme"
+    [columnDefs]="columns.mobile"
+    [defaultColDef]="defaultColDef"
+    [rowHeight]="266"
+    rowModelType="infinite"
+    [context]="this"
+    [suppressCellFocus]="true"
+    (gridReady)="onGridReady($event)"
+  />
+  } @else {
+  <ag-grid-angular
+    [theme]="themeService!.theme === 'ghreactions-light-theme' ? lightTheme : darkTheme"
+    [columnDefs]="columns.desktop"
+    [defaultColDef]="defaultColDef"
+    rowModelType="infinite"
+    [context]="this"
+    [suppressCellFocus]="true"
+    (gridReady)="onGridReady($event)"
+  />
+  } }
+</section>

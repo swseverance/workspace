@@ -1,2 +1,28 @@
-<app-nx-welcome></app-nx-welcome>
-<router-outlet></router-outlet>
+<nz-layout>
+  <nz-header>
+    <a routerLink="/"><strong>GitHub Reactions</strong> &nbsp; &#128077;</a>
+    <span class="icons">
+      <button nz-button nzType="text" (click)="themeService?.toggle()">
+        <span
+          nz-icon
+          [nzType]="themeService?.theme === 'ghreactions-light-theme' ? 'moon' : 'sun'"
+          nzTheme="outline"
+        ></span>
+      </button>
+
+      <a
+        nz-button
+        nzType="text"
+        href="https://github.com/swseverance/ghreactions"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub repository"
+      >
+        <span nz-icon nzType="github" nzTheme="outline"></span>
+      </a>
+    </span>
+  </nz-header>
+  <nz-content>
+    <router-outlet />
+  </nz-content>
+</nz-layout>

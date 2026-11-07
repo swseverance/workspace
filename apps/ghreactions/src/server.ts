@@ -5,26 +5,35 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
+import { initializeApp } from 'firebase-admin/app';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { analyticsHandler } from './server/api/analytics.handler';
+import { tableHandler } from './server/api/table.handler';
+import { appCheckMiddleware } from './server/middleware/appcheck';
+import { rateLimitMiddleware } from './server/middleware/rate-limit';
+
+if (process.env['ENVIRONMENT_NAME'] === 'prod') {
+  process.env['NG_ALLOWED_HOSTS'] += ',ghreactions.io';
+}
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 
+initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
+
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-/**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/**', (req, res) => {
- *   // Handle API request
- * });
- * ```
- */
+app.use('/api/', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+app.use('/api/', appCheckMiddleware);
+app.use('/api/', rateLimitMiddleware);
+
+app.get('/api/table', tableHandler);
+app.get('/api/analytics', analyticsHandler);
 
 /**
  * Serve static files from /browser

@@ -15,9 +15,9 @@
     "deploy:weight-tracker:prod:apphosting": "npm exec firebase-tools -- deploy --only apphosting:weight-tracker --project weight-tracker-2592f",
     "deploy:weight-tracker:prod:firestore": "npm exec firebase-tools -- deploy --config apps/weight-tracker/firebase.json --only firestore --project weight-tracker-2592f",
     "deploy:weight-tracker:prod": "npm run deploy:weight-tracker:prod:apphosting && npm run deploy:weight-tracker:prod:firestore",
-    "emulate:chinese-flashcards": "npm exec firebase-tools -- emulators:start --config apps/chinese-flashcards/firebase.json --project chineseflashcards-4aea7",
-    "emulate:ghreactions": "npm exec firebase-tools -- emulators:start --config apps/ghreactions/firebase.json --project ghreactionsdev",
-    "emulate:weight-tracker": "npm exec firebase-tools -- emulators:start --config apps/weight-tracker/firebase.json --project weight-tracker-2592f",
+    "emulate:chinese-flashcards": "cd apps/chinese-flashcards && npm exec firebase-tools -- emulators:start --project chineseflashcards-4aea7",
+    "emulate:ghreactions": "cd apps/ghreactions && npm exec firebase-tools -- emulators:start --project ghreactionsdev",
+    "emulate:weight-tracker": "cd apps/weight-tracker && npm exec firebase-tools -- emulators:start --project weight-tracker-2592f",
     "kill-ports": "lsof -ti:4200,8080,9099 | xargs kill -9",
     "prepare": "husky"
   },
@@ -77,12 +77,15 @@
     "@angular/router": "~22.2.0",
     "@angular/service-worker": "~22.2.0",
     "@angular/ssr": "~22.2.0",
+    "ag-grid-angular": "^35.3.0",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.5.2",
     "firebase": "^13.2.0",
     "firebase-admin": "^14.5.0",
     "firebase-functions": "^7.4.0",
     "http-proxy-middleware": "^4.2.1",
     "ng-zorro-antd": "^22.2.0",
-    "rxjs": "~7.8.0"
+    "rxjs": "~7.8.0",
+    "zod": "^4.4.3"
   }
 }
