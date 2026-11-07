@@ -3,7 +3,11 @@ env:
     value: chineseflashcards-4aea7
     availability:
       - RUNTIME
-      
+  - variable: ENVIRONMENT_NAME
+    value: prod
+    availability:
+      - RUNTIME
+
 scripts:
   buildCommand: npx nx build chinese-flashcards --configuration=production
   runCommand: node dist/apps/chinese-flashcards/server/server.mjs
