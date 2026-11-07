@@ -2,6 +2,15 @@
 
 An [Nx](https://nx.dev) monorepo containing Angular apps and shared libraries.
 
+## Apps
+
+| App                | Environment | URL                                                                                                                                        |
+| ------------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| ghreactions        | dev         | [ghreactions--ghreactionsdev.us-east4.hosted.app](https://ghreactions--ghreactionsdev.us-east4.hosted.app)                                 |
+| ghreactions        | prod        | [ghreactions--ghreactionsprod.us-east4.hosted.app](https://ghreactions--ghreactionsprod.us-east4.hosted.app)                               |
+| weight-tracker     | prod        | [weight-tracker--weight-tracker-2592f.us-east4.hosted.app](https://weight-tracker--weight-tracker-2592f.us-east4.hosted.app)               |
+| chinese-flashcards | prod        | [chinese-flashcards--chineseflashcards-4aea7.us-east4.hosted.app](https://chinese-flashcards--chineseflashcards-4aea7.us-east4.hosted.app) |
+
 ## Generate a new app
 
 Apps live directly under `apps/<name>` (e.g. `apps/weight-tracker`, `apps/chinese-flashcards`). Pass that path as the generator's `directory` so the new app lands in the same place, and include `--ssr` since existing apps are server-rendered:
