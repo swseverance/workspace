@@ -1,0 +1,85 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Determine affected projects
+        id: affected
+        run: |
+          BASE="${{ github.event.before }}"
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            BASE=$(git rev-list --max-parents=0 HEAD)
+          fi
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+          AFFECTED=$(npx nx show projects --affected --base="$BASE" --head="${{ github.sha }}")
+          echo "Affected projects:"
+          echo "$AFFECTED"
+          {
+            echo "affected<<NX_AFFECTED_EOF"
+            echo "$AFFECTED"
+            echo "NX_AFFECTED_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build affected projects for this environment
+        run: |
+          # `nx affected -t build` with no --configuration uses each
+          # project's defaultConfiguration, which is "production" for all
+          # three apps — correct for a push to main, but wrong on develop,
+          # where the real Cloud Build deploy uses --configuration=development.
+          # weight-tracker/chinese-flashcards have no "development"
+          # configuration at all and aren't deployed from develop, so on
+          # develop we only ever build ghreactions, matching what actually
+          # gets deployed below.
+          if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            if echo "${{ steps.affected.outputs.affected }}" | grep -qx ghreactions; then
+              npx nx build ghreactions --configuration=development
+            fi
+          else
+            npx nx affected -t build --parallel=3 --base="${{ steps.affected.outputs.base }}" --head="${{ github.sha }}"
+          fi
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/1007948396460/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
+          service_account: github-deployer@swseverance-ci.iam.gserviceaccount.com
+
+      # develop -> dev releases (only ghreactions has a dev environment today)
+      - name: Deploy ghreactions (dev)
+        if: github.ref == 'refs/heads/develop' && contains(steps.affected.outputs.affected, 'ghreactions')
+        run: npm run deploy:ghreactions:dev
+
+      # main -> prod releases for every app with changes
+      - name: Deploy ghreactions (prod)
+        if: github.ref == 'refs/heads/main' && contains(steps.affected.outputs.affected, 'ghreactions')
+        run: npm run deploy:ghreactions:prod
+
+      - name: Deploy weight-tracker (prod)
+        if: github.ref == 'refs/heads/main' && contains(steps.affected.outputs.affected, 'weight-tracker')
+        run: npm run deploy:weight-tracker:prod
+
+      - name: Deploy chinese-flashcards (prod)
+        if: github.ref == 'refs/heads/main' && contains(steps.affected.outputs.affected, 'chinese-flashcards')
+        run: npm run deploy:chinese-flashcards:prod
