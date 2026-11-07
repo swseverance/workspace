@@ -4,6 +4,7 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
+import { EnvironmentName, RequestContext } from '@org/environment';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
@@ -51,8 +52,12 @@ app.use(
  * Handle all other requests by rendering the Angular application.
  */
 app.use('/**', (req, res, next) => {
+  const requestContext: RequestContext = {
+    environmentName: process.env['ENVIRONMENT_NAME'] as EnvironmentName,
+  };
+
   angularApp
-    .handle(req)
+    .handle(req, requestContext)
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )
