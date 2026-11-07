@@ -2,12 +2,96 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>ghreactions</title>
+    <title>GitHub Reactions – Search Issues, PRs &amp; Commits by User</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <meta
+      name="description"
+      content="Search GitHub for reactions to issues, PRs, and commits. View activity across any public GitHub account."
+    />
+    <meta property="og:title" content="GitHub Reactions" />
+    <meta
+      property="og:description"
+      content="Search GitHub for reactions to issues, PRs, and commits. View activity across any public GitHub account."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ghreactions.io" />
+    <meta property="og:image" content="https://ghreactions.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="GitHub Reactions" />
+    <meta
+      name="twitter:description"
+      content="Search GitHub for reactions to issues, PRs, and commits. View activity across any public GitHub account."
+    />
+    <meta name="twitter:image" content="https://ghreactions.io/og-image.png" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👍</text></svg>"
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "GitHub Reactions",
+        "description": "Search GitHub for reactions to issues, PRs, and commits. View activity across any public GitHub account.",
+        "url": "https://ghreactions.io",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "All"
+      }
+    </script>
   </head>
   <body>
+    <script>
+      const LIGHT = 'ghreactions-light-theme';
+      const DARK = 'ghreactions-dark-theme';
+
+      const lightStyle = document.querySelector('link[href^="light-theme"]');
+      const darkStyle = document.querySelector('link[href^="dark-theme"]');
+
+      var themeService = {
+        theme: null,
+        applyLightTheme: function () {
+          localStorage.setItem('theme', LIGHT);
+
+          lightStyle.disabled = false;
+          document.body.classList.add(LIGHT);
+
+          darkStyle.disabled = true;
+          document.body.classList.remove(DARK);
+
+          this.theme = LIGHT;
+        },
+        applyDarkTheme: function () {
+          localStorage.setItem('theme', DARK);
+
+          lightStyle.disabled = true;
+          document.body.classList.remove(LIGHT);
+
+          darkStyle.disabled = false;
+          document.body.classList.add(DARK);
+
+          this.theme = DARK;
+        },
+        toggle: function () {
+          this.theme === LIGHT ? this.applyDarkTheme() : this.applyLightTheme();
+        },
+      };
+
+      let theme = LIGHT;
+
+      if (
+        localStorage.getItem('theme') === DARK ||
+        (!localStorage.getItem('theme') &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        theme = DARK;
+      }
+
+      theme === LIGHT
+        ? themeService.applyLightTheme()
+        : themeService.applyDarkTheme();
+    </script>
     <app-root></app-root>
   </body>
 </html>

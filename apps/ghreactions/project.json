@@ -21,7 +21,17 @@
             "input": "apps/ghreactions/public"
           }
         ],
-        "styles": ["apps/ghreactions/src/styles.scss"],
+        "styles": [
+          {
+            "input": "apps/ghreactions/src/themes/light-theme.less",
+            "bundleName": "light-theme"
+          },
+          {
+            "input": "apps/ghreactions/src/themes/dark-theme.less",
+            "bundleName": "dark-theme"
+          },
+          "apps/ghreactions/src/styles.scss"
+        ],
         "server": "apps/ghreactions/src/main.server.ts",
         "ssr": {
           "entry": "apps/ghreactions/src/server.ts"
@@ -34,6 +44,12 @@
       "configurations": {
         "production": {
           "outputHashing": "all",
+          "optimization": {
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            }
+          },
           "fileReplacements": [
             {
               "replace": "apps/ghreactions/src/environments/environment.ts",
@@ -43,6 +59,12 @@
         },
         "development": {
           "outputHashing": "all",
+          "optimization": {
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            }
+          },
           "fileReplacements": [
             {
               "replace": "apps/ghreactions/src/environments/environment.ts",
