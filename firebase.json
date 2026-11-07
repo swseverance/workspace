@@ -33,6 +33,18 @@
         "functions"
       ],
       "alwaysDeployFromSource": true
+    },
+    {
+      "backendId": "tcpl-exercises",
+      "rootDir": "/apps/tcpl-exercises",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "functions"
+      ],
+      "alwaysDeployFromSource": true
     }
   ]
 }

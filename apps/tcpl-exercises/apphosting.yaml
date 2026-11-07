@@ -1,0 +1,16 @@
+runConfig:
+  minInstances: 0
+  # maxInstances: 100
+  # concurrency: 80
+  # cpu: 1
+  # memoryMiB: 512
+
+env:
+  - variable: VERCEL_TEAM_ID
+    value: team_0M3MOKT5ntF9hBTAuhcJCd0g
+    availability:
+      - RUNTIME
+  - variable: UPSTASH_REDIS_REST_URL
+    value: https://loyal-minnow-40926.upstash.io
+    availability:
+      - RUNTIME

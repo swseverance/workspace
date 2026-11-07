@@ -1,0 +1,25 @@
+scripts:
+  buildCommand: npx nx build tcpl-exercises --configuration=production
+  runCommand: node dist/apps/tcpl-exercises/server/server.mjs
+
+env:
+  - variable: FIREBASE_PROJECT_ID
+    value: tcpl-exercises-prod
+    availability:
+      - RUNTIME
+  - variable: VERCEL_PROJECT_ID
+    value: prj_hDT7wwchGhgvhjZTFnn4br5p5huv # tcpl-exercises-prod
+    availability:
+      - RUNTIME
+  - variable: VERCEL_TOKEN
+    secret: VERCEL_TOKEN
+    availability:
+      - RUNTIME
+  - variable: UPSTASH_REDIS_REST_TOKEN
+    secret: UPSTASH_REDIS_REST_TOKEN
+    availability:
+      - RUNTIME
+  - variable: ENVIRONMENT_NAME
+    value: prod
+    availability:
+      - RUNTIME
