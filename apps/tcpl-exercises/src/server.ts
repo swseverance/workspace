@@ -4,30 +4,48 @@ import {
   isMainModule,
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
+import {
+  appCheckMiddleware,
+  createSessionHandler,
+  deleteSessionHandler,
+  firebaseAuthProxy,
+  getSessionHandler,
+  logHandler,
+  ssrRequestContext,
+  verifySessionCookieMiddleware,
+} from '@org/server';
+import cookieParser from 'cookie-parser';
 import express from 'express';
+import { initializeApp } from 'firebase-admin/app';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
+const projectId = process.env['FIREBASE_PROJECT_ID'] as string;
+
+initializeApp({ projectId });
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
- * Example Express Rest API endpoints can be defined here.
- * Uncomment and define endpoints as necessary.
- *
- * Example:
- * ```ts
- * app.get('/api/**', (req, res) => {
- *   // Handle API request
- * });
- * ```
+ * TLS ends at App Hosting's proxy, so trust the one hop directly in front
+ * for X-Forwarded-Proto. That makes req.secure true for https visitors,
+ * which puts the Secure flag on the session cookie. Locally there's no
+ * proxy and no such header, so requests stay plain http. A hop count rather
+ * than `true` keeps a client-supplied X-Forwarded-For from setting req.ip.
  */
+app.set('trust proxy', 1);
 
 /**
- * Serve static files from /browser
+ * Firebase Auth's sign-in redirect helpers, served from this domain.
+ */
+app.use(firebaseAuthProxy(projectId));
+
+/**
+ * Serve static files from /browser. Matched requests are handled here and
+ * never reach the cookie parsing and verification below.
  */
 app.use(
   express.static(browserDistFolder, {
@@ -37,12 +55,32 @@ app.use(
   }),
 );
 
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+app.use('/api', express.json({ limit: '64kb' }));
+app.use('/api', appCheckMiddleware);
+
+/**
+ * Sets req.user for API calls. Page renders don't need it: they learn the
+ * user through their own /api/session call.
+ */
+app.use('/api', cookieParser());
+app.use('/api', verifySessionCookieMiddleware);
+
+app.get('/api/session', getSessionHandler);
+app.post('/api/session', createSessionHandler);
+app.delete('/api/session', deleteSessionHandler);
+
+app.post('/api/logs', logHandler);
+
 /**
  * Handle all other requests by rendering the Angular application.
  */
 app.use('/**', (req, res, next) => {
   angularApp
-    .handle(req)
+    .handle(req, ssrRequestContext(req))
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )
