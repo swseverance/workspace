@@ -1,50 +1,36 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { AUTH, FIRESTORE } from '@org/firebase';
+import { map, Observable } from 'rxjs';
 import {
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-  setDoc,
-} from 'firebase/firestore';
-import { WeightEntry } from '../models';
+  ListWeightsResponseBody,
+  UpsertWeightRequestBody,
+  WeightEntry,
+} from '../models';
 
+/** The signed-in user's weights, via the server's /api/weights. */
 @Injectable({
   providedIn: 'root',
 })
 export class Weights {
-  // Only ever called client-side, behind the authGuard, so these are never null.
-  private firestore = inject(FIRESTORE)!;
-  private auth = inject(AUTH)!;
+  private http = inject(HttpClient);
 
-  private collection() {
-    return collection(
-      this.firestore,
-      'users',
-      this.auth.currentUser!.uid,
-      'weights',
-    );
+  getEntries(): Observable<WeightEntry[]> {
+    return this.http
+      .get<ListWeightsResponseBody>('/api/weights')
+      .pipe(map(({ entries }) => entries));
   }
 
-  async getEntries(): Promise<WeightEntry[]> {
-    const snapshot = await getDocs(
-      query(this.collection(), orderBy('date', 'desc')),
-    );
-
-    return snapshot.docs.map((d) => d.data() as WeightEntry);
+  upsertEntry(date: string, weight: number): Observable<WeightEntry> {
+    return this.http.put<WeightEntry>(this.url(date), {
+      weight,
+    } satisfies UpsertWeightRequestBody);
   }
 
-  async upsertEntry(date: string, weight: number): Promise<WeightEntry> {
-    const entry: WeightEntry = { id: date, date, weight };
-
-    await setDoc(doc(this.collection(), date), entry);
-
-    return entry;
+  deleteEntry(date: string): Observable<void> {
+    return this.http.delete<void>(this.url(date));
   }
 
-  async deleteEntry(date: string): Promise<void> {
-    await deleteDoc(doc(this.collection(), date));
+  private url(date: string): string {
+    return `/api/weights/${encodeURIComponent(date)}`;
   }
 }
