@@ -24,10 +24,12 @@ import {
   concat,
   EMPTY,
   filter,
+  from,
   map,
   Observable,
   of,
   switchMap,
+  takeUntil,
   tap,
 } from 'rxjs';
 import { AuthActions } from './auth.actions';
@@ -53,68 +55,80 @@ export class AuthEffects {
   // Null in the browser and during the build's route extraction.
   private readonly request = inject(REQUEST, { optional: true });
 
+  private readonly signedOut$ = this.actions$.pipe(
+    ofType(AuthActions.clearCookie),
+  );
+
   /**
    * First the server's view of the session cookie (during SSR via the
    * forwarded cookie; in the browser a synchronous transfer cache hit, so
-   * the first client render matches the SSR markup), then, in the browser,
-   * Firebase's own auth state, which supersedes it.
+   * the first client render matches the SSR markup). Then, in the browser,
+   * Firebase's auth state.
+   *
+   * Firebase is only followed after the session call completes, so a slow
+   * response can never overwrite newer state.
    */
-  stateChanged$ = createEffect(() => {
+  authState$ = createEffect(() => {
     // Neither a browser nor a real request: the build's route-extraction
     // pass. Nothing to load.
     if (!this.auth && !this.request) {
-      return of(AuthActions.stateChanged({ user: null }));
+      return of(AuthActions.sessionLoaded({ user: null }));
     }
 
     const session$ = this.http.get<SessionResponseBody>('/api/session').pipe(
-      map(({ user }) => user),
+      map(({ user }) => AuthActions.sessionLoaded({ user })),
       catchError((error) => {
         this.logger.error('[auth] load session failed', error);
-        return EMPTY;
+        // Treat as no session rather than leave the status unknown, which
+        // would hold up route guards indefinitely.
+        return of(AuthActions.sessionLoaded({ user: null }));
       }),
     );
 
-    const firebase$ = this.auth ? firebaseUser$(this.auth) : EMPTY;
+    const firebase$ = this.auth
+      ? firebaseUser$(this.auth).pipe(
+          map((user) => AuthActions.firebaseUserChanged({ user })),
+        )
+      : EMPTY;
 
-    return concat(session$, firebase$).pipe(
-      map((user) => AuthActions.stateChanged({ user })),
-    );
+    return concat(session$, firebase$);
   });
 
   /** Mints or clears the session cookie whenever Firebase's user changes. */
-  syncCookie$ = createEffect(() => {
-    if (!this.auth) {
-      // A fresh observable, never the shared EMPTY: createEffect marks the
-      // observable it's given, so a second instance (every SSR request gets
-      // one) would throw trying to mark EMPTY again.
-      return of();
-    }
-
-    return firebaseUser$(this.auth).pipe(
-      map((user) =>
-        user ? AuthActions.validateCookie() : AuthActions.clearCookie(),
+  syncCookie$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.firebaseUserChanged),
+      map(({ user }) =>
+        user ? AuthActions.validateCookie({ user }) : AuthActions.clearCookie(),
       ),
-    );
-  });
+    ),
+  );
 
   loadToken$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.validateCookie),
-      map(() => this.auth?.currentUser),
-      filter((user) => !!user),
-      switchMap((user) =>
-        user
-          .getIdToken()
-          .then((token) => AuthActions.tokenLoaded({ token }))
-          .catch((error: unknown) => AuthActions.loadTokenFailed({ error })),
-      ),
+      switchMap(({ user }) => {
+        const firebaseUser = this.auth?.currentUser;
+
+        if (!firebaseUser) {
+          return EMPTY;
+        }
+
+        return from(firebaseUser.getIdToken()).pipe(
+          map((token) => AuthActions.tokenLoaded({ token, user })),
+          catchError((error: unknown) =>
+            of(AuthActions.loadTokenFailed({ error })),
+          ),
+          takeUntil(this.signedOut$),
+        );
+      }),
     ),
   );
 
   validateCookie$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.tokenLoaded),
-      switchMap(({ token }) =>
+      switchMap(({ token, user }) =>
         this.http
           .post<CreateSessionResponseBody>('/api/session', {
             idToken: token,
@@ -122,12 +136,14 @@ export class AuthEffects {
           .pipe(
             map(({ status }) =>
               status === 'created'
-                ? AuthActions.cookieCreated()
-                : AuthActions.cookieValidated(),
+                ? AuthActions.cookieCreated({ user })
+                : AuthActions.cookieValidated({ user }),
             ),
             catchError((error: unknown) =>
               of(AuthActions.validateCookieFailed({ error })),
             ),
+            // Signed out mid-flight: don't report the stale user as signed in.
+            takeUntil(this.signedOut$),
           ),
       ),
     ),

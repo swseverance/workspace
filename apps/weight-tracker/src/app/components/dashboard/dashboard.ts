@@ -2,6 +2,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Logger } from '@org/logger';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzListModule } from 'ng-zorro-antd/list';
@@ -9,6 +10,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { finalize } from 'rxjs';
 import { WeightEntry } from '../../models';
 import { Weights } from '../../services/weights';
 import { Page } from '../page/page';
@@ -42,6 +44,7 @@ export class Dashboard implements OnInit {
   private weights = inject(Weights);
   private modal = inject(NzModalService);
   private message = inject(NzMessageService);
+  private logger = inject(Logger);
 
   loading = signal(true);
   entries = signal<WeightEntry[]>([]);
@@ -150,17 +153,23 @@ export class Dashboard implements OnInit {
     return d.toISOString().slice(0, 10);
   }
 
-  private async loadEntries(): Promise<void> {
+  /**
+   * Subscribes rather than awaiting: during hydration the response comes
+   * synchronously from the SSR transfer cache, so the first client render
+   * already has the entries and matches the server's markup.
+   */
+  private loadEntries(): void {
     this.loading.set(true);
 
-    try {
-      this.entries.set(await this.weights.getEntries());
-    } catch (error) {
-      console.error('getEntries()', error);
-
-      this.message.error('Failed to load weights');
-    } finally {
-      this.loading.set(false);
-    }
+    this.weights
+      .getEntries()
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (entries) => this.entries.set(entries),
+        error: (error: unknown) => {
+          this.logger.error('[dashboard] getEntries failed', error);
+          this.message.error('Failed to load weights');
+        },
+      });
   }
 }
