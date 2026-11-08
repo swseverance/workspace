@@ -5,7 +5,18 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import { EnvironmentName, RequestContext } from '@org/environment';
-import { firebaseAuthProxy } from '@org/server';
+import {
+  appCheckMiddleware,
+  createSessionHandler,
+  deleteSessionHandler,
+  firebaseAuthProxy,
+  getSessionHandler,
+  logHandler,
+  type SsrRequestContext,
+  ssrRequestContext,
+  verifySessionCookieMiddleware,
+} from '@org/server';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
@@ -15,19 +26,28 @@ import { createFlashcardsRouter } from './flashcards-api';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
+const projectId = process.env['FIREBASE_PROJECT_ID'] as string;
 
-initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
+initializeApp({ projectId });
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-app.use(firebaseAuthProxy(process.env['FIREBASE_PROJECT_ID'] as string));
-
-app.use(express.json());
-app.use('/api/flashcards', createFlashcardsRouter());
+/**
+ * TLS ends at App Hosting's proxy, so trust the one hop in front for
+ * X-Forwarded-Proto. That makes req.secure true for https visitors, which
+ * puts the Secure flag on the session cookie.
+ */
+app.set('trust proxy', 1);
 
 /**
- * Serve static files from /browser
+ * Firebase Auth's sign-in redirect helpers, served from this domain.
+ */
+app.use(firebaseAuthProxy(projectId));
+
+/**
+ * Serve static files from /browser. Matched requests never reach the cookie
+ * parsing and verification below.
  */
 app.use(
   express.static(browserDistFolder, {
@@ -37,11 +57,34 @@ app.use(
   }),
 );
 
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
+app.use('/api', express.json({ limit: '64kb' }));
+app.use('/api', appCheckMiddleware);
+
+/**
+ * Sets req.user for API calls. Page renders learn the user through their own
+ * /api/session call.
+ */
+app.use('/api', cookieParser());
+app.use('/api', verifySessionCookieMiddleware);
+
+app.get('/api/session', getSessionHandler);
+app.post('/api/session', createSessionHandler);
+app.delete('/api/session', deleteSessionHandler);
+
+app.post('/api/logs', logHandler);
+
+app.use('/api/flashcards', createFlashcardsRouter());
+
 /**
  * Handle all other requests by rendering the Angular application.
  */
 app.use('/**', (req, res, next) => {
-  const requestContext: RequestContext = {
+  const requestContext: RequestContext & SsrRequestContext = {
+    ...ssrRequestContext(req),
     environmentName: process.env['ENVIRONMENT_NAME'] as EnvironmentName,
   };
 

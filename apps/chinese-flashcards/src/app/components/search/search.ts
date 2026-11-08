@@ -2,6 +2,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Logger } from '@org/logger';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -10,6 +11,7 @@ import { NzListModule } from 'ng-zorro-antd/list';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { finalize } from 'rxjs';
 import { Flashcard } from '../../models';
 import { Flashcards } from '../../services/flashcards';
 import { Edit } from '../edit/edit';
@@ -36,6 +38,7 @@ import { Page } from '../page/page';
 export class Search implements OnInit {
   private flashcards = inject(Flashcards);
   private message = inject(NzMessageService);
+  private logger = inject(Logger);
   private modal = inject(NzModalService);
 
   loading = signal(false);
@@ -53,17 +56,19 @@ export class Search implements OnInit {
     return card.id;
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.loading.set(true);
 
-    try {
-      this.cards.set(await this.flashcards.getFlashcards({}));
-    } catch (error) {
-      console.error('getFlashcards()', error);
-      this.message.error('Failed to load flashcards');
-    } finally {
-      this.loading.set(false);
-    }
+    this.flashcards
+      .getFlashcards({})
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (value) => this.cards.set(value),
+        error: (error: unknown) => {
+          this.logger.error('[search] load failed', error);
+          this.message.error('Failed to load flashcards');
+        },
+      });
   }
 
   openEdit(card: Flashcard): void {
@@ -105,7 +110,7 @@ export class Search implements OnInit {
       this.cards.update((cards) => cards.filter((c) => c.id !== card.id));
       this.message.success('Flashcard deleted');
     } catch (error) {
-      console.error('deleteFlashcard()', error);
+      this.logger.error('[search] deleteFlashcard failed', error);
       this.message.error('Failed to delete flashcard');
       throw error;
     }
