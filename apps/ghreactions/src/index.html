@@ -52,7 +52,7 @@
       var themeService = {
         theme: null,
         applyLightTheme: function () {
-          localStorage.setItem('theme', LIGHT);
+          localStorage.setItem('ghreactions-theme', LIGHT);
 
           lightStyle.disabled = false;
           document.body.classList.add(LIGHT);
@@ -63,7 +63,7 @@
           this.theme = LIGHT;
         },
         applyDarkTheme: function () {
-          localStorage.setItem('theme', DARK);
+          localStorage.setItem('ghreactions-theme', DARK);
 
           lightStyle.disabled = true;
           document.body.classList.remove(LIGHT);
@@ -81,8 +81,8 @@
       let theme = LIGHT;
 
       if (
-        localStorage.getItem('theme') === DARK ||
-        (!localStorage.getItem('theme') &&
+        localStorage.getItem('ghreactions-theme') === DARK ||
+        (!localStorage.getItem('ghreactions-theme') &&
           window.matchMedia('(prefers-color-scheme: dark)').matches)
       ) {
         theme = DARK;
