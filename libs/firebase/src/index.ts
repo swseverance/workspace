@@ -92,7 +92,8 @@ export const FIREBASE_APP_CHECK = new InjectionToken<AppCheck | null>(
       const { name, reCAPTCHA } = inject(ENVIRONMENT);
 
       if (name === 'local') {
-        inject(WINDOW).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+        // Browser-only: FIREBASE_APP is null on the server.
+        inject(WINDOW)!.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
       }
 
       return initializeAppCheck(app, {
