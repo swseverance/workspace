@@ -1,21 +1,26 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AUTH } from '@org/firebase';
-import { User } from 'firebase/auth';
-import { Observable, map, take } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { authFeature } from '@org/auth';
+import { filter, map, take } from 'rxjs';
 
+/**
+ * Waits for the session to be known, then lets signed-in users through. Runs
+ * during SSR too (the session comes from the forwarded cookie), so a
+ * signed-out visitor is redirected before any page is rendered.
+ */
 export const authGuard: CanActivateFn = () => {
-  const auth = inject(AUTH);
   const router = inject(Router);
 
-  if (!auth) {
-    return router.createUrlTree(['/login']);
-  }
-
-  return new Observable<User | null>((observer) =>
-    auth.onAuthStateChanged((user) => observer.next(user)),
-  ).pipe(
-    take(1),
-    map((user) => (user ? true : router.createUrlTree(['/login']))),
-  );
+  return inject(Store)
+    .select(authFeature.selectAuthState)
+    .pipe(
+      // Still being decided; noSession is final enough to redirect on, since
+      // the API would reject this user's calls.
+      filter(({ status }) => status !== 'unknown' && status !== 'signingIn'),
+      take(1),
+      map(({ status }) =>
+        status === 'signedIn' ? true : router.createUrlTree(['/login']),
+      ),
+    );
 };

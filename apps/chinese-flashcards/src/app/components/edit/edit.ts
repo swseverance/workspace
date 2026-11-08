@@ -4,6 +4,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Logger } from '@org/logger';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -28,6 +29,7 @@ import { Flashcards } from '../../services/flashcards';
 export class Edit {
   private flashcards = inject(Flashcards);
   private message = inject(NzMessageService);
+  private logger = inject(Logger);
   private modalRef = inject(NzModalRef);
   private data = inject<{ flashcard: Flashcard }>(NZ_MODAL_DATA);
   private fb = inject(NonNullableFormBuilder);
@@ -69,7 +71,7 @@ export class Edit {
 
       this.message.success('Flashcard updated');
     } catch (error) {
-      console.error('updateFlashcard()', error);
+      this.logger.error('[edit] updateFlashcard failed', error);
 
       this.message.error('Failed to update flashcard');
     } finally {

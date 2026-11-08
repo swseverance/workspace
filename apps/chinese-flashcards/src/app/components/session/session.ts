@@ -1,10 +1,12 @@
 import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Logger } from '@org/logger';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { finalize } from 'rxjs';
 import { Flashcard, FlashcardType } from '../../models';
 import { Flashcards } from '../../services/flashcards';
 import { Edit } from '../edit/edit';
@@ -26,6 +28,7 @@ import { Page } from '../page/page';
 export class Session implements OnInit {
   private flashcards = inject(Flashcards);
   private message = inject(NzMessageService);
+  private logger = inject(Logger);
   private modal = inject(NzModalService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -50,24 +53,21 @@ export class Session implements OnInit {
     });
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.type = this.route.snapshot.paramMap.get('type') as FlashcardType;
     this.confidence = Number(this.route.snapshot.paramMap.get('confidence'));
     this.loading.set(true);
 
-    try {
-      this.cards.set(
-        await this.flashcards.getFlashcards({
-          type: this.type,
-          confidence: this.confidence,
-        }),
-      );
-    } catch (error) {
-      console.error('getFlashcards()', error);
-      this.message.error('Failed to load flashcards');
-    } finally {
-      this.loading.set(false);
-    }
+    this.flashcards
+      .getFlashcards({ type: this.type, confidence: this.confidence })
+      .pipe(finalize(() => this.loading.set(false)))
+      .subscribe({
+        next: (value) => this.cards.set(value),
+        error: (error: unknown) => {
+          this.logger.error('[session] load failed', error);
+          this.message.error('Failed to load flashcards');
+        },
+      });
   }
 
   toggle(): void {
@@ -113,7 +113,7 @@ export class Session implements OnInit {
       this.cards.update((cards) => cards.filter((c) => c.id !== card.id));
       this.message.success('Flashcard deleted');
     } catch (error) {
-      console.error('deleteFlashcard()', error);
+      this.logger.error('[session] deleteFlashcard failed', error);
       this.message.error('Failed to delete flashcard');
       throw error;
     }
@@ -136,7 +136,7 @@ export class Session implements OnInit {
       this.cards.update((cards) => cards.slice(1));
       this.revealed.set(false);
     } catch (error) {
-      console.error('updateFlashcard()', error);
+      this.logger.error('[session] updateFlashcard failed', error);
       this.message.error('Failed to update flashcard');
     } finally {
       this.updating.set(null);

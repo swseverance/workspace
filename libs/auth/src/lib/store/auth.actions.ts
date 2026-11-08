@@ -4,7 +4,10 @@ import type { SessionUser } from '@org/server';
 export const AuthActions = createActionGroup({
   source: 'Auth',
   events: {
-    'State Changed': props<{ user: SessionUser | null }>(),
+    // The server's view of the session cookie (from GET /api/session).
+    'Session Loaded': props<{ user: SessionUser | null }>(),
+    // Firebase's auth state; browser only.
+    'Firebase User Changed': props<{ user: SessionUser | null }>(),
 
     'Open Sign In Modal': emptyProps(),
     'Close Sign In Modal': emptyProps(),
@@ -15,11 +18,11 @@ export const AuthActions = createActionGroup({
     'Sign Out Failed': props<{ error: unknown }>(),
 
     // Keeping the httpOnly session cookie in step with Firebase's auth state.
-    'Validate Cookie': emptyProps(),
-    'Token Loaded': props<{ token: string }>(),
+    'Validate Cookie': props<{ user: SessionUser }>(),
+    'Token Loaded': props<{ token: string; user: SessionUser }>(),
     'Load Token Failed': props<{ error: unknown }>(),
-    'Cookie Created': emptyProps(),
-    'Cookie Validated': emptyProps(),
+    'Cookie Created': props<{ user: SessionUser }>(),
+    'Cookie Validated': props<{ user: SessionUser }>(),
     'Validate Cookie Failed': props<{ error: unknown }>(),
     'Clear Cookie': emptyProps(),
     'Cookie Cleared': emptyProps(),

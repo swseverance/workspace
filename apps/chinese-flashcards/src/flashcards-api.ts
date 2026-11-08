@@ -1,6 +1,5 @@
-import { NextFunction, Request, Response, Router } from 'express';
-import { getAppCheck } from 'firebase-admin/app-check';
-import { getAuth } from 'firebase-admin/auth';
+import { requireUserMiddleware, serializeError } from '@org/server';
+import { Router } from 'express';
 import { FieldValue, Timestamp, getFirestore } from 'firebase-admin/firestore';
 import * as logger from 'firebase-functions/logger';
 import {
@@ -9,9 +8,6 @@ import {
   FlashcardType,
   UpdateFlashcardArgs,
 } from './app/models';
-import { serializeError } from './serialize-error';
-
-type AuthedRequest = Request & { uid: string };
 
 type WriteFlashcard = {
   chinese: string;
@@ -108,56 +104,78 @@ const toFlashcard = (id: string, data: ReadFlashcard): Flashcard => {
   };
 };
 
-async function requireAppCheck(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const token = req.header('X-Firebase-AppCheck');
+type Updates = UpdateFlashcardArgs['updates'];
 
-  if (!token) {
-    res.status(401).json({ error: 'App Check token required' });
-    return;
+const TEXT_FIELDS = ['chinese', 'pinyin', 'translation', 'notes'] as const;
+
+/**
+ * Picks only the fields a client may edit, checking each one's type, so a
+ * PATCH can't overwrite `uid` (moving the card to another account),
+ * timestamps, or add arbitrary fields. Returns an error message when
+ * invalid.
+ */
+export function parseUpdates(body: unknown): Updates | string {
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return 'Body must be an object';
   }
 
-  try {
-    await getAppCheck().verifyToken(token);
-    next();
-  } catch (error) {
-    logger.error('verifyToken()', serializeError(error));
-    res.status(401).json({ error: 'App Check token required' });
+  const input = body as Record<string, unknown>;
+  const updates: Updates = {};
+
+  for (const field of TEXT_FIELDS) {
+    const value = input[field];
+
+    if (value === undefined) continue;
+
+    if (typeof value !== 'string') {
+      return `${field} must be a string`;
+    }
+
+    updates[field] = value;
   }
+
+  if (updates.chinese !== undefined && !updates.chinese.trim()) {
+    return 'chinese must not be empty';
+  }
+
+  if (input['type'] !== undefined) {
+    if (
+      !Object.values(FlashcardType).includes(input['type'] as FlashcardType)
+    ) {
+      return `type must be one of ${Object.values(FlashcardType).join(', ')}`;
+    }
+
+    updates.type = input['type'] as FlashcardType;
+  }
+
+  if (input['confidence'] !== undefined) {
+    const confidence = input['confidence'];
+
+    if (!Number.isInteger(confidence) || (confidence as number) < 0) {
+      return 'confidence must be a non-negative integer';
+    }
+
+    updates.confidence = confidence as number;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return 'No editable fields given';
+  }
+
+  return updates;
 }
 
-async function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const header = req.header('Authorization');
-  const token = header?.startsWith('Bearer ')
-    ? header.slice('Bearer '.length)
-    : undefined;
-
-  if (!token) {
-    res.status(401).json({ error: 'Must be signed in' });
-    return;
-  }
-
-  try {
-    (req as unknown as AuthedRequest).uid = (
-      await getAuth().verifyIdToken(token)
-    ).uid;
-    next();
-  } catch (error) {
-    logger.error('verifyIdToken()', serializeError(error));
-    res.status(401).json({ error: 'Must be signed in' });
-  }
-}
-
+/**
+ * Expects App Check and verifySessionCookieMiddleware in front of it (see
+ * server.ts); 401s requests without a signed-in user.
+ */
 export function createFlashcardsRouter(): Router {
   const router = Router();
 
-  router.use(requireAppCheck, requireAuth);
+  router.use(requireUserMiddleware);
 
   router.post('/', async (req, res) => {
-    const { uid } = req as unknown as AuthedRequest;
+    const { uid } = req.user!;
     const { chinese, pinyin, translation, notes, type } =
       req.body as CreateFlashcardArgs;
 
@@ -187,7 +205,7 @@ export function createFlashcardsRouter(): Router {
   });
 
   router.get('/groups', async (req, res) => {
-    const { uid } = req as unknown as AuthedRequest;
+    const { uid } = req.user!;
     const type = req.query['type'] as FlashcardType;
 
     try {
@@ -218,7 +236,7 @@ export function createFlashcardsRouter(): Router {
   });
 
   router.get('/', async (req, res) => {
-    const { uid } = req as unknown as AuthedRequest;
+    const { uid } = req.user!;
     const type = req.query['type'] as FlashcardType | undefined;
     const confidence =
       req.query['confidence'] !== undefined
@@ -251,9 +269,14 @@ export function createFlashcardsRouter(): Router {
   });
 
   router.patch('/:id', async (req, res) => {
-    const { uid } = req as unknown as AuthedRequest;
+    const { uid } = req.user!;
     const { id } = req.params;
-    const updates = req.body as UpdateFlashcardArgs['updates'];
+    const updates = parseUpdates(req.body);
+
+    if (typeof updates === 'string') {
+      res.status(400).json({ error: updates });
+      return;
+    }
 
     try {
       const db = getFirestore();
@@ -288,7 +311,7 @@ export function createFlashcardsRouter(): Router {
   });
 
   router.delete('/:id', async (req, res) => {
-    const { uid } = req as unknown as AuthedRequest;
+    const { uid } = req.user!;
     const { id } = req.params;
 
     try {

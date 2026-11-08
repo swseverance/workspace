@@ -4,6 +4,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { Logger } from '@org/logger';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -14,6 +15,7 @@ import {
   NzModalRef,
   NzModalService,
 } from 'ng-zorro-antd/modal';
+import { firstValueFrom } from 'rxjs';
 import { Weights } from '../../services/weights';
 
 @Component({
@@ -35,6 +37,7 @@ export class WeightForm {
   private modalRef = inject(NzModalRef);
   private data = inject<{ date: string; weight: number | null }>(NZ_MODAL_DATA);
   private fb = inject(NonNullableFormBuilder);
+  private logger = inject(Logger);
 
   isEditing = this.data.weight !== null;
   loading = signal(false);
@@ -55,13 +58,13 @@ export class WeightForm {
       nzOkDanger: true,
       nzOnOk: async () => {
         try {
-          await this.weights.deleteEntry(this.data.date);
+          await firstValueFrom(this.weights.deleteEntry(this.data.date));
 
           this.modalRef.destroy({ deleted: true });
 
           this.message.success('Weight deleted');
         } catch (error) {
-          console.error('deleteEntry()', error);
+          this.logger.error('[weight-form] deleteEntry failed', error);
 
           this.message.error('Failed to delete weight');
 
@@ -76,13 +79,15 @@ export class WeightForm {
 
     try {
       const { weight } = this.form.getRawValue();
-      const entry = await this.weights.upsertEntry(this.data.date, weight!);
+      const entry = await firstValueFrom(
+        this.weights.upsertEntry(this.data.date, weight!),
+      );
 
       this.modalRef.destroy(entry);
 
       this.message.success('Weight saved');
     } catch (error) {
-      console.error('upsertEntry()', error);
+      this.logger.error('[weight-form] upsertEntry failed', error);
 
       this.message.error('Failed to save weight');
     } finally {

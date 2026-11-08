@@ -2,12 +2,18 @@
   <header><strong>Login</strong></header>
 
   <main>
-    @if (authenticated() === false) {
+    <!-- The sign-in button waits for Firebase's answer (signedOut), not just
+    the server's (noSession), which can't see a sign-in still in progress. -->
+    @switch (status()) { @case ('signedOut') {
     <button nz-button nzType="primary" (click)="login()">
-      Sign in with Google
+      <span>Sign in with Google</span>
     </button>
-    } @else if (authenticated() === true) {
-    <a nz-button nzType="primary" routerLink="/dashboard">Go to Dashboard</a>
-    }
+    } @case ('signedIn') {
+    <a nz-button nzType="primary" routerLink="/dashboard"
+      ><span>Go to Dashboard</span></a
+    >
+    } @default {
+    <nz-spin />
+    } }
   </main>
 </app-page>

@@ -58,21 +58,34 @@ describe('AuthEffects', () => {
     vi.clearAllMocks();
   });
 
-  describe('stateChanged$', () => {
+  describe('authState$', () => {
     it('reports the session cookie user during a server render', async () => {
       const { effects, backend } = setup({
         request: new Request('https://app.example.com/'),
       });
 
-      const action = firstValueFrom(effects.stateChanged$);
+      const action = firstValueFrom(effects.authState$);
       backend.expectOne('/api/session').flush({ user: { uid: 'u1' } });
 
       expect(await action).toEqual(
-        AuthActions.stateChanged({ user: { uid: 'u1' } }),
+        AuthActions.sessionLoaded({ user: { uid: 'u1' } }),
       );
     });
 
-    it('then follows Firebase in the browser', () => {
+    it('reports no session when the session call fails', async () => {
+      const { effects, backend } = setup({
+        request: new Request('https://app.example.com/'),
+      });
+
+      const action = firstValueFrom(effects.authState$);
+      backend
+        .expectOne('/api/session')
+        .flush(null, { status: 500, statusText: 'Error' });
+
+      expect(await action).toEqual(AuthActions.sessionLoaded({ user: null }));
+    });
+
+    it('then follows Firebase in the browser, only after the session call', () => {
       firebase.onAuthStateChanged.mockImplementation((_auth, next) => {
         next({ uid: 'u2' });
         return () => undefined;
@@ -81,52 +94,52 @@ describe('AuthEffects', () => {
 
       // Firebase's observable never completes, so collect then unsubscribe.
       const emitted: Action[] = [];
-      const sub = effects.stateChanged$.subscribe((a) => emitted.push(a));
+      const sub = effects.authState$.subscribe((a) => emitted.push(a));
+      expect(emitted).toEqual([]);
       backend.expectOne('/api/session').flush({ user: null });
       sub.unsubscribe();
 
       expect(emitted).toEqual([
-        AuthActions.stateChanged({ user: null }),
-        AuthActions.stateChanged({ user: { uid: 'u2' } }),
+        AuthActions.sessionLoaded({ user: null }),
+        AuthActions.firebaseUserChanged({ user: { uid: 'u2' } }),
       ]);
     });
 
-    it('reports signed out during the build, with no browser or request', async () => {
+    it('reports no session during the build, with no browser or request', async () => {
       const { effects } = setup();
 
-      expect(await firstValueFrom(effects.stateChanged$)).toEqual(
-        AuthActions.stateChanged({ user: null }),
+      expect(await firstValueFrom(effects.authState$)).toEqual(
+        AuthActions.sessionLoaded({ user: null }),
       );
     });
   });
 
   describe('syncCookie$', () => {
     it('validates the cookie when signed in and clears it when signed out', () => {
-      const users = new Subject<{ uid: string } | null>();
-      firebase.onAuthStateChanged.mockImplementation((_auth, next) => {
-        const sub = users.subscribe(next);
-        return () => sub.unsubscribe();
-      });
-      const { effects } = setup({ auth: {} });
+      actions$ = of(
+        AuthActions.firebaseUserChanged({ user: { uid: 'u1' } }),
+        AuthActions.firebaseUserChanged({ user: null }),
+      );
+      const { effects } = setup();
 
       const emitted: Action[] = [];
       effects.syncCookie$.subscribe((a) => emitted.push(a));
-      users.next({ uid: 'u1' });
-      users.next(null);
 
       expect(emitted).toEqual([
-        AuthActions.validateCookie(),
+        AuthActions.validateCookie({ user: { uid: 'u1' } }),
         AuthActions.clearCookie(),
       ]);
     });
   });
 
   describe('validateCookie$', () => {
+    const user = { uid: 'u1' };
+
     it.each([
-      ['created', AuthActions.cookieCreated()],
-      ['valid', AuthActions.cookieValidated()],
+      ['created', AuthActions.cookieCreated({ user })],
+      ['valid', AuthActions.cookieValidated({ user })],
     ] as const)('maps "%s" from the server', async (status, expected) => {
-      actions$ = of(AuthActions.tokenLoaded({ token: 'id-token' }));
+      actions$ = of(AuthActions.tokenLoaded({ token: 'id-token', user }));
       const { effects, backend } = setup();
 
       const action = firstValueFrom(effects.validateCookie$);
@@ -135,6 +148,21 @@ describe('AuthEffects', () => {
 
       expect(req.request.body).toEqual({ idToken: 'id-token' });
       expect(await action).toEqual(expected);
+    });
+
+    it('drops the result when the user signs out mid-flight', () => {
+      const actions = new Subject<Action>();
+      actions$ = actions;
+      const { effects, backend } = setup();
+
+      const emitted: Action[] = [];
+      effects.validateCookie$.subscribe((a) => emitted.push(a));
+      actions.next(AuthActions.tokenLoaded({ token: 'id-token', user }));
+      const req = backend.expectOne('/api/session');
+      actions.next(AuthActions.clearCookie());
+
+      expect(req.cancelled).toBe(true);
+      expect(emitted).toEqual([]);
     });
   });
 

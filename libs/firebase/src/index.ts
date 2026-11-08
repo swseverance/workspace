@@ -15,7 +15,6 @@ import {
   getFirestore,
 } from 'firebase/firestore';
 
-export * from './auth-interceptor';
 export * from './recaptcha-interceptor';
 
 declare global {

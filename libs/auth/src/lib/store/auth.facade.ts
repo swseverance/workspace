@@ -10,6 +10,8 @@ export class AuthFacade {
 
   readonly user$ = this.store.select(authFeature.selectUser);
 
+  readonly status$ = this.store.select(authFeature.selectStatus);
+
   openSignInModal(): void {
     this.store.dispatch(AuthActions.openSignInModal());
   }

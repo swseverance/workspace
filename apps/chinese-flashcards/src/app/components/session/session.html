@@ -59,11 +59,11 @@
         [nzLoading]="updating() === 'reset'"
         (click)="updating() !== 'reset' && setConfidence(0, 'reset')"
       >
-        Reset
+        <span>Reset</span>
       </button>
 
       <button nz-button nzType="default" (click)="!updating() && toggle()">
-        Reveal
+        <span>Reveal</span>
       </button>
 
       <button
@@ -72,7 +72,7 @@
         [nzLoading]="updating() === 'increment'"
         (click)="updating() !== 'increment' && setConfidence(current.confidence + 1, 'increment')"
       >
-        Got it
+        <span>Got it</span>
       </button>
     </div>
     }
