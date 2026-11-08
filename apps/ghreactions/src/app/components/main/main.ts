@@ -1,3 +1,4 @@
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -9,6 +10,7 @@ import {
 } from '@angular/forms';
 import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import { Theme } from '@org/theme';
 import { AgGridAngular } from 'ag-grid-angular';
 import type { GridApi, GridReadyEvent } from 'ag-grid-community';
 import { colorSchemeDark, themeQuartz } from 'ag-grid-community';
@@ -28,13 +30,14 @@ import {
 } from '../../../models/github';
 import { GHReactionsRow } from '../../../models/table';
 import { Data } from '../../services/data';
-import { IS_MOBILE, ThemeService } from '../../tokens';
+import { IS_MOBILE } from '../../tokens';
 import { COLUMNS, DEFAULT_COL_DEF } from './columns';
 import { TYPE_CONFIG, TYPE_OPTIONS } from './options';
 
 @Component({
   selector: 'app-main',
   imports: [
+    AsyncPipe,
     ReactiveFormsModule,
     NzFormModule,
     NzInputModule,
@@ -54,7 +57,7 @@ export class Main implements OnInit, Adapter {
   private destroyRef = inject(DestroyRef);
   private meta = inject(Meta);
   private dataService = inject(Data);
-  protected themeService = inject(ThemeService);
+  protected theme = inject(Theme);
   protected mobile = inject(IS_MOBILE);
 
   private gridApi!: GridApi<GHReactionsRow>;

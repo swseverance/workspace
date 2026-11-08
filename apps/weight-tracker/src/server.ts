@@ -5,10 +5,10 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import { EnvironmentName, RequestContext } from '@org/environment';
+import { firebaseAuthProxy } from '@org/server';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
-import { createProxyMiddleware } from 'http-proxy-middleware';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,13 +20,7 @@ initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
-app.use(
-  createProxyMiddleware({
-    target: `https://${process.env['FIREBASE_PROJECT_ID']}.firebaseapp.com`,
-    changeOrigin: true,
-    pathFilter: '/__/auth/**',
-  }),
-);
+app.use(firebaseAuthProxy(process.env['FIREBASE_PROJECT_ID'] as string));
 
 /**
  * Serve static files from /browser

@@ -19,7 +19,11 @@
     "paths": {
       "@org/environment": ["./libs/environment/src/index.ts"],
       "@org/firebase": ["./libs/firebase/src/index.ts"],
-      "@org/window": ["./libs/window/src/index.ts"]
+      "@org/window": ["./libs/window/src/index.ts"],
+      "@org/theme": ["./libs/theme/src/index.ts"],
+      "@org/auth": ["./libs/auth/src/index.ts"],
+      "@org/server": ["./libs/server/src/index.ts"],
+      "@org/logger": ["./libs/logger/src/index.ts"]
     }
   }
 }
