@@ -9,10 +9,10 @@ import { pullRequestQuerySchema } from '../../../validators/validators';
 import {
   formatState,
   githubClient,
-  PAGE_SIZE,
   toReactions,
   totalReactions,
 } from '../client/client';
+import { fillPage } from '../client/fill-page';
 
 const query = `
   query($queryString: String!, $limit: Int!, $cursor: String) {
@@ -69,16 +69,18 @@ export const fetchPullRequests = async (
   params: z.infer<typeof pullRequestQuerySchema>,
 ): Promise<TablePage> => {
   const queryString = buildQueryString(params);
-  const data = await githubClient.gql<PullRequestSearchResponse>(query, {
-    queryString,
-    limit: PAGE_SIZE,
-    cursor: params.cursor,
-  });
-  const { nodes, pageInfo } = data.search;
-  return {
-    rows: nodes.map(fromNode),
-    nextCursor: pageInfo.hasNextPage ? pageInfo.endCursor : null,
-  };
+  return fillPage(async (limit, cursor) => {
+    const data = await githubClient.gql<PullRequestSearchResponse>(query, {
+      queryString,
+      limit,
+      cursor,
+    });
+    const { nodes, pageInfo } = data.search;
+    return {
+      rows: nodes.map(fromNode),
+      nextCursor: pageInfo.hasNextPage ? pageInfo.endCursor : null,
+    };
+  }, params.cursor);
 };
 
 export const api = { fetchPullRequests };
