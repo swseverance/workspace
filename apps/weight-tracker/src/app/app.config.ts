@@ -15,10 +15,7 @@ import {
   withEventReplay,
   withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
-import {
-  provideRouter,
-  withEnabledBlockingInitialNavigation,
-} from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
 import { EditOutline, PlusOutline } from '@ant-design/icons-angular/icons';
 import { provideEffects } from '@ngrx/effects';
@@ -53,10 +50,11 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     provideBrowserGlobalErrorListeners(),
-    // Wait for the first route (lazy chunk, guard) before rendering, as the
-    // server does, so hydration starts from the same page instead of an
-    // empty outlet.
-    provideRouter(appRoutes, withEnabledBlockingInitialNavigation()),
+    // No app-level loader beside the outlet: hydration keeps the server's page
+    // in place until the lazy route loads and claims it, and a loader shown
+    // meanwhile would sit on top of it. (Blocking initial navigation isn't an
+    // option: Angular rejects it alongside hydration, NG05001.)
+    provideRouter(appRoutes),
     provideEnvironment(environment),
     provideHttpClient(
       withFetch(),

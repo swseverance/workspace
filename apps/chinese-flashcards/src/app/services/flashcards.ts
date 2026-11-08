@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map, Observable } from 'rxjs';
 import {
   CreateFlashcardArgs,
   Flashcard,
@@ -21,30 +21,34 @@ export class Flashcards {
     ).then(({ flashcard }) => flashcard);
   }
 
+  // Reads return Observables: subscribed to synchronously, a hydration-time
+  // transfer cache hit lands before the first client render, so it matches
+  // the server-rendered page.
+
   getGroups(
     type: FlashcardType,
-  ): Promise<Array<{ confidence: number; count: number }>> {
-    return firstValueFrom(
-      this.http.get<{
+  ): Observable<Array<{ confidence: number; count: number }>> {
+    return this.http
+      .get<{
         flashcards: Array<{ confidence: number; count: number }>;
       }>('/api/flashcards/groups', {
         params: new HttpParams({ fromObject: { type } }),
-      }),
-    ).then(({ flashcards }) => flashcards);
+      })
+      .pipe(map(({ flashcards }) => flashcards));
   }
 
-  getFlashcards(args: GetFlashcardsArgs): Promise<Flashcard[]> {
+  getFlashcards(args: GetFlashcardsArgs): Observable<Flashcard[]> {
     const params: Record<string, string> = {};
 
     if (args.type) params['type'] = args.type;
     if (args.confidence !== undefined)
       params['confidence'] = String(args.confidence);
 
-    return firstValueFrom(
-      this.http.get<{ flashcards: Flashcard[] }>('/api/flashcards', {
+    return this.http
+      .get<{ flashcards: Flashcard[] }>('/api/flashcards', {
         params: new HttpParams({ fromObject: params }),
-      }),
-    ).then(({ flashcards }) => flashcards);
+      })
+      .pipe(map(({ flashcards }) => flashcards));
   }
 
   updateFlashcard(args: UpdateFlashcardArgs): Promise<Flashcard> {

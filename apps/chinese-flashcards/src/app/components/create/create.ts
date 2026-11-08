@@ -5,6 +5,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Logger } from '@org/logger';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -35,6 +36,7 @@ import { Page } from '../page/page';
 export class Create {
   private flashcards = inject(Flashcards);
   private message = inject(NzMessageService);
+  private logger = inject(Logger);
   private fb = inject(NonNullableFormBuilder);
 
   form = this.fb.group({
@@ -76,7 +78,7 @@ export class Create {
     } catch (error) {
       this.message.error('Failed to create flashcard');
 
-      console.error('addFlashcard()', error);
+      this.logger.error('[create] addFlashcard failed', error);
     } finally {
       this.loading.set(false);
     }
