@@ -7,11 +7,11 @@ import { GHReactionsRow, TablePage } from '../../../models/table';
 import { commitCommentQuerySchema } from '../../../validators/validators';
 import {
   githubClient,
-  PAGE_SIZE,
   toReactions,
   totalReactions,
   truncate,
 } from '../client/client';
+import { fillPage } from '../client/fill-page';
 
 const query = `
   query($login: String!, $limit: Int!, $cursor: String) {
@@ -52,16 +52,18 @@ export const fetchCommitComments = async ({
   username,
   cursor,
 }: z.infer<typeof commitCommentQuerySchema>): Promise<TablePage> => {
-  const data = await githubClient.gql<CommitCommentsResponse>(query, {
-    login: username,
-    limit: PAGE_SIZE,
-    cursor,
-  });
-  const { nodes, pageInfo } = data.user.commitComments;
-  return {
-    rows: nodes.map(fromCommitComment),
-    nextCursor: pageInfo.hasNextPage ? pageInfo.endCursor : null,
-  };
+  return fillPage(async (limit, after) => {
+    const data = await githubClient.gql<CommitCommentsResponse>(query, {
+      login: username,
+      limit,
+      cursor: after,
+    });
+    const { nodes, pageInfo } = data.user.commitComments;
+    return {
+      rows: nodes.map(fromCommitComment),
+      nextCursor: pageInfo.hasNextPage ? pageInfo.endCursor : null,
+    };
+  }, cursor);
 };
 
 export const api = { fetchCommitComments };

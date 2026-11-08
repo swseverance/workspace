@@ -4,7 +4,7 @@ import {
   ReactableType,
   ReactionType,
 } from '../../../models/github';
-import { githubClient } from '../client/client';
+import { githubClient, PAGE_SIZE } from '../client/client';
 import { fetchIssueComments } from './fetch-issue-comments';
 
 beforeEach(() => {
@@ -56,7 +56,8 @@ describe('fetchIssueComments', () => {
 
   it('returns pageInfo.endCursor as nextCursor when there are more pages', async () => {
     vi.mocked(githubClient.gql).mockResolvedValueOnce(
-      makeResponse([rawComment], true, 'page-end-cursor'),
+      // A full page, so fillPage doesn't top it up.
+      makeResponse(Array(PAGE_SIZE).fill(rawComment), true, 'page-end-cursor'),
     );
 
     const { nextCursor } = await fetchIssueComments({

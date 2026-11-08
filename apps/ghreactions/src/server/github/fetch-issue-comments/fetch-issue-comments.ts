@@ -5,11 +5,11 @@ import { issueCommentQuerySchema } from '../../../validators/validators';
 import {
   formatState,
   githubClient,
-  PAGE_SIZE,
   toReactions,
   totalReactions,
   truncate,
 } from '../client/client';
+import { fillPage } from '../client/fill-page';
 
 const query = `
   query($login: String!, $limit: Int!, $cursor: String) {
@@ -51,16 +51,18 @@ export const fetchIssueComments = async ({
   username,
   cursor,
 }: z.infer<typeof issueCommentQuerySchema>): Promise<TablePage> => {
-  const data = await githubClient.gql<IssueCommentsResponse>(query, {
-    login: username,
-    limit: PAGE_SIZE,
-    cursor,
-  });
-  const { nodes, pageInfo } = data.user.issueComments;
-  return {
-    rows: nodes.map(fromComment),
-    nextCursor: pageInfo.hasNextPage ? pageInfo.endCursor : null,
-  };
+  return fillPage(async (limit, after) => {
+    const data = await githubClient.gql<IssueCommentsResponse>(query, {
+      login: username,
+      limit,
+      cursor: after,
+    });
+    const { nodes, pageInfo } = data.user.issueComments;
+    return {
+      rows: nodes.map(fromComment),
+      nextCursor: pageInfo.hasNextPage ? pageInfo.endCursor : null,
+    };
+  }, cursor);
 };
 
 export const api = { fetchIssueComments };
