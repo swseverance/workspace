@@ -1,14 +1,16 @@
+import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { FIREBASE_APP_CHECK } from '@org/firebase';
+import { Theme } from '@org/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { ThemeService } from './tokens';
 
 @Component({
   selector: 'app-root',
   imports: [
+    AsyncPipe,
     RouterLink,
     RouterOutlet,
     NzLayoutModule,
@@ -19,7 +21,7 @@ import { ThemeService } from './tokens';
   styleUrl: './app.scss',
 })
 export class App {
-  themeService = inject(ThemeService);
+  protected theme = inject(Theme);
 
   constructor() {
     // Activates App Check once near the root, rather than relying on it

@@ -2,10 +2,10 @@
   <nz-header>
     <a routerLink="/"><strong>GitHub Reactions</strong> &nbsp; &#128077;</a>
     <span class="icons">
-      <button nz-button nzType="text" (click)="themeService?.toggle()">
+      <button nz-button nzType="text" (click)="theme.toggle()">
         <span
           nz-icon
-          [nzType]="themeService?.theme === 'ghreactions-light-theme' ? 'moon' : 'sun'"
+          [nzType]="(theme.mode$ | async) === 'dark' ? 'sun' : 'moon'"
           nzTheme="outline"
         ></span>
       </button>

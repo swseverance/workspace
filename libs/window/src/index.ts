@@ -1,14 +1,6 @@
 import { DOCUMENT, inject, InjectionToken } from '@angular/core';
 
-export const WINDOW = new InjectionToken<Window>('WINDOW', {
+export const WINDOW = new InjectionToken<Window | null>('WINDOW', {
   providedIn: 'root',
-  factory: () => {
-    const { defaultView } = inject(DOCUMENT);
-
-    if (!defaultView) {
-      throw new Error('Window is not available');
-    }
-
-    return defaultView;
-  },
+  factory: () => inject(DOCUMENT).defaultView,
 });

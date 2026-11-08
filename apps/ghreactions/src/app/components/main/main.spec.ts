@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { Theme } from '@org/theme';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { of } from 'rxjs';
 import {
@@ -10,7 +11,7 @@ import {
   ReactionsFilter,
 } from '../../../models/github';
 import { Data } from '../../services/data';
-import { IS_MOBILE, ThemeService } from '../../tokens';
+import { IS_MOBILE } from '../../tokens';
 import { Main } from './main';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -28,10 +29,7 @@ describe('Main', () => {
       providers: [
         provideRouter([{ path: '', component: Main }]),
         { provide: Data, useValue: mockDataService },
-        {
-          provide: ThemeService,
-          useValue: { theme: 'ghreactions-light-theme' },
-        },
+        { provide: Theme, useValue: { mode$: of('light') } },
         { provide: IS_MOBILE, useValue: false },
       ],
     }).compileComponents();

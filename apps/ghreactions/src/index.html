@@ -42,56 +42,6 @@
     </script>
   </head>
   <body>
-    <script>
-      const LIGHT = 'ghreactions-light-theme';
-      const DARK = 'ghreactions-dark-theme';
-
-      const lightStyle = document.querySelector('link[href^="light-theme"]');
-      const darkStyle = document.querySelector('link[href^="dark-theme"]');
-
-      var themeService = {
-        theme: null,
-        applyLightTheme: function () {
-          localStorage.setItem('ghreactions-theme', LIGHT);
-
-          lightStyle.disabled = false;
-          document.body.classList.add(LIGHT);
-
-          darkStyle.disabled = true;
-          document.body.classList.remove(DARK);
-
-          this.theme = LIGHT;
-        },
-        applyDarkTheme: function () {
-          localStorage.setItem('ghreactions-theme', DARK);
-
-          lightStyle.disabled = true;
-          document.body.classList.remove(LIGHT);
-
-          darkStyle.disabled = false;
-          document.body.classList.add(DARK);
-
-          this.theme = DARK;
-        },
-        toggle: function () {
-          this.theme === LIGHT ? this.applyDarkTheme() : this.applyLightTheme();
-        },
-      };
-
-      let theme = LIGHT;
-
-      if (
-        localStorage.getItem('ghreactions-theme') === DARK ||
-        (!localStorage.getItem('ghreactions-theme') &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches)
-      ) {
-        theme = DARK;
-      }
-
-      theme === LIGHT
-        ? themeService.applyLightTheme()
-        : themeService.applyDarkTheme();
-    </script>
     <app-root></app-root>
   </body>
 </html>

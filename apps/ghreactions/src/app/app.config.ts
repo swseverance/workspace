@@ -21,6 +21,7 @@ import {
 } from '@ant-design/icons-angular/icons';
 import { provideEnvironment } from '@org/environment';
 import { recaptchaInterceptor } from '@org/firebase';
+import { provideTheme } from '@org/theme';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
@@ -40,5 +41,12 @@ export const appConfig: ApplicationConfig = {
     provideEnvironment(environment),
     provideNzI18n(en_US),
     provideNzIcons([GithubOutline, MoonOutline, SunOutline]),
+    provideTheme({
+      storageKey: 'ghreactions-theme',
+      classes: {
+        light: 'ghreactions-light-theme',
+        dark: 'ghreactions-dark-theme',
+      },
+    }),
   ],
 };
