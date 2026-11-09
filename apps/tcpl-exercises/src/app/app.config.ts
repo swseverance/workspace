@@ -19,6 +19,8 @@ import {
   GithubOutline,
   LoginOutline,
   LogoutOutline,
+  MenuFoldOutline,
+  MenuUnfoldOutline,
   MoonOutline,
   SunOutline,
 } from '@ant-design/icons-angular/icons';
@@ -85,6 +87,8 @@ export const appConfig: ApplicationConfig = {
       GithubOutline,
       LoginOutline,
       LogoutOutline,
+      MenuFoldOutline,
+      MenuUnfoldOutline,
       MoonOutline,
       SunOutline,
     ]),

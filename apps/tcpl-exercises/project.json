@@ -37,6 +37,9 @@
           },
           "apps/tcpl-exercises/src/styles.scss"
         ],
+        "stylePreprocessorOptions": {
+          "includePaths": ["apps/tcpl-exercises/src/styles"]
+        },
         "server": "apps/tcpl-exercises/src/main.server.ts",
         "ssr": {
           "entry": "apps/tcpl-exercises/src/server.ts"

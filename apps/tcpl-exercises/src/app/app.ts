@@ -7,6 +7,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { SidebarService } from './services/sidebar-service';
 
 @Component({
   selector: 'app-root',
@@ -25,4 +26,5 @@ import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 export class App {
   protected readonly auth = inject(AuthFacade);
   protected readonly theme = inject(Theme);
+  protected readonly sidebar = inject(SidebarService);
 }

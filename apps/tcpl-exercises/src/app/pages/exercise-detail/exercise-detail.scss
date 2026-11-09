@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: block;
 }
@@ -34,6 +36,14 @@
   > app-panel {
     flex: 1 1 50%;
     min-width: 0;
+  }
+
+  @include bp.mobile {
+    flex-direction: column;
+
+    > app-panel {
+      flex-basis: auto;
+    }
   }
 }
 
@@ -77,5 +87,13 @@
   app-code-editor {
     flex: 1;
     min-height: 0;
+  }
+
+  // Stacked on mobile, nothing beside the panel sets its height, and the
+  // editor's height: 100% only resolves against a definite height. flex: none
+  // because flex: 1's zero basis would override the height.
+  @include bp.mobile {
+    flex: none;
+    height: 50vh;
   }
 }
