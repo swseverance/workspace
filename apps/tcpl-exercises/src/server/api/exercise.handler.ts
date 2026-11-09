@@ -36,6 +36,9 @@ function toExercise(
           stdin: stdin ?? '',
           expectedStdout,
           actualStdout: '',
+          actualStderr: '',
+          stopReason: null,
+          exitCode: null,
           status: 'indeterminate',
         };
       }
@@ -45,6 +48,9 @@ function toExercise(
         stdin: stdin ?? '',
         expectedStdout,
         actualStdout: result.actualStdout,
+        actualStderr: result.actualStderr,
+        stopReason: result.stopReason,
+        exitCode: result.exitCode,
         status: result.status,
       };
     },
@@ -154,12 +160,10 @@ export const submitExerciseHandler: RequestHandler<
   }
 
   try {
-    const { compile, results } = await gradeSubmission(
+    const { compilationError, results } = await gradeSubmission(
       code,
       req.exercise!.tests,
     );
-    const compileFailed = compile.timedOut || compile.exitCode !== 0;
-    const compilationError = compileFailed ? compile.stderr : '';
 
     const tests: Record<string, ExerciseRecordTestResult> = Object.fromEntries(
       results.map((result) => [
@@ -167,6 +171,9 @@ export const submitExerciseHandler: RequestHandler<
         {
           status: result.passed ? 'passed' : 'failed',
           actualStdout: result.stdout,
+          actualStderr: result.stderr,
+          stopReason: result.stopReason,
+          exitCode: result.exitCode,
         },
       ]),
     );

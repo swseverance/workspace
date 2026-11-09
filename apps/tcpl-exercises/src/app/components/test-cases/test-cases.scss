@@ -11,8 +11,67 @@
   min-height: 220px;
 }
 
+.detail-row {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+
+  & + & {
+    margin-top: 12px;
+  }
+}
+
+// Matches app-test-case-io's row labels.
+.detail-label {
+  flex: 0 0 140px;
+  font-size: 15px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.stopped {
+  color: #d46b08;
+}
+
+.runtime-error {
+  color: #cf1322;
+}
+
+.stderr {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 12px;
+  max-height: 200px;
+  overflow: auto;
+  border-radius: 4px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #cf1322;
+  background: #fff1f0;
+}
+
 :host-context(.tcpl-exercises-dark-theme) {
-  .empty {
+  .empty,
+  .detail-label {
     color: rgba(255, 255, 255, 0.45);
   }
+
+  .stopped {
+    color: #ffa940;
+  }
+
+  .runtime-error {
+    color: #ff7875;
+  }
+
+  .stderr {
+    color: #ff7875;
+    background: rgba(207, 19, 34, 0.15);
+  }
+}
+
+nz-tag {
+  min-width: 110px;
+  text-align: center;
 }
