@@ -41,3 +41,10 @@ export type Chapter = {
 export type ChaptersResponseBody = {
   chapters: Chapter[];
 };
+
+export type AnalyticsResponseBody = {
+  /** Graded submissions, across every exercise and user. */
+  submissions: number;
+  /** Distinct users who have submitted at least once (approximate). */
+  users: number;
+};

@@ -4,6 +4,7 @@ import * as logger from 'firebase-functions/logger';
 import { ExerciseSource } from '../../models/exercise';
 import { ExerciseRecordTestResult } from '../../models/exercise-record';
 import { Exercise, ExerciseTestCase } from '../../shared/models';
+import { recordSubmission } from '../analytics/analytics';
 import { computeExerciseStatus } from '../exercises/status';
 import {
   getExerciseRecord,
@@ -185,6 +186,7 @@ export const submitExerciseHandler: RequestHandler<
       tests,
       compilationError,
     );
+    await recordSubmission(req.user!.uid);
     res.json(
       toExercise(
         req.exercise!,
