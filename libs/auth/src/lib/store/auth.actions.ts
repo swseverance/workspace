@@ -22,6 +22,12 @@ export const AuthActions = createActionGroup({
     'Sign Out Success': emptyProps(),
     'Sign Out Failed': props<{ error: unknown }>(),
 
+    // A signed-in user stopped being signed in, for any reason: signed out
+    // in this tab or another, or the account changed. Never dispatched for
+    // a page that loads signed out. `user` is who was signed in. Unlike
+    // Sign Out Success, which only reports a sign-out started in this tab.
+    'Session Ended': props<{ user: SessionUser }>(),
+
     // Keeping the httpOnly session cookie in step with Firebase's auth state.
     'Validate Cookie': props<{ user: SessionUser }>(),
     'Token Loaded': props<{ token: string; user: SessionUser }>(),
