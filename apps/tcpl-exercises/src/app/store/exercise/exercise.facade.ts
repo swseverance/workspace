@@ -5,7 +5,7 @@ import { loadChapters } from './chapters.actions';
 import {
   attemptToSubmitExercise,
   codeEdited,
-  openSubmissionModal,
+  openApplySubmissionModal,
 } from './exercise.actions';
 import {
   selectChapters,
@@ -32,8 +32,8 @@ export class ExerciseFacade {
     this.store.dispatch(attemptToSubmitExercise({ code }));
   }
 
-  viewSubmission(submission: ExerciseSubmission): void {
-    this.store.dispatch(openSubmissionModal({ submission }));
+  applySubmission(submission: ExerciseSubmission): void {
+    this.store.dispatch(openApplySubmissionModal({ submission }));
   }
 
   loadChapters(): void {

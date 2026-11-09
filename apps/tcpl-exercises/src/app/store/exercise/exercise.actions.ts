@@ -51,12 +51,15 @@ export const exerciseNavigationFailed = createAction(
   props<{ id: string; error: unknown }>(),
 );
 
-export const openSubmissionModal = createAction(
-  'Open Submission Modal',
+/** Asks the user to confirm replacing their code with a submission's. */
+export const openApplySubmissionModal = createAction(
+  'Open Apply Submission Modal',
   props<{ submission: ExerciseSubmission }>(),
 );
 
-export const closeSubmissionModal = createAction('Close Submission Modal');
+export const closeApplySubmissionModal = createAction(
+  'Close Apply Submission Modal',
+);
 
 /** Replaces the editor's code with an earlier submission's. */
 export const applyHistoricalSubmission = createAction(

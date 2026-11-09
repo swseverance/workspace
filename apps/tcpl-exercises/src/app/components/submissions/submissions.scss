@@ -2,6 +2,29 @@
   display: block;
 }
 
-.status {
-  margin-left: auto;
+.empty {
+  margin: 0;
+  color: var(--tc-muted);
+}
+
+.panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editor {
+  height: 40vh;
+  display: flex;
+  flex-direction: column;
+
+  app-code-editor {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
 }

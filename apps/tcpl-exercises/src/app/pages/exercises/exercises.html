@@ -11,9 +11,11 @@
                 <span>{{ exercise.number }}{{ exercise.suffix ?? '' }}</span>
 
                 @if (exercise.status !== 'indeterminate') {
-                  <app-status [color]="statusColors[exercise.status]">{{
-                    statusLabels[exercise.status]
-                  }}</app-status>
+                  <app-status
+                    size="small"
+                    [color]="statusColors[exercise.status]"
+                    >{{ statusLabels[exercise.status] }}</app-status
+                  >
                 }
               </a>
             </li>
