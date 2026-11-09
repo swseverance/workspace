@@ -21,9 +21,11 @@ import { ExerciseService } from '../../services/exercise-service';
 import {
   attemptToSubmitExercise,
   exerciseNavigationFailed,
+  exerciseRefreshed,
   exercisesReset,
   exerciseSubmitted,
   pendingChangesSaved,
+  refreshExerciseFailed,
   savePendingChanges,
   savePendingChangesFailure,
   submitExercise,
@@ -60,10 +62,28 @@ export class ExerciseEffects {
     ),
   );
 
+  /**
+   * A new session cookie means the shown exercise was fetched signed out,
+   * without the user's code and results, so fetch it again.
+   */
+  refreshExercise$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.cookieCreated),
+      withLatestFrom(this.store.select(selectId)),
+      filter(([, id]) => id !== ''),
+      switchMap(([, id]) =>
+        this.exercise.getExercise(id).pipe(
+          map((exercise) => exerciseRefreshed({ exercise })),
+          catchError((error) => of(refreshExerciseFailed({ id, error }))),
+        ),
+      ),
+    ),
+  );
+
   exerciseNavigationFailed$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(exerciseNavigationFailed),
+        ofType(exerciseNavigationFailed, refreshExerciseFailed),
         tap(({ error }) => {
           this.logger.error('[exercise] load failed:', error);
           this.message.error('Failed to Load Exercise');

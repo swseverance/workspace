@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { AuthActions } from '@org/auth';
 import { Logger } from '@org/logger';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
@@ -26,6 +27,18 @@ export class ChaptersEffects {
           catchError((error) => of(loadChaptersFailed({ error }))),
         ),
       ),
+    ),
+  );
+
+  /**
+   * A new session cookie means any chapters loaded so far were fetched
+   * signed out, without the user's statuses. Going through loadChapters$
+   * also cancels a signed-out request still in flight.
+   */
+  reloadChaptersOnSignIn$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.cookieCreated),
+      map(() => loadChapters()),
     ),
   );
 
