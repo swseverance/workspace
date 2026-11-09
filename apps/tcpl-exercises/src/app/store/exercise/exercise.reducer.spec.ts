@@ -4,6 +4,7 @@ import {
   applyHistoricalSubmission,
   codeEdited,
   exerciseNavigationSucceeded,
+  exerciseRefreshed,
   exercisesReset,
   exerciseSubmitted,
   pendingChangesSaved,
@@ -119,6 +120,25 @@ describe('exerciseReducer', () => {
       );
 
       expect(state.entities['1-1']?.submitting).toBe(true);
+    });
+  });
+
+  describe('exerciseRefreshed', () => {
+    it("replaces the exercise's data without changing which one is shown", () => {
+      const previousState = { ...withEntities(ENTITY), id: '2-1' };
+      const refreshed: Exercise = {
+        ...EXERCISE,
+        code: 'saved code',
+        status: 'passed',
+      };
+
+      const state = exerciseReducer(
+        previousState,
+        exerciseRefreshed({ exercise: refreshed }),
+      );
+
+      expect(state.entities['1-1']).toEqual({ ...ENTITY, ...refreshed });
+      expect(state.id).toBe('2-1');
     });
   });
 

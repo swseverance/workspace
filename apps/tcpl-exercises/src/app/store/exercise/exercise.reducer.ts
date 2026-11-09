@@ -10,6 +10,7 @@ import {
   applyHistoricalSubmission,
   codeEdited,
   exerciseNavigationSucceeded,
+  exerciseRefreshed,
   exercisesReset,
   exerciseSubmitted,
   pendingChangesSaved,
@@ -173,6 +174,11 @@ export const exerciseReducer = createReducer(
     ...state,
     chaptersLoading: false,
   })),
+
+  // Not a navigation, so the shown exercise doesn't change.
+  on(exerciseRefreshed, (state, { exercise }) =>
+    upsertLoadedExercise(state, exercise),
+  ),
 
   // The resolver only lets a navigation finish once its exercise has
   // loaded, so this is also where the shown exercise changes.

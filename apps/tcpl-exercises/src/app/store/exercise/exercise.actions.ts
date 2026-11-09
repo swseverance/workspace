@@ -51,6 +51,17 @@ export const exerciseNavigationFailed = createAction(
   props<{ id: string; error: unknown }>(),
 );
 
+/** The shown exercise, fetched again now that the user is signed in. */
+export const exerciseRefreshed = createAction(
+  'Exercise Refreshed',
+  props<{ exercise: Exercise }>(),
+);
+
+export const refreshExerciseFailed = createAction(
+  'Refresh Exercise Failed',
+  props<{ id: string; error: unknown }>(),
+);
+
 /** Asks the user to confirm replacing their code with a submission's. */
 export const openApplySubmissionModal = createAction(
   'Open Apply Submission Modal',
