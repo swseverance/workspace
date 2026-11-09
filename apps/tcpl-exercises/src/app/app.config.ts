@@ -14,7 +14,7 @@ import {
   withEventReplay,
   withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import {
   GithubOutline,
   LoginOutline,
@@ -61,7 +61,7 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     provideBrowserGlobalErrorListeners(),
-    provideRouter(appRoutes, withComponentInputBinding()),
+    provideRouter(appRoutes),
     provideEnvironment(environment),
     provideTheme({
       storageKey: 'tcpl-exercises-theme',

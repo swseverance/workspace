@@ -1,16 +1,11 @@
 import { inject, Service } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { loadChapters } from './chapters.actions';
-import {
-  attemptToSubmitExercise,
-  codeEdited,
-  selectExercise,
-} from './exercise.actions';
+import { attemptToSubmitExercise, codeEdited } from './exercise.actions';
 import {
   selectChapters,
   selectChaptersLoading,
-  selectExercise as selectExerciseSelector,
-  selectShowExerciseSkeleton,
+  selectCurrentEntity,
   selectSubmissionPending,
 } from './exercise.selectors';
 
@@ -19,15 +14,10 @@ import {
 export class ExerciseFacade {
   private readonly store = inject(Store);
 
-  readonly exercise$ = this.store.select(selectExerciseSelector);
-  readonly exerciseLoading$ = this.store.select(selectShowExerciseSkeleton);
+  readonly exercise$ = this.store.select(selectCurrentEntity);
   readonly submissionPending$ = this.store.select(selectSubmissionPending);
   readonly chapters$ = this.store.select(selectChapters);
   readonly chaptersLoading$ = this.store.select(selectChaptersLoading);
-
-  selectExercise(id: string): void {
-    this.store.dispatch(selectExercise({ id }));
-  }
 
   codeEdited(code: string): void {
     this.store.dispatch(codeEdited({ code }));

@@ -1,11 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 import { Exercise } from '../../../shared/models';
 
-export const selectExercise = createAction(
-  'Select Exercise',
-  props<{ id: string }>(),
-);
-
 export const codeEdited = createAction(
   'Code Edited',
   props<{ code: string }>(),
@@ -44,17 +39,6 @@ export const exerciseSubmitted = createAction(
 export const submitExerciseFailed = createAction(
   'Submit Exercise Failed',
   props<{ id: string; error: unknown }>(),
-);
-
-/**
- * Dispatched by exerciseResolver when it starts fetching an exercise, so
- * the UI can show a skeleton for the exercise being navigated to even while
- * the currently displayed one isn't itself loading. The resolver dispatches
- * one of the two outcomes below once the fetch settles.
- */
-export const exerciseNavigationStarted = createAction(
-  'Exercise Navigation Started',
-  props<{ id: string }>(),
 );
 
 export const exerciseNavigationSucceeded = createAction(
