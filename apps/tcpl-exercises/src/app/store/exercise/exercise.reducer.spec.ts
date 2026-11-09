@@ -2,13 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Chapter, Exercise } from '../../../shared/models';
 import {
   codeEdited,
-  exerciseNavigationFailed,
-  exerciseNavigationStarted,
   exerciseNavigationSucceeded,
   exerciseSubmitted,
   pendingChangesSaved,
   savePendingChangesFailure,
-  selectExercise,
   submitExercise,
   submitExerciseFailed,
 } from './exercise.actions';
@@ -44,7 +41,6 @@ const EXERCISE: Exercise = {
 const ENTITY: ExerciseEntity = {
   ...EXERCISE,
   pendingChanges: '',
-  loading: false,
   submitting: false,
 };
 
@@ -63,44 +59,9 @@ function withEntities(...entities: ExerciseEntity[]): ExerciseState {
 }
 
 describe('exerciseReducer', () => {
-  describe('selectExercise', () => {
-    it('sets the id, leaving everything else unchanged', () => {
-      const state = exerciseReducer(
-        initialExerciseState,
-        selectExercise({ id: '1-1' }),
-      );
-
-      expect(state).toEqual({ ...initialExerciseState, id: '1-1' });
-    });
-  });
-
-  describe('exerciseNavigationStarted', () => {
-    it('sets nextId without creating a placeholder entity when none exists', () => {
-      const state = exerciseReducer(
-        initialExerciseState,
-        exerciseNavigationStarted({ id: '1-1' }),
-      );
-
-      expect(state.nextId).toBe('1-1');
-      expect(state.entities['1-1']).toBeUndefined();
-    });
-
-    it('marks an existing entity as loading, leaving its other fields unchanged', () => {
-      const previousState = withEntities(ENTITY);
-
-      const state = exerciseReducer(
-        previousState,
-        exerciseNavigationStarted({ id: '1-1' }),
-      );
-
-      expect(state.entities['1-1']).toEqual({ ...ENTITY, loading: true });
-      expect(state.nextId).toBe('1-1');
-    });
-  });
-
   describe('exerciseNavigationSucceeded', () => {
-    it('adds the loaded exercise and clears nextId', () => {
-      const previousState = { ...initialExerciseState, nextId: '1-1' };
+    it('adds the loaded exercise and makes it the current one', () => {
+      const previousState = { ...initialExerciseState, id: '2-1' };
 
       const state = exerciseReducer(
         previousState,
@@ -108,30 +69,12 @@ describe('exerciseReducer', () => {
       );
 
       expect(state.entities['1-1']).toEqual(ENTITY);
-      expect(state.nextId).toBeNull();
-    });
-
-    it('clears loading on an existing entity', () => {
-      const previousState = {
-        ...withEntities({ ...ENTITY, loading: true }),
-        nextId: '1-1',
-      };
-
-      const state = exerciseReducer(
-        previousState,
-        exerciseNavigationSucceeded({ exercise: EXERCISE }),
-      );
-
-      expect(state.entities['1-1']).toEqual({ ...ENTITY, loading: false });
+      expect(state.id).toBe('1-1');
     });
 
     it('folds an existing pending change into code, so an unsaved edit survives navigating away and back', () => {
       const previousState = {
-        ...withEntities({
-          ...ENTITY,
-          loading: true,
-          pendingChanges: 'unsaved edit',
-        }),
+        ...withEntities({ ...ENTITY, pendingChanges: 'unsaved edit' }),
         id: '1-1',
       };
 
@@ -143,71 +86,19 @@ describe('exerciseReducer', () => {
       expect(state.entities['1-1']).toEqual({
         ...ENTITY,
         code: 'unsaved edit',
-        loading: false,
         pendingChanges: 'unsaved edit',
       });
     });
 
-    it('leaves nextId alone when navigation has since moved on to a different exercise', () => {
-      const previousState = { ...initialExerciseState, nextId: '2-1' };
+    it('keeps the submitting flag of an existing entity', () => {
+      const previousState = withEntities({ ...ENTITY, submitting: true });
 
       const state = exerciseReducer(
         previousState,
         exerciseNavigationSucceeded({ exercise: EXERCISE }),
       );
 
-      expect(state.nextId).toBe('2-1');
-    });
-  });
-
-  describe('exerciseNavigationFailed', () => {
-    it('clears loading and nextId for the failed exercise', () => {
-      const previousState = {
-        ...withEntities({ ...ENTITY, loading: true }),
-        nextId: '1-1',
-      };
-
-      const state = exerciseReducer(
-        previousState,
-        exerciseNavigationFailed({ id: '1-1', error: 'boom' }),
-      );
-
-      expect(state.entities['1-1']).toEqual({ ...ENTITY, loading: false });
-      expect(state.nextId).toBeNull();
-    });
-
-    it('leaves no entity behind when the exercise was never loaded, so revisiting refetches it', () => {
-      const previousState = { ...initialExerciseState, nextId: '1-1' };
-
-      const state = exerciseReducer(
-        previousState,
-        exerciseNavigationFailed({ id: '1-1', error: 'boom' }),
-      );
-
-      expect(state.entities['1-1']).toBeUndefined();
-      expect(state.nextId).toBeNull();
-    });
-
-    it('only clears loading for the exercise that failed, leaving a different exercise untouched', () => {
-      const previousState = {
-        ...withEntities(
-          { ...ENTITY, loading: true },
-          { ...ENTITY, id: '2-1', loading: true },
-        ),
-        id: '2-1',
-      };
-
-      const state = exerciseReducer(
-        previousState,
-        exerciseNavigationFailed({ id: '1-1', error: 'boom' }),
-      );
-
-      expect(state.entities['1-1']).toEqual({ ...ENTITY, loading: false });
-      expect(state.entities['2-1']).toEqual({
-        ...ENTITY,
-        id: '2-1',
-        loading: true,
-      });
+      expect(state.entities['1-1']?.submitting).toBe(true);
     });
   });
 
@@ -386,7 +277,6 @@ describe('exerciseReducer', () => {
         ...submittedExercise,
         code: 'typed after submit',
         pendingChanges: '',
-        loading: false,
         submitting: false,
       });
     });
@@ -413,7 +303,6 @@ describe('exerciseReducer', () => {
         ...submittedExercise,
         code: 'typed after submit',
         pendingChanges: 'even newer code',
-        loading: false,
         submitting: false,
       });
     });

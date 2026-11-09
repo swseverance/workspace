@@ -1,14 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Exercise, ExercisesResponseBody } from '../../shared/models';
+import { ChaptersResponseBody, Exercise } from '../../shared/models';
 
 @Service()
 export class ExerciseService {
   private readonly http = inject(HttpClient);
 
-  getExercises(): Observable<ExercisesResponseBody> {
-    return this.http.get<ExercisesResponseBody>('/api/exercises');
+  getChapters(): Observable<ChaptersResponseBody> {
+    return this.http.get<ChaptersResponseBody>('/api/chapters');
   }
 
   getExercise(exerciseId: string): Observable<Exercise> {

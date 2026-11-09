@@ -5,7 +5,7 @@ import { ExerciseSource } from '../../models/exercise';
 import { ExerciseRecordTestResult } from '../../models/exercise-record';
 import {
   Chapter,
-  ExercisesResponseBody,
+  ChaptersResponseBody,
   ExerciseStatus,
 } from '../../shared/models';
 import { CHAPTERS } from '../exercises';
@@ -40,15 +40,15 @@ export async function getChaptersForUser(
   );
 }
 
-export const getExercisesHandler: RequestHandler<
+export const getChaptersHandler: RequestHandler<
   Record<string, never>,
-  ExercisesResponseBody | ErrorResponseBody
+  ChaptersResponseBody | ErrorResponseBody
 > = async (req, res) => {
   // Express 4 doesn't catch rejected promises from async handlers.
   try {
     res.json({ chapters: await getChaptersForUser(req.user) });
   } catch (err) {
-    logger.error('[exercises] get failed', err);
-    res.status(500).json({ message: 'Failed to load exercises' });
+    logger.error('[chapters] get failed', err);
+    res.status(500).json({ message: 'Failed to load chapters' });
   }
 };

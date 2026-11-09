@@ -1,11 +1,11 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { ResolveFn } from '@angular/router';
+import { RedirectCommand, ResolveFn, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { catchError, EMPTY, map } from 'rxjs';
+import { catchError, EMPTY, map, of } from 'rxjs';
 import { ExerciseService } from '../services/exercise-service';
 import {
   exerciseNavigationFailed,
-  exerciseNavigationStarted,
   exerciseNavigationSucceeded,
 } from '../store/exercise/exercise.actions';
 
@@ -18,11 +18,10 @@ export const exerciseResolver: ResolveFn<boolean> = (route) => {
   const id = route.paramMap.get('id')!;
   const store = inject(Store);
   const exercises = inject(ExerciseService);
+  const router = inject(Router);
 
   // Always fetched fresh, even when revisiting: the reducer keeps any
   // unsaved pendingChanges and the submitting flag across the reload.
-  store.dispatch(exerciseNavigationStarted({ id }));
-
   return exercises.getExercise(id).pipe(
     map((exercise) => {
       store.dispatch(exerciseNavigationSucceeded({ exercise }));
@@ -31,7 +30,13 @@ export const exerciseResolver: ResolveFn<boolean> = (route) => {
     catchError((error: unknown) => {
       store.dispatch(exerciseNavigationFailed({ id, error }));
 
-      // Completing without emitting cancels the navigation, keeping the
+      // No such exercise (a typo, old bookmark or removed exercise): go to
+      // the default one rather than leave an empty pane on a first load.
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        return of(new RedirectCommand(router.parseUrl('/exercises')));
+      }
+
+      // Any other failure: completing without emitting cancels the navigation, keeping the
       // user on the previous exercise.
       return EMPTY;
     }),

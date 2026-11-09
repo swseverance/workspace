@@ -14,7 +14,7 @@ import {
   withEventReplay,
   withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import {
   GithubOutline,
   LoginOutline,
@@ -37,6 +37,7 @@ import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { environment } from '../environments/environment';
 import { appRoutes } from './app.routes';
+import { ChaptersEffects } from './store/exercise/chapters.effects';
 import { ExerciseEffects } from './store/exercise/exercise.effects';
 import { exerciseReducer } from './store/exercise/exercise.reducer';
 import { provideLogMetaReducer } from './store/log.meta-reducer';
@@ -60,7 +61,7 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     provideBrowserGlobalErrorListeners(),
-    provideRouter(appRoutes, withComponentInputBinding()),
+    provideRouter(appRoutes),
     provideEnvironment(environment),
     provideTheme({
       storageKey: 'tcpl-exercises-theme',
@@ -89,6 +90,6 @@ export const appConfig: ApplicationConfig = {
     provideEffects(),
     provideAuth(),
     provideState('exercise', exerciseReducer),
-    provideEffects(ExerciseEffects),
+    provideEffects(ExerciseEffects, ChaptersEffects),
   ],
 };

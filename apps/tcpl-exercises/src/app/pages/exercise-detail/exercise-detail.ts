@@ -1,14 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import {
-  Component,
-  DestroyRef,
-  inject,
-  OnInit,
-  signal,
-  ViewChild,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { Component, computed, inject, signal, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { Theme } from '@org/theme';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -34,26 +26,21 @@ import { ExerciseFacade } from '../../store/exercise/exercise.facade';
   templateUrl: './exercise-detail.html',
   styleUrl: './exercise-detail.scss',
 })
-export class ExerciseDetail implements OnInit {
-  private route = inject(ActivatedRoute);
-  private destroyRef = inject(DestroyRef);
-
+export class ExerciseDetail {
   @ViewChild(CodeEditor) private editor!: CodeEditor;
 
   protected readonly facade = inject(ExerciseFacade);
   protected readonly theme$ = inject(Theme).mode$;
   protected readonly exercise$ = this.facade.exercise$;
-  protected readonly exerciseLoading$ = this.facade.exerciseLoading$;
+  // The resolver holds each navigation until its exercise has loaded, so a
+  // navigation in progress means the next exercise is loading. The router
+  // also clears this when a navigation is cancelled or skipped.
+  private readonly router = inject(Router);
+  protected readonly exerciseLoading = computed(
+    () => this.router.currentNavigation() !== null,
+  );
   protected readonly submissionPending$ = this.facade.submissionPending$;
   protected readonly selectedTabIndex = signal(0);
-
-  ngOnInit(): void {
-    this.route.paramMap
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((paramMap) =>
-        this.facade.selectExercise(paramMap.get('id') as string),
-      );
-  }
 
   protected onCodeChange(code: string): void {
     this.facade.codeEdited(code);

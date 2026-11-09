@@ -1,6 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import {
-  DEFAULT_EXERCISE,
   ExerciseEntity,
   exerciseEntityAdapter,
   ExerciseState,
@@ -33,16 +32,6 @@ export const selectCurrentEntity = createSelector(
   (entities, id) => entities[id],
 );
 
-export const selectExercise = createSelector(
-  selectCurrentEntity,
-  (entity) => entity ?? DEFAULT_EXERCISE,
-);
-
-export const selectExerciseLoading = createSelector(
-  selectCurrentEntity,
-  (entity) => entity?.loading ?? false,
-);
-
 export const selectSubmissionPending = createSelector(
   selectCurrentEntity,
   (entity) => entity?.submitting ?? false,
@@ -55,21 +44,4 @@ export const selectExercisesWithPendingChanges = createSelector(
       (entity): entity is ExerciseEntity =>
         entity !== undefined && entity.pendingChanges !== '',
     ),
-);
-
-export const selectNextId = createSelector(
-  selectExerciseState,
-  (state) => state.nextId,
-);
-
-export const selectNextExerciseLoading = createSelector(
-  selectEntities,
-  selectNextId,
-  (entities, nextId) => (nextId ? (entities[nextId]?.loading ?? true) : false),
-);
-
-export const selectShowExerciseSkeleton = createSelector(
-  selectExerciseLoading,
-  selectNextExerciseLoading,
-  (current, next) => current || next,
 );

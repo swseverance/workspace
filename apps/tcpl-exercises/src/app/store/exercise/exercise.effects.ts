@@ -20,10 +20,7 @@ import { ExerciseService } from '../../services/exercise-service';
 import {
   attemptToSubmitExercise,
   exerciseNavigationFailed,
-  exercisesLoaded,
   exerciseSubmitted,
-  loadExercises,
-  loadExercisesFailed,
   pendingChangesSaved,
   savePendingChanges,
   savePendingChangesFailure,
@@ -178,30 +175,6 @@ export class ExerciseEffects {
           this.logger.error('[exercise] submit failed:', error);
           // TODO - CHECK IF USER WAS RATE LIMITED
           this.message.error('Failed to Submit Exercise');
-        }),
-      ),
-    { dispatch: false },
-  );
-
-  loadExercises$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(loadExercises),
-      switchMap(() =>
-        this.exercise.getExercises().pipe(
-          map(({ chapters }) => exercisesLoaded({ chapters })),
-          catchError((error) => of(loadExercisesFailed({ error }))),
-        ),
-      ),
-    ),
-  );
-
-  loadExercisesFailed$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(loadExercisesFailed),
-        tap(({ error }) => {
-          this.logger.error('[exercises] load failed:', error);
-          this.message.error('Failed to Load Exercises');
         }),
       ),
     { dispatch: false },
