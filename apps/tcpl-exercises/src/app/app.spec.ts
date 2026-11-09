@@ -1,60 +1,20 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import {
-  GithubOutline,
-  LoginOutline,
-  LogoutOutline,
-  MoonOutline,
-  SunOutline,
-} from '@ant-design/icons-angular/icons';
-import { provideMockStore } from '@ngrx/store/testing';
-import type { AuthState } from '@org/auth';
-import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { App } from './app';
-
-async function render(auth: AuthState) {
-  await TestBed.configureTestingModule({
-    imports: [App],
-    providers: [
-      provideRouter([]),
-      provideNzIcons([
-        GithubOutline,
-        LoginOutline,
-        LogoutOutline,
-        MoonOutline,
-        SunOutline,
-      ]),
-      provideMockStore({ initialState: { auth } }),
-    ],
-  }).compileComponents();
-
-  const fixture = TestBed.createComponent(App);
-  await fixture.whenStable();
-  return fixture.nativeElement as HTMLElement;
-}
+import { NxWelcome } from './nx-welcome';
 
 describe('App', () => {
-  it('renders the title', async () => {
-    const root = await render({ status: 'signedOut', user: null });
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [App, NxWelcome],
+    }).compileComponents();
+  });
 
-    expect(root.querySelector('strong')?.textContent).toContain(
-      'The C Programming Language Exercises',
+  it('should render title', async () => {
+    const fixture = TestBed.createComponent(App);
+    await fixture.whenStable();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain(
+      'Welcome tcpl-exercises',
     );
-  });
-
-  it('offers sign in when signed out', async () => {
-    const root = await render({ status: 'signedOut', user: null });
-
-    expect(
-      root.querySelector('[aria-label="Sign in with Google"]'),
-    ).not.toBeNull();
-    expect(root.querySelector('[aria-label="Sign out"]')).toBeNull();
-  });
-
-  it('offers sign out when signed in', async () => {
-    const root = await render({ status: 'signedIn', user: { uid: 'u1' } });
-
-    expect(root.querySelector('[aria-label="Sign out"]')).not.toBeNull();
-    expect(root.querySelector('[aria-label="Sign in with Google"]')).toBeNull();
   });
 });

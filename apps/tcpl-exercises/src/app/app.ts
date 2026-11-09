@@ -1,28 +1,13 @@
-import { AsyncPipe } from '@angular/common';
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { AuthFacade } from '@org/auth';
-import { Theme } from '@org/theme';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
+import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { NxWelcome } from './nx-welcome';
 
 @Component({
+  imports: [NxWelcome, RouterModule],
   selector: 'app-root',
-  imports: [
-    AsyncPipe,
-    NzLayoutModule,
-    NzButtonModule,
-    NzIconModule,
-    NzTooltipModule,
-    RouterLink,
-    RouterOutlet,
-  ],
-  styleUrl: './app.scss',
   templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App {
-  protected readonly auth = inject(AuthFacade);
-  protected readonly theme = inject(Theme);
+  protected title = 'tcpl-exercises';
 }

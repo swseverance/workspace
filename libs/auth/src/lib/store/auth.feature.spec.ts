@@ -12,15 +12,6 @@ describe('authFeature', () => {
     expect(initialAuthState).toEqual({ status: 'unknown', user: null });
   });
 
-  it('is noSession when the session call fails', () => {
-    expect(
-      reduce(
-        initialAuthState,
-        AuthActions.loadSessionFailed({ error: new Error('x') }),
-      ),
-    ).toEqual({ status: 'noSession', user: null });
-  });
-
   it('is signed in when the server has a session', () => {
     expect(
       reduce(initialAuthState, AuthActions.sessionLoaded({ user: u1 })),
@@ -81,14 +72,5 @@ describe('authFeature', () => {
       status: 'signedOut',
       user: null,
     });
-  });
-
-  it.each([
-    AuthActions.loadTokenFailed({ error: new Error('x') }),
-    AuthActions.validateCookieFailed({ error: new Error('x') }),
-  ])('stays signed in when re-validating fails (%o)', (action) => {
-    const signedIn: AuthState = { status: 'signedIn', user: u1 };
-
-    expect(reduce(signedIn, action)).toBe(signedIn);
   });
 });

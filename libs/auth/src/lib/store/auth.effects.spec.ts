@@ -3,31 +3,36 @@ import {
   HttpTestingController,
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
-import { PLATFORM_ID, REQUEST } from '@angular/core';
+import { REQUEST } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Action } from '@ngrx/store';
 import { AUTH } from '@org/firebase';
 import { Logger } from '@org/logger';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { AuthActions } from './auth.actions';
 import { AuthEffects } from './auth.effects';
 
 const firebase = vi.hoisted(() => ({
   onAuthStateChanged: vi.fn(),
+  signInWithRedirect: vi.fn(),
+  signOut: vi.fn(),
 }));
 
-vi.mock('firebase/auth', () => firebase);
+vi.mock('firebase/auth', () => ({
+  ...firebase,
+  GoogleAuthProvider: class {},
+}));
 
 describe('AuthEffects', () => {
   let actions$: Observable<Action>;
+  const message = { success: vi.fn(), error: vi.fn() };
   const logger = { error: vi.fn() };
-  const message = { error: vi.fn() };
 
   function setup({
     auth = null as unknown,
-    platformId = 'browser',
     request = null as Request | null,
   } = {}) {
     TestBed.configureTestingModule({
@@ -37,10 +42,10 @@ describe('AuthEffects', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: AUTH, useValue: auth },
-        { provide: PLATFORM_ID, useValue: platformId },
         { provide: REQUEST, useValue: request },
-        { provide: Logger, useValue: logger },
         { provide: NzMessageService, useValue: message },
+        { provide: Logger, useValue: logger },
+        { provide: NzModalService, useValue: { confirm: vi.fn() } },
       ],
     });
     return {
@@ -53,30 +58,13 @@ describe('AuthEffects', () => {
     vi.clearAllMocks();
   });
 
-  describe('ngrxOnInitEffects', () => {
-    it('starts by loading the session', () => {
-      const { effects } = setup();
+  describe('authState$', () => {
+    it('reports the session cookie user during a server render', async () => {
+      const { effects, backend } = setup({
+        request: new Request('https://app.example.com/'),
+      });
 
-      expect(effects.ngrxOnInitEffects()).toEqual(AuthActions.loadSession());
-    });
-  });
-
-  describe('loadSession$', () => {
-    beforeEach(() => {
-      actions$ = of(AuthActions.loadSession());
-    });
-
-    it.each([
-      [
-        'during a server render',
-        'server',
-        new Request('https://app.example.com/'),
-      ],
-      ['in the browser', 'browser', null],
-    ])('reports the session cookie user %s', async (_, platformId, request) => {
-      const { effects, backend } = setup({ platformId, request });
-
-      const action = firstValueFrom(effects.loadSession$);
+      const action = firstValueFrom(effects.authState$);
       backend.expectOne('/api/session').flush({ user: { uid: 'u1' } });
 
       expect(await action).toEqual(
@@ -84,147 +72,45 @@ describe('AuthEffects', () => {
       );
     });
 
-    it('reports no user when the server has no session', async () => {
-      const { effects, backend } = setup();
+    it('reports no session when the session call fails', async () => {
+      const { effects, backend } = setup({
+        request: new Request('https://app.example.com/'),
+      });
 
-      const action = firstValueFrom(effects.loadSession$);
-      backend.expectOne('/api/session').flush({ user: null });
-
-      expect(await action).toEqual(AuthActions.sessionLoaded({ user: null }));
-    });
-
-    it('reports a failed session call', async () => {
-      const { effects, backend } = setup();
-
-      const action = firstValueFrom(effects.loadSession$);
+      const action = firstValueFrom(effects.authState$);
       backend
         .expectOne('/api/session')
         .flush(null, { status: 500, statusText: 'Error' });
 
-      expect(await action).toEqual(
-        AuthActions.loadSessionFailed({ error: expect.anything() }),
-      );
+      expect(await action).toEqual(AuthActions.sessionLoaded({ user: null }));
     });
 
-    it('skips the call during build-time route extraction', async () => {
-      // On the server with no request.
-      const { effects, backend } = setup({ platformId: 'server' });
-
-      expect(await firstValueFrom(effects.loadSession$)).toEqual(
-        AuthActions.sessionLoaded({ user: null }),
-      );
-      backend.expectNone('/api/session');
-    });
-  });
-
-  describe('loadSessionFailed$', () => {
-    it('logs and toasts the failure', async () => {
-      const error = new Error('x');
-      actions$ = of(AuthActions.loadSessionFailed({ error }));
-      const { effects } = setup();
-
-      await firstValueFrom(effects.loadSessionFailed$);
-
-      expect(logger.error).toHaveBeenCalledOnce();
-      expect(logger.error).toHaveBeenCalledWith(
-        '[auth] [Auth] Load Session Failed',
-        error,
-      );
-      expect(message.error).toHaveBeenCalledWith('Failed to Load Session');
-    });
-  });
-
-  describe('firebaseUserChanged$', () => {
-    it('follows Firebase once the session is loaded', () => {
+    it('then follows Firebase in the browser, only after the session call', () => {
       firebase.onAuthStateChanged.mockImplementation((_auth, next) => {
         next({ uid: 'u2' });
         return () => undefined;
       });
-      const actions = new Subject<Action>();
-      actions$ = actions;
-      const { effects } = setup({ auth: {} });
+      const { effects, backend } = setup({ auth: {} });
 
       // Firebase's observable never completes, so collect then unsubscribe.
       const emitted: Action[] = [];
-      const sub = effects.firebaseUserChanged$.subscribe((a) =>
-        emitted.push(a),
-      );
-      expect(firebase.onAuthStateChanged).not.toHaveBeenCalled();
-
-      actions.next(AuthActions.sessionLoaded({ user: null }));
+      const sub = effects.authState$.subscribe((a) => emitted.push(a));
+      expect(emitted).toEqual([]);
+      backend.expectOne('/api/session').flush({ user: null });
       sub.unsubscribe();
 
       expect(emitted).toEqual([
+        AuthActions.sessionLoaded({ user: null }),
         AuthActions.firebaseUserChanged({ user: { uid: 'u2' } }),
       ]);
     });
 
-    it('also follows Firebase when the session call failed', () => {
-      firebase.onAuthStateChanged.mockImplementation((_auth, next) => {
-        next({ uid: 'u2' });
-        return () => undefined;
-      });
-      actions$ = of(AuthActions.loadSessionFailed({ error: new Error('x') }));
-      const { effects } = setup({ auth: {} });
-
-      const emitted: Action[] = [];
-      const sub = effects.firebaseUserChanged$.subscribe((a) =>
-        emitted.push(a),
-      );
-      sub.unsubscribe();
-
-      expect(emitted).toEqual([
-        AuthActions.firebaseUserChanged({ user: { uid: 'u2' } }),
-      ]);
-    });
-
-    it('reports a signed-out Firebase user as null', () => {
-      firebase.onAuthStateChanged.mockImplementation((_auth, next) => {
-        next(null);
-        return () => undefined;
-      });
-      actions$ = of(AuthActions.sessionLoaded({ user: null }));
-      const { effects } = setup({ auth: {} });
-
-      const emitted: Action[] = [];
-      effects.firebaseUserChanged$
-        .subscribe((a) => emitted.push(a))
-        .unsubscribe();
-
-      expect(emitted).toEqual([
-        AuthActions.firebaseUserChanged({ user: null }),
-      ]);
-    });
-
-    it('replaces the listener on a later session result and removes it on unsubscribe', () => {
-      const unsubscribes = [vi.fn(), vi.fn()];
-      firebase.onAuthStateChanged
-        .mockReturnValueOnce(unsubscribes[0])
-        .mockReturnValueOnce(unsubscribes[1]);
-      const actions = new Subject<Action>();
-      actions$ = actions;
-      const { effects } = setup({ auth: {} });
-
-      const sub = effects.firebaseUserChanged$.subscribe();
-      actions.next(AuthActions.sessionLoaded({ user: null }));
-      actions.next(AuthActions.sessionLoaded({ user: null }));
-
-      expect(unsubscribes[0]).toHaveBeenCalledOnce();
-      expect(unsubscribes[1]).not.toHaveBeenCalled();
-
-      sub.unsubscribe();
-      expect(unsubscribes[1]).toHaveBeenCalledOnce();
-    });
-
-    it('does nothing on the server', () => {
-      actions$ = of(AuthActions.sessionLoaded({ user: null }));
+    it('reports no session during the build, with no browser or request', async () => {
       const { effects } = setup();
 
-      const emitted: Action[] = [];
-      effects.firebaseUserChanged$.subscribe((a) => emitted.push(a));
-
-      expect(emitted).toEqual([]);
-      expect(firebase.onAuthStateChanged).not.toHaveBeenCalled();
+      expect(await firstValueFrom(effects.authState$)).toEqual(
+        AuthActions.sessionLoaded({ user: null }),
+      );
     });
   });
 
@@ -246,71 +132,6 @@ describe('AuthEffects', () => {
     });
   });
 
-  describe('loadToken$', () => {
-    const user = { uid: 'u1' };
-
-    function authWithToken(getIdToken: () => Promise<string>) {
-      return { currentUser: { getIdToken } };
-    }
-
-    it('loads an ID token for the user', async () => {
-      actions$ = of(AuthActions.validateCookie({ user }));
-      const { effects } = setup({
-        auth: authWithToken(() => Promise.resolve('id-token')),
-      });
-
-      expect(await firstValueFrom(effects.loadToken$)).toEqual(
-        AuthActions.tokenLoaded({ token: 'id-token', user }),
-      );
-    });
-
-    it('reports a failed token load', async () => {
-      const error = new Error('x');
-      actions$ = of(AuthActions.validateCookie({ user }));
-      const { effects } = setup({
-        auth: authWithToken(() => Promise.reject(error)),
-      });
-
-      expect(await firstValueFrom(effects.loadToken$)).toEqual(
-        AuthActions.loadTokenFailed({ error }),
-      );
-    });
-
-    it('drops the token when the user signs out before it arrives', async () => {
-      let resolve!: (token: string) => void;
-      const token = new Promise<string>((r) => (resolve = r));
-      const actions = new Subject<Action>();
-      actions$ = actions;
-      const { effects } = setup({ auth: authWithToken(() => token) });
-
-      const emitted: Action[] = [];
-      effects.loadToken$.subscribe((a) => emitted.push(a));
-      actions.next(AuthActions.validateCookie({ user }));
-      actions.next(AuthActions.clearCookie());
-      resolve('id-token');
-      await token;
-
-      expect(emitted).toEqual([]);
-    });
-  });
-
-  describe('loadTokenFailed$', () => {
-    it('logs and toasts the failure', async () => {
-      const error = new Error('x');
-      actions$ = of(AuthActions.loadTokenFailed({ error }));
-      const { effects } = setup();
-
-      await firstValueFrom(effects.loadTokenFailed$);
-
-      expect(logger.error).toHaveBeenCalledOnce();
-      expect(logger.error).toHaveBeenCalledWith(
-        '[auth] [Auth] Load Token Failed',
-        error,
-      );
-      expect(message.error).toHaveBeenCalledWith('Failed to Load Token');
-    });
-  });
-
   describe('validateCookie$', () => {
     const user = { uid: 'u1' };
 
@@ -329,20 +150,6 @@ describe('AuthEffects', () => {
       expect(await action).toEqual(expected);
     });
 
-    it('reports a failed session call', async () => {
-      actions$ = of(AuthActions.tokenLoaded({ token: 'id-token', user }));
-      const { effects, backend } = setup();
-
-      const action = firstValueFrom(effects.validateCookie$);
-      backend
-        .expectOne('/api/session')
-        .flush(null, { status: 401, statusText: 'Unauthorized' });
-
-      expect(await action).toEqual(
-        AuthActions.validateCookieFailed({ error: expect.anything() }),
-      );
-    });
-
     it('drops the result when the user signs out mid-flight', () => {
       const actions = new Subject<Action>();
       actions$ = actions;
@@ -359,23 +166,6 @@ describe('AuthEffects', () => {
     });
   });
 
-  describe('validateCookieFailed$', () => {
-    it('logs and toasts the failure', async () => {
-      const error = new Error('x');
-      actions$ = of(AuthActions.validateCookieFailed({ error }));
-      const { effects } = setup();
-
-      await firstValueFrom(effects.validateCookieFailed$);
-
-      expect(logger.error).toHaveBeenCalledOnce();
-      expect(logger.error).toHaveBeenCalledWith(
-        '[auth] [Auth] Validate Cookie Failed',
-        error,
-      );
-      expect(message.error).toHaveBeenCalledWith('Failed to Validate Cookie');
-    });
-  });
-
   describe('clearCookie$', () => {
     it('deletes the session', async () => {
       actions$ = of(AuthActions.clearCookie());
@@ -388,36 +178,33 @@ describe('AuthEffects', () => {
       expect(req.request.method).toBe('DELETE');
       expect(await action).toEqual(AuthActions.cookieCleared());
     });
+  });
 
-    it('reports a failed delete', async () => {
-      actions$ = of(AuthActions.clearCookie());
-      const { effects, backend } = setup();
+  describe('signIn$', () => {
+    it('reports a failed redirect', async () => {
+      const error = new Error('popup blocked');
+      firebase.signInWithRedirect.mockRejectedValue(error);
+      actions$ = of(AuthActions.signIn({ provider: 'google' }));
+      const { effects } = setup({ auth: {} });
 
-      const action = firstValueFrom(effects.clearCookie$);
-      backend
-        .expectOne('/api/session')
-        .flush(null, { status: 500, statusText: 'Error' });
-
-      expect(await action).toEqual(
-        AuthActions.clearCookieFailed({ error: expect.anything() }),
+      expect(await firstValueFrom(effects.signIn$)).toEqual(
+        AuthActions.signInFailed({ error }),
       );
     });
   });
 
-  describe('clearCookieFailed$', () => {
-    it('logs and toasts the failure', async () => {
-      const error = new Error('x');
-      actions$ = of(AuthActions.clearCookieFailed({ error }));
+  describe('failures$', () => {
+    it('toasts sign-in failures', async () => {
+      actions$ = of(AuthActions.signInFailed({ error: new Error('x') }));
       const { effects } = setup();
 
-      await firstValueFrom(effects.clearCookieFailed$);
+      await firstValueFrom(effects.failures$);
 
-      expect(logger.error).toHaveBeenCalledOnce();
+      expect(message.error).toHaveBeenCalledWith('Failed to sign in');
       expect(logger.error).toHaveBeenCalledWith(
-        '[auth] [Auth] Clear Cookie Failed',
-        error,
+        '[auth] [Auth] Sign In Failed',
+        expect.any(Error),
       );
-      expect(message.error).toHaveBeenCalledWith('Failed to Clear Cookie');
     });
   });
 });
