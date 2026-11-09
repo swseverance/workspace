@@ -2,8 +2,36 @@ import { Component, input, signal } from '@angular/core';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { ExerciseTestCase } from '../../../shared/models';
+import { ExerciseTestCase, TestStopReason } from '../../../shared/models';
 import { TestCaseIo } from '../test-case-io/test-case-io';
+
+// A process killed by a signal exits with 128 + the signal number.
+const SIGNALS: Record<number, string> = {
+  6: 'aborted (SIGABRT), e.g. a failed assert()',
+  7: 'bus error (SIGBUS)',
+  8: 'arithmetic error (SIGFPE), e.g. division by zero',
+  11: 'segmentation fault (SIGSEGV), e.g. a bad pointer or array index',
+};
+
+/**
+ * Explains a non-zero exit that wasn't the sandbox stopping the program
+ * (those have a stopReason), or null if there's nothing to explain.
+ */
+export function describeRuntimeError(test: ExerciseTestCase): string | null {
+  const { exitCode, stopReason } = test;
+
+  if (stopReason || exitCode === null || exitCode === 0) {
+    return null;
+  }
+
+  if (exitCode > 128) {
+    const signal = exitCode - 128;
+    const name = SIGNALS[signal] ?? `killed by signal ${signal}`;
+    return `Crashed: ${name}. Exit code ${exitCode}.`;
+  }
+
+  return `Exited with code ${exitCode}; main must return 0.`;
+}
 
 @Component({
   selector: 'app-test-cases',
@@ -39,12 +67,47 @@ import { TestCaseIo } from '../test-case-io/test-case-io';
                   ]"
                   [compare]="true"
                 />
+
+                @let runtimeError = describeRuntimeError(test);
+
+                @if (test.stopReason || runtimeError || test.actualStderr) {
+                  <nz-divider />
+                }
+
+                @if (runtimeError) {
+                  <div class="detail-row">
+                    <span class="detail-label">runtime error</span>
+                    <span class="runtime-error">{{ runtimeError }}</span>
+                  </div>
+                }
+
+                @if (test.stopReason) {
+                  <div class="detail-row">
+                    <span class="detail-label">stopped</span>
+                    <span class="stopped">{{
+                      stopReasonMessages[test.stopReason]
+                    }}</span>
+                  </div>
+                }
+
+                @if (test.actualStderr) {
+                  <div class="detail-row">
+                    <span class="detail-label">stderr</span>
+                    <pre class="stderr">{{ test.actualStderr }}</pre>
+                  </div>
+                }
               }
             </div>
 
             <ng-template #statusTpl>
               @if (submissionPending()) {
                 <nz-tag nzColor="processing">Pending...</nz-tag>
+              } @else if (test.stopReason) {
+                <nz-tag nzColor="warning">{{
+                  stopReasonLabels[test.stopReason]
+                }}</nz-tag>
+              } @else if (describeRuntimeError(test)) {
+                <nz-tag nzColor="error">Runtime Error</nz-tag>
               } @else {
                 <nz-tag [nzColor]="statusColors[test.status]">{{
                   statusLabels[test.status]
@@ -78,6 +141,18 @@ export class TestCases {
     failed: 'error',
     indeterminate: undefined,
   };
+
+  protected readonly stopReasonLabels: Record<TestStopReason, string> = {
+    timeout: 'Time Limit Exceeded',
+    outputLimit: 'Output Limit Exceeded',
+  };
+
+  protected readonly stopReasonMessages: Record<TestStopReason, string> = {
+    timeout: 'The program ran too long and was stopped.',
+    outputLimit: 'The program wrote too much output and was stopped.',
+  };
+
+  protected readonly describeRuntimeError = describeRuntimeError;
 
   protected readonly activeTestId = signal<string | null>(null);
 

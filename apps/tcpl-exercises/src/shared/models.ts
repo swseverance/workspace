@@ -1,3 +1,6 @@
+/** Why the sandbox stopped a test run before it finished on its own. */
+export type TestStopReason = 'timeout' | 'outputLimit';
+
 export type ExerciseTestCaseStatus = 'passed' | 'failed' | 'indeterminate';
 
 export type ExerciseTestCase = {
@@ -5,6 +8,10 @@ export type ExerciseTestCase = {
   stdin: string;
   expectedStdout: string;
   actualStdout: string;
+  actualStderr: string;
+  stopReason: TestStopReason | null;
+  /** How the program exited; null when it never ran (compile failed). */
+  exitCode: number | null;
   status: ExerciseTestCaseStatus;
 };
 

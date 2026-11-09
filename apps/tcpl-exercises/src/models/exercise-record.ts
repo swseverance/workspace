@@ -1,8 +1,13 @@
+import { TestStopReason } from '../shared/models';
+
 export type ExerciseTestResultStatus = 'passed' | 'failed';
 
 export type ExerciseRecordTestResult = {
   status: ExerciseTestResultStatus;
   actualStdout: string;
+  actualStderr: string;
+  stopReason: TestStopReason | null;
+  exitCode: number | null;
 };
 
 export type ExerciseRecord = {
