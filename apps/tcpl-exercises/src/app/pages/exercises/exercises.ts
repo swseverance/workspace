@@ -1,9 +1,16 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { Chapter } from '../../../shared/models';
 import { Status, StatusColor } from '../../components/status/status';
+import { SidebarService } from '../../services/sidebar-service';
 import { ExerciseFacade } from '../../store/exercise/exercise.facade';
 
 type ExerciseStatus = Chapter['exercises'][number]['status'];
@@ -13,10 +20,22 @@ type ExerciseStatus = Chapter['exercises'][number]['status'];
   imports: [RouterLink, RouterOutlet, NzMenuModule, AsyncPipe, Status],
   styleUrl: './exercises.scss',
   templateUrl: './exercises.html',
+  host: {
+    '[class.sidebar-open]': 'open() === true',
+    '[class.sidebar-unset]': 'open() === null',
+  },
 })
 export class Exercises implements OnInit {
   protected readonly facade = inject(ExerciseFacade);
+  protected readonly sidebar = inject(SidebarService);
+  protected readonly open = this.sidebar.open.asReadonly();
   protected readonly chapters$ = this.facade.chapters$;
+
+  constructor() {
+    this.sidebar.present.set(true);
+    inject(DestroyRef).onDestroy(() => this.sidebar.present.set(false));
+    afterNextRender(() => this.sidebar.resolveDefault());
+  }
 
   protected readonly statusLabels: Record<ExerciseStatus, string> = {
     passed: 'Passed',

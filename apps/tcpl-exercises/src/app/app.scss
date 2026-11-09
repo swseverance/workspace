@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 nz-layout {
   height: 100dvh;
 }
@@ -7,10 +9,38 @@ nz-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
   padding: 0 16px;
 
   a {
     color: unset;
+  }
+
+  .sidebar-toggle span {
+    font-size: 20px;
+  }
+
+  // Centred on the header rather than placed in the flow, so it stays put
+  // whether or not the sidebar toggle is shown and is well clear of it.
+  .title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  .title .short {
+    display: none;
+  }
+
+  @include bp.mobile {
+    .title .full {
+      display: none;
+    }
+
+    .title .short {
+      display: inline;
+    }
   }
 
   .icons {

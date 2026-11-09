@@ -3,13 +3,44 @@
 
 <nz-layout>
   <nz-header>
-    <a routerLink="/"><strong>The C Programming Language Exercises</strong></a>
+    @if (sidebar.present()) {
+      <!-- Unset (null) renders as open, matching the server and desktop. -->
+      @let sidebarOpen = sidebar.open() !== false;
+      <button
+        nz-button
+        nzType="text"
+        type="button"
+        class="sidebar-toggle ant-btn-icon-only"
+        [attr.aria-controls]="sidebarOpen ? 'exercise-menu' : null"
+        [attr.aria-expanded]="sidebarOpen"
+        [attr.aria-label]="sidebarOpen ? 'Hide exercises' : 'Show exercises'"
+        [nzTooltipTitle]="sidebarOpen ? 'Hide exercises' : 'Show exercises'"
+        nz-tooltip
+        (click)="sidebar.toggle()"
+      >
+        <span
+          nz-icon
+          [nzType]="sidebarOpen ? 'menu-fold' : 'menu-unfold'"
+          nzTheme="outline"
+        ></span>
+      </button>
+    }
+
+    <a
+      routerLink="/"
+      class="title"
+      aria-label="The C Programming Language Exercises"
+    >
+      <strong class="full">The C Programming Language Exercises</strong>
+      <strong class="short">TCPLE</strong>
+    </a>
 
     <span class="icons">
       @if (user) {
         <button
           nz-button
           nzType="text"
+          class="ant-btn-icon-only"
           type="button"
           aria-label="Sign out"
           nzTooltipTitle="Sign out"
@@ -22,6 +53,7 @@
         <button
           nz-button
           nzType="text"
+          class="ant-btn-icon-only"
           type="button"
           aria-label="Sign in with Google"
           nzTooltipTitle="Sign in with Google"
@@ -35,6 +67,7 @@
       <button
         nz-button
         nzType="text"
+        class="ant-btn-icon-only"
         type="button"
         aria-label="Toggle light and dark theme"
         [nzTooltipTitle]="
@@ -55,6 +88,7 @@
       <a
         nz-button
         nzType="text"
+        class="ant-btn-icon-only"
         href="https://github.com/swseverance/workspace/tree/main/apps/tcpl-exercises"
         target="_blank"
         rel="noopener noreferrer"
