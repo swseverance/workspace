@@ -123,14 +123,21 @@ export function diffChars(
   return result;
 }
 
+/**
+ * What of a program's output counts: everything except trailing whitespace
+ * at the very end. The grader compares outputs through this and the diff
+ * shows them through it, so the two can't disagree about what passed.
+ * Must return a prefix of `text`: splitLines relies on that.
+ */
+export function normalizeOutput(text: string): string {
+  return text.trimEnd();
+}
+
 type RawLine = { text: string; newline: boolean };
 
-/**
- * Splits output the way the grader sees it: trailing whitespace at the very
- * end is ignored, so it isn't shown or compared.
- */
+/** Splits output into lines the way the grader sees it. */
 export function splitLines(text: string): RawLine[] {
-  const trimmed = text.trimEnd();
+  const trimmed = normalizeOutput(text);
 
   if (trimmed === '') {
     return [];
