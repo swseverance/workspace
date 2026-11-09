@@ -9,26 +9,18 @@ import { provideMockActions } from '@ngrx/effects/testing';
 import { Action } from '@ngrx/store';
 import { AUTH } from '@org/firebase';
 import { Logger } from '@org/logger';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalService } from 'ng-zorro-antd/modal';
 import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { AuthActions } from './auth.actions';
 import { AuthEffects } from './auth.effects';
 
 const firebase = vi.hoisted(() => ({
   onAuthStateChanged: vi.fn(),
-  signInWithRedirect: vi.fn(),
-  signOut: vi.fn(),
 }));
 
-vi.mock('firebase/auth', () => ({
-  ...firebase,
-  GoogleAuthProvider: class {},
-}));
+vi.mock('firebase/auth', () => firebase);
 
 describe('AuthEffects', () => {
   let actions$: Observable<Action>;
-  const message = { success: vi.fn(), error: vi.fn() };
   const logger = { error: vi.fn() };
 
   function setup({
@@ -43,9 +35,7 @@ describe('AuthEffects', () => {
         provideHttpClientTesting(),
         { provide: AUTH, useValue: auth },
         { provide: REQUEST, useValue: request },
-        { provide: NzMessageService, useValue: message },
         { provide: Logger, useValue: logger },
-        { provide: NzModalService, useValue: { confirm: vi.fn() } },
       ],
     });
     return {
@@ -180,30 +170,17 @@ describe('AuthEffects', () => {
     });
   });
 
-  describe('signIn$', () => {
-    it('reports a failed redirect', async () => {
-      const error = new Error('popup blocked');
-      firebase.signInWithRedirect.mockRejectedValue(error);
-      actions$ = of(AuthActions.signIn({ provider: 'google' }));
-      const { effects } = setup({ auth: {} });
-
-      expect(await firstValueFrom(effects.signIn$)).toEqual(
-        AuthActions.signInFailed({ error }),
-      );
-    });
-  });
-
   describe('failures$', () => {
-    it('toasts sign-in failures', async () => {
-      actions$ = of(AuthActions.signInFailed({ error: new Error('x') }));
+    it('logs cookie sync failures', async () => {
+      const error = new Error('x');
+      actions$ = of(AuthActions.validateCookieFailed({ error }));
       const { effects } = setup();
 
       await firstValueFrom(effects.failures$);
 
-      expect(message.error).toHaveBeenCalledWith('Failed to sign in');
       expect(logger.error).toHaveBeenCalledWith(
-        '[auth] [Auth] Sign In Failed',
-        expect.any(Error),
+        '[auth] [Auth] Validate Cookie Failed',
+        error,
       );
     });
   });
