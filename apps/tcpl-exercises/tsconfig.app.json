@@ -18,6 +18,9 @@
     },
     {
       "path": "../../libs/auth/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/logger/tsconfig.lib.json"
     }
   ]
 }

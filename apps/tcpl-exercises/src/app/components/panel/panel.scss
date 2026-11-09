@@ -1,0 +1,30 @@
+:host {
+  display: block;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+:host-context(.tcpl-exercises-light-theme) {
+  background: #fff;
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+:host-context(.tcpl-exercises-dark-theme) {
+  background: #262626;
+  border-color: rgba(255, 255, 255, 0.08);
+}
