@@ -19,6 +19,11 @@
           {
             "glob": "**/*",
             "input": "apps/tcpl-exercises/public"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/@ant-design/icons-angular/src/inline-svg/",
+            "output": "/assets/"
           }
         ],
         "styles": [

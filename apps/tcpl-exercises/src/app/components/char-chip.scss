@@ -1,0 +1,49 @@
+@mixin char-chip-base {
+  .tab,
+  .newline,
+  .space {
+    display: inline-block;
+    padding: 0 3px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  .tab {
+    background: #fffbe6;
+    border-color: #ffe58f;
+    color: #d48806;
+  }
+
+  .newline {
+    background: #e6f4ff;
+    border-color: #91caff;
+    color: #0958d9;
+  }
+
+  .space {
+    background: #f9f0ff;
+    border-color: #d3adf7;
+    color: #722ed1;
+  }
+}
+
+@mixin char-chip-dark {
+  .tab {
+    background: rgba(212, 136, 6, 0.15);
+    border-color: #874d00;
+    color: #ffc53d;
+  }
+
+  .newline {
+    background: rgba(9, 88, 217, 0.15);
+    border-color: #1554ad;
+    color: #69b1ff;
+  }
+
+  .space {
+    background: rgba(114, 46, 209, 0.15);
+    border-color: #531dab;
+    color: #b37feb;
+  }
+}
