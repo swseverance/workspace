@@ -50,3 +50,9 @@ export const exerciseNavigationFailed = createAction(
   'Exercise Navigation Failed',
   props<{ id: string; error: unknown }>(),
 );
+
+/**
+ * The signed-in user went away (signed out here or in another tab). Drops
+ * their code, unsaved edits and results.
+ */
+export const exercisesReset = createAction('Exercises Reset');

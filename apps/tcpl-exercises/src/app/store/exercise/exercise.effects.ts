@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { AuthActions, authFeature } from '@org/auth';
@@ -20,6 +21,7 @@ import { ExerciseService } from '../../services/exercise-service';
 import {
   attemptToSubmitExercise,
   exerciseNavigationFailed,
+  exercisesReset,
   exerciseSubmitted,
   pendingChangesSaved,
   savePendingChanges,
@@ -41,7 +43,22 @@ export class ExerciseEffects {
   private exercise = inject(ExerciseService);
   private message = inject(NzMessageService);
   private logger = inject(Logger);
+  private router = inject(Router);
   private messageRef: NzMessageRef | null = null;
+
+  /**
+   * Leave the exercise pages and then drop their data, so the next person
+   * doesn't see it and autosave can't send it to another account. Navigating
+   * first keeps the pages from rendering empty; coming back refetches.
+   */
+  sessionEnded$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.sessionEnded),
+      switchMap(() =>
+        this.router.navigateByUrl('/').then(() => exercisesReset()),
+      ),
+    ),
+  );
 
   exerciseNavigationFailed$ = createEffect(
     () =>

@@ -3,6 +3,7 @@ import { Chapter, Exercise } from '../../../shared/models';
 import {
   codeEdited,
   exerciseNavigationSucceeded,
+  exercisesReset,
   exerciseSubmitted,
   pendingChangesSaved,
   savePendingChangesFailure,
@@ -59,6 +60,20 @@ function withEntities(...entities: ExerciseEntity[]): ExerciseState {
 }
 
 describe('exerciseReducer', () => {
+  describe('exercisesReset', () => {
+    it('goes back to the initial state, dropping code, edits and results', () => {
+      const previousState = {
+        ...withEntities({ ...ENTITY, pendingChanges: 'unsaved edit' }),
+        id: '1-1',
+        chapters: CHAPTERS,
+      };
+
+      const state = exerciseReducer(previousState, exercisesReset());
+
+      expect(state).toEqual(initialExerciseState);
+    });
+  });
+
   describe('exerciseNavigationSucceeded', () => {
     it('adds the loaded exercise and makes it the current one', () => {
       const previousState = { ...initialExerciseState, id: '2-1' };

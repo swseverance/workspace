@@ -9,6 +9,7 @@ import {
 import {
   codeEdited,
   exerciseNavigationSucceeded,
+  exercisesReset,
   exerciseSubmitted,
   pendingChangesSaved,
   savePendingChangesFailure,
@@ -60,6 +61,8 @@ function updateExerciseStatus(
 
 export const exerciseReducer = createReducer(
   initialExerciseState,
+
+  on(exercisesReset, () => initialExerciseState),
 
   on(codeEdited, (state, { code }) =>
     exerciseEntityAdapter.updateOne(
