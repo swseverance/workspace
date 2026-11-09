@@ -96,7 +96,8 @@
     <app-panel heading="Submissions" [loading]="exerciseLoading()">
       <app-submissions
         [submissions]="exercise.submissions"
-        (view)="facade.viewSubmission($event)"
+        [theme]="theme!"
+        (apply)="facade.applySubmission($event)"
       />
     </app-panel>
   </div>
