@@ -3,20 +3,17 @@
 <nav class="sidebar" aria-label="Exercises">
   <ul nz-menu nzMode="inline">
     @for (chapter of chapters ?? []; track chapter.number) {
-      <li nz-menu-group [nzTitle]="'Chapter ' + chapter.number">
+      <li nz-menu-group [nzTitle]="'Ch. ' + chapter.number">
         <ul>
           @for (exercise of chapter.exercises; track exercise.id) {
             <li nz-menu-item nzMatchRouter>
               <a [routerLink]="[exercise.id]" class="link">
-                <span
-                  >Exercise {{ exercise.number
-                  }}{{ exercise.suffix ?? '' }}</span
-                >
+                <span>{{ exercise.number }}{{ exercise.suffix ?? '' }}</span>
 
                 @if (exercise.status !== 'indeterminate') {
-                  <nz-tag [nzColor]="statusColors[exercise.status]">{{
+                  <app-status [color]="statusColors[exercise.status]">{{
                     statusLabels[exercise.status]
-                  }}</nz-tag>
+                  }}</app-status>
                 }
               </a>
             </li>

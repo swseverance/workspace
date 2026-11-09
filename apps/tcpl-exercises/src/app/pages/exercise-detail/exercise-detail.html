@@ -93,6 +93,11 @@
       />
     </app-panel>
 
-    <!-- <app-submissions [submissions]="submissions ?? []" ngSkipHydration /> -->
+    <app-panel heading="Submissions" [loading]="exerciseLoading()">
+      <app-submissions
+        [submissions]="exercise.submissions"
+        (view)="facade.viewSubmission($event)"
+      />
+    </app-panel>
   </div>
 }

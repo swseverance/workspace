@@ -8,6 +8,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { CodeEditor } from '../../components/code-editor/code-editor';
 import { ExerciseDescription } from '../../components/exercise-description/exercise-description';
 import { Panel } from '../../components/panel/panel';
+import { Submissions } from '../../components/submissions/submissions';
 import { TestCases } from '../../components/test-cases/test-cases';
 import { VisibleText } from '../../components/visible-text/visible-text';
 import { ExerciseFacade } from '../../store/exercise/exercise.facade';
@@ -24,6 +25,7 @@ import { ExerciseFacade } from '../../store/exercise/exercise.facade';
     VisibleText,
     Panel,
     ExerciseDescription,
+    Submissions,
   ],
   templateUrl: './exercise-detail.html',
   styleUrl: './exercise-detail.scss',

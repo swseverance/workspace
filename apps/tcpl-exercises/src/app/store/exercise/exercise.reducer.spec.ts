@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Chapter, Exercise } from '../../../shared/models';
+import { Chapter, Exercise, ExerciseSubmission } from '../../../shared/models';
 import {
+  applyHistoricalSubmission,
   codeEdited,
   exerciseNavigationSucceeded,
   exercisesReset,
@@ -40,6 +41,7 @@ const EXERCISE: Exercise = {
   ],
   status: 'indeterminate',
   compilationError: '',
+  submissions: [],
 };
 
 const ENTITY: ExerciseEntity = {
@@ -121,7 +123,7 @@ describe('exerciseReducer', () => {
   });
 
   describe('codeEdited', () => {
-    it('sets pendingChanges for the selected exercise, leaving other entities untouched', () => {
+    it('sets code and pendingChanges for the selected exercise, leaving other entities untouched', () => {
       const previousState = {
         ...withEntities(ENTITY, { ...ENTITY, id: '2-1' }),
         id: '1-1',
@@ -134,9 +136,51 @@ describe('exerciseReducer', () => {
 
       expect(state.entities['1-1']).toEqual({
         ...ENTITY,
+        code: 'new code',
         pendingChanges: 'new code',
       });
       expect(state.entities['2-1']).toEqual({ ...ENTITY, id: '2-1' });
+    });
+  });
+
+  describe('applyHistoricalSubmission', () => {
+    const submission: ExerciseSubmission = {
+      id: 's1',
+      created: '2026-11-09T18:30:00.000Z',
+      status: 'passed',
+      passed: 1,
+      total: 1,
+      code: 'old code',
+    };
+
+    it("puts the submission's code in the editor and marks it to be saved", () => {
+      const previousState = {
+        ...withEntities(ENTITY, { ...ENTITY, id: '2-1' }),
+        id: '1-1',
+      };
+
+      const state = exerciseReducer(
+        previousState,
+        applyHistoricalSubmission({ submission }),
+      );
+
+      expect(state.entities['1-1']).toEqual({
+        ...ENTITY,
+        code: 'old code',
+        pendingChanges: 'old code',
+      });
+      expect(state.entities['2-1']).toEqual({ ...ENTITY, id: '2-1' });
+    });
+
+    it('changes code even after the user typed over the same submission', () => {
+      let state = exerciseReducer(
+        { ...withEntities(ENTITY), id: '1-1' },
+        applyHistoricalSubmission({ submission }),
+      );
+      state = exerciseReducer(state, codeEdited({ code: 'typed over' }));
+      state = exerciseReducer(state, applyHistoricalSubmission({ submission }));
+
+      expect(state.entities['1-1']?.code).toBe('old code');
     });
   });
 

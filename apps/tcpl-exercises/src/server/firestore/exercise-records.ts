@@ -3,6 +3,7 @@ import {
   ExerciseRecord,
   ExerciseRecordTestResult,
 } from '../../models/exercise-record';
+import { ExerciseStatus, ExerciseSubmission } from '../../shared/models';
 
 type WriteExerciseRecord = {
   code: string;
@@ -32,8 +33,34 @@ type ReadExerciseRecord = {
   lastUpdated: Timestamp;
 };
 
+type SubmissionDoc = {
+  code: string;
+  status: ExerciseStatus;
+  passed: number;
+  total: number;
+  created: Timestamp;
+};
+
+/** How many submissions are sent with an exercise. */
+export const SUBMISSION_HISTORY_LIMIT = 20;
+
 function exerciseRecordRef(uid: string, exerciseId: string) {
   return getFirestore().doc(`users/${uid}/exercises/${exerciseId}`);
+}
+
+function submissionsCollectionRef(uid: string, exerciseId: string) {
+  return exerciseRecordRef(uid, exerciseId).collection('submissions');
+}
+
+function toSubmission(id: string, doc: SubmissionDoc): ExerciseSubmission {
+  return {
+    id,
+    created: doc.created.toDate().toISOString(),
+    status: doc.status,
+    passed: doc.passed,
+    total: doc.total,
+    code: doc.code,
+  };
 }
 
 function exerciseRecordsCollectionRef(uid: string) {
@@ -44,7 +71,7 @@ export async function saveExerciseRecordCode(
   uid: string,
   exerciseId: string,
   code: string,
-): Promise<ExerciseRecord> {
+): Promise<void> {
   const ref = exerciseRecordRef(uid, exerciseId);
   const snapshot = await ref.get();
 
@@ -57,8 +84,7 @@ export async function saveExerciseRecordCode(
       lastUpdated: FieldValue.serverTimestamp(),
     };
     await ref.set(write);
-
-    return { id: exerciseId, code, tests: {}, compilationError: '' };
+    return;
   }
 
   const update: UpdateExerciseRecord = {
@@ -66,26 +92,23 @@ export async function saveExerciseRecordCode(
     lastUpdated: FieldValue.serverTimestamp(),
   };
   await ref.update(update);
-
-  const { tests, compilationError } = snapshot.data() as ReadExerciseRecord;
-
-  return {
-    id: exerciseId,
-    code,
-    tests,
-    compilationError: compilationError ?? '',
-  };
 }
 
+/**
+ * Saves a graded submission as the exercise's current state and appends it
+ * to the submission history, in one atomic write.
+ */
 export async function saveExerciseRecordSubmission(
   uid: string,
   exerciseId: string,
   code: string,
   tests: Record<string, ExerciseRecordTestResult>,
   compilationError: string,
-): Promise<ExerciseRecord> {
+  summary: Pick<ExerciseSubmission, 'status' | 'passed' | 'total'>,
+): Promise<{ record: ExerciseRecord; submission: ExerciseSubmission }> {
   const ref = exerciseRecordRef(uid, exerciseId);
   const snapshot = await ref.get();
+  const batch = getFirestore().batch();
 
   if (!snapshot.exists) {
     const write: WriteExerciseRecord = {
@@ -95,7 +118,7 @@ export async function saveExerciseRecordSubmission(
       created: FieldValue.serverTimestamp(),
       lastUpdated: FieldValue.serverTimestamp(),
     };
-    await ref.set(write);
+    batch.set(ref, write);
   } else {
     const update: UpdateExerciseRecordWithTests = {
       code,
@@ -103,10 +126,40 @@ export async function saveExerciseRecordSubmission(
       compilationError,
       lastUpdated: FieldValue.serverTimestamp(),
     };
-    await ref.update(update);
+    batch.update(ref, update);
   }
 
-  return { id: exerciseId, code, tests, compilationError };
+  // A concrete time rather than serverTimestamp(), so the response can
+  // include it without reading the doc back.
+  const submissionRef = submissionsCollectionRef(uid, exerciseId).doc();
+  const submissionDoc: SubmissionDoc = {
+    code,
+    ...summary,
+    created: Timestamp.now(),
+  };
+  batch.create(submissionRef, submissionDoc);
+
+  await batch.commit();
+
+  return {
+    record: { id: exerciseId, code, tests, compilationError },
+    submission: toSubmission(submissionRef.id, submissionDoc),
+  };
+}
+
+/** The user's most recent submissions for an exercise, newest first. */
+export async function getExerciseSubmissions(
+  uid: string,
+  exerciseId: string,
+): Promise<ExerciseSubmission[]> {
+  const snapshot = await submissionsCollectionRef(uid, exerciseId)
+    .orderBy('created', 'desc')
+    .limit(SUBMISSION_HISTORY_LIMIT)
+    .get();
+
+  return snapshot.docs.map((doc) =>
+    toSubmission(doc.id, doc.data() as SubmissionDoc),
+  );
 }
 
 export async function getExerciseRecord(
