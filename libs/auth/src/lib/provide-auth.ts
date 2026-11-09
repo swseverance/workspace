@@ -11,6 +11,7 @@ import type { SsrRequestContext } from '@org/server';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { AuthEffects } from './store/auth.effects';
 import { authFeature } from './store/auth.feature';
+import { SessionEndedEffects } from './store/session-ended.effects';
 import { SignInEffects } from './store/sign-in.effects';
 import { SignOutEffects } from './store/sign-out.effects';
 
@@ -22,7 +23,12 @@ import { SignOutEffects } from './store/sign-out.effects';
 export function provideAuth(): EnvironmentProviders {
   return makeEnvironmentProviders([
     provideState(authFeature),
-    provideEffects(AuthEffects, SignInEffects, SignOutEffects),
+    provideEffects(
+      AuthEffects,
+      SignInEffects,
+      SignOutEffects,
+      SessionEndedEffects,
+    ),
     // ng-zorro only provides this through NzModalModule.
     NzModalService,
   ]);
