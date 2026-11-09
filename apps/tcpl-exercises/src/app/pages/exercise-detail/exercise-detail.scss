@@ -37,22 +37,41 @@
   }
 }
 
-.editor-section {
-  height: 50vh;
+// The editor fills whatever height the panel has, so the flex column has to
+// run down through nz-tabs' own wrappers to the active pane.
+.code-panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+
+  nz-tabs {
+    flex: 1;
+    min-height: 0;
+    margin-top: -12px;
+  }
+
+  ::ng-deep {
+    .ant-tabs-content-holder,
+    .ant-tabs-content,
+    .ant-tabs-tabpane-active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+  }
+}
+
+// At least half the screen tall, and taller when the description beside it
+// is longer.
+.editor-section,
+.readonly-editor {
+  flex: 1;
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
 
   app-code-editor {
     flex: 1;
     min-height: 0;
   }
-}
-
-nz-tabs {
-  margin-top: -12px;
-}
-
-.readonly-editor {
-  height: 50vh;
 }
