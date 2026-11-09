@@ -5,8 +5,12 @@ import { ExerciseTestResult } from '../../models/exercise-submission';
 import { RunCResponse } from '../../models/run-c';
 
 const SANDBOX_DIR = '/vercel/sandbox';
-const COMPILE_TIMEOUT_MS = 15_000;
-const RUN_TIMEOUT_MS = 10_000;
+// Exercises are small programs that finish in milliseconds; the limits are
+// headroom for sandbox API latency, not for slow solutions. Worst case
+// (compile + every test timing out) must stay inside the sandbox's 60s
+// lifetime: 10s + 7 tests x 2s = 24s for the largest exercise today.
+const COMPILE_TIMEOUT_MS = 10_000;
+const RUN_TIMEOUT_MS = 2_000;
 
 type CommandResult = {
   stdout: string;
