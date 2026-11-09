@@ -78,10 +78,10 @@
     <app-panel heading="Test Cases" [loading]="exerciseLoading()">
       @if (exercise.tests.length > 0) {
         <div panel-extra class="legend">
-          <span class="legend-item"><span class="space">S</span> space</span>
-          <span class="legend-item"><span class="tab">T</span> tab</span>
+          <span class="legend-item"><app-visible-text text=" " /> space</span>
+          <span class="legend-item"><app-visible-text text="&#9;" /> tab</span>
           <span class="legend-item"
-            ><span class="newline">N</span> newline</span
+            ><app-visible-text [newline]="true" /> newline</span
           >
         </div>
       }

@@ -1,9 +1,22 @@
-import { Component, input, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
-import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { ExerciseTestCase, TestStopReason } from '../../../shared/models';
-import { TestCaseIo } from '../test-case-io/test-case-io';
+import { ExerciseTestCase } from '../../../shared/models';
+import {
+  describeFirstDifference,
+  diffOutput,
+  DiffRow,
+} from '../../../shared/output-diff';
+import { OutputDiff } from '../output-diff/output-diff';
+import { TextBlock } from '../text-block/text-block';
 
 // A process killed by a signal exits with 128 + the signal number.
 const SIGNALS: Record<number, string> = {
@@ -33,92 +46,107 @@ export function describeRuntimeError(test: ExerciseTestCase): string | null {
   return `Exited with code ${exitCode}; main must return 0.`;
 }
 
+export type VerdictTone = 'success' | 'info' | 'warning' | 'error';
+
+export type Verdict = {
+  tone: VerdictTone;
+  /** Short label for the panel header. */
+  label: string;
+  title: string;
+  detail: string | null;
+};
+
+/** The single most useful explanation of how a test went. */
+export function describeVerdict(
+  test: ExerciseTestCase,
+  rows: DiffRow[],
+): Verdict {
+  if (test.status === 'indeterminate') {
+    return {
+      tone: 'info',
+      label: '—',
+      title: 'Not run yet',
+      detail: 'Submit your solution to see what your program prints.',
+    };
+  }
+
+  if (test.status === 'passed') {
+    return {
+      tone: 'success',
+      label: 'Passed',
+      title: 'Passed',
+      detail: null,
+    };
+  }
+
+  if (test.exitCode === null) {
+    return {
+      tone: 'error',
+      label: 'Not Run',
+      title: "Didn't run",
+      detail: 'Your program failed to compile. See the Compilation Errors tab.',
+    };
+  }
+
+  if (test.stopReason === 'timeout') {
+    return {
+      tone: 'warning',
+      label: 'Time Limit Exceeded',
+      title: 'Time limit exceeded',
+      detail:
+        'Your program ran too long and was stopped. Look for a loop that never ends.',
+    };
+  }
+
+  if (test.stopReason === 'outputLimit') {
+    return {
+      tone: 'warning',
+      label: 'Output Limit Exceeded',
+      title: 'Output limit exceeded',
+      detail:
+        'Your program printed too much and was stopped, often a sign of a loop that never ends.',
+    };
+  }
+
+  const outputMatches = rows.every((row) => row.kind === 'equal');
+  const runtimeError = describeRuntimeError(test);
+
+  if (runtimeError) {
+    return {
+      tone: 'error',
+      label: 'Runtime Error',
+      title: 'Runtime error',
+      detail: outputMatches
+        ? `${runtimeError} Your output was correct; only the exit failed the test.`
+        : runtimeError,
+    };
+  }
+
+  return {
+    tone: 'error',
+    label: 'Wrong Answer',
+    title: 'Wrong answer',
+    detail: describeFirstDifference(rows),
+  };
+}
+
+const TAG_COLORS: Record<VerdictTone, string | undefined> = {
+  success: 'success',
+  info: undefined,
+  warning: 'warning',
+  error: 'error',
+};
+
 @Component({
   selector: 'app-test-cases',
-  imports: [NzCollapseModule, NzDividerModule, NzTagModule, TestCaseIo],
-  template: `
-    @if (tests().length === 0) {
-      <p class="empty">No test cases</p>
-    } @else {
-      <nz-collapse nzAccordion>
-        @for (test of tests(); track test.id; let i = $index) {
-          <nz-collapse-panel
-            [nzHeader]="'Test Case ' + (i + 1)"
-            [nzExtra]="statusTpl"
-            [nzActive]="activeTestId() === test.id"
-            (nzActiveChange)="onPanelToggle(test.id, $event)"
-          >
-            <div class="panel-content">
-              @if (activeTestId() === test.id) {
-                <app-test-case-io
-                  [rows]="[{ label: 'stdin', text: test.stdin }]"
-                />
-
-                <nz-divider />
-
-                <app-test-case-io
-                  [rows]="[
-                    { label: 'stdout (expected)', text: test.expectedStdout },
-                    {
-                      label: 'stdout (actual)',
-                      text: test.actualStdout,
-                      pending: test.status === 'indeterminate',
-                    },
-                  ]"
-                  [compare]="true"
-                />
-
-                @let runtimeError = describeRuntimeError(test);
-
-                @if (test.stopReason || runtimeError || test.actualStderr) {
-                  <nz-divider />
-                }
-
-                @if (runtimeError) {
-                  <div class="detail-row">
-                    <span class="detail-label">runtime error</span>
-                    <span class="runtime-error">{{ runtimeError }}</span>
-                  </div>
-                }
-
-                @if (test.stopReason) {
-                  <div class="detail-row">
-                    <span class="detail-label">stopped</span>
-                    <span class="stopped">{{
-                      stopReasonMessages[test.stopReason]
-                    }}</span>
-                  </div>
-                }
-
-                @if (test.actualStderr) {
-                  <div class="detail-row">
-                    <span class="detail-label">stderr</span>
-                    <pre class="stderr">{{ test.actualStderr }}</pre>
-                  </div>
-                }
-              }
-            </div>
-
-            <ng-template #statusTpl>
-              @if (submissionPending()) {
-                <nz-tag nzColor="processing">Pending...</nz-tag>
-              } @else if (test.stopReason) {
-                <nz-tag nzColor="warning">{{
-                  stopReasonLabels[test.stopReason]
-                }}</nz-tag>
-              } @else if (describeRuntimeError(test)) {
-                <nz-tag nzColor="error">Runtime Error</nz-tag>
-              } @else {
-                <nz-tag [nzColor]="statusColors[test.status]">{{
-                  statusLabels[test.status]
-                }}</nz-tag>
-              }
-            </ng-template>
-          </nz-collapse-panel>
-        }
-      </nz-collapse>
-    }
-  `,
+  imports: [
+    NzAlertModule,
+    NzCollapseModule,
+    NzTagModule,
+    OutputDiff,
+    TextBlock,
+  ],
+  templateUrl: './test-cases.html',
   styleUrl: './test-cases.scss',
 })
 export class TestCases {
@@ -126,35 +154,49 @@ export class TestCases {
 
   submissionPending = input.required<boolean>();
 
-  protected readonly statusLabels: Record<ExerciseTestCase['status'], string> =
-    {
-      passed: 'Passed',
-      failed: 'Failed',
-      indeterminate: '—',
-    };
-
-  protected readonly statusColors: Record<
-    ExerciseTestCase['status'],
-    string | undefined
-  > = {
-    passed: 'success',
-    failed: 'error',
-    indeterminate: undefined,
-  };
-
-  protected readonly stopReasonLabels: Record<TestStopReason, string> = {
-    timeout: 'Time Limit Exceeded',
-    outputLimit: 'Output Limit Exceeded',
-  };
-
-  protected readonly stopReasonMessages: Record<TestStopReason, string> = {
-    timeout: 'The program ran too long and was stopped.',
-    outputLimit: 'The program wrote too much output and was stopped.',
-  };
-
-  protected readonly describeRuntimeError = describeRuntimeError;
+  protected readonly tagColors = TAG_COLORS;
 
   protected readonly activeTestId = signal<string | null>(null);
+
+  /** Header labels for every test; the label doesn't depend on the diff. */
+  protected readonly verdicts = computed(
+    () =>
+      new Map(this.tests().map((test) => [test.id, describeVerdict(test, [])])),
+  );
+
+  /** Everything the open panel shows, computed once per change. */
+  protected readonly active = computed(() => {
+    const test = this.tests().find((t) => t.id === this.activeTestId());
+
+    if (!test) {
+      return null;
+    }
+
+    const rows =
+      test.status === 'failed' && test.exitCode !== null
+        ? diffOutput(test.expectedStdout, test.actualStdout)
+        : [];
+
+    return { test, rows, verdict: describeVerdict(test, rows) };
+  });
+
+  constructor() {
+    // When a submission finishes, open the first failing test so the
+    // student lands right on what went wrong.
+    let wasPending = false;
+    effect(() => {
+      const pending = this.submissionPending();
+      const tests = this.tests();
+
+      if (wasPending && !pending) {
+        const failed = tests.find((t) => t.status === 'failed');
+        if (failed) {
+          untracked(() => this.activeTestId.set(failed.id));
+        }
+      }
+      wasPending = pending;
+    });
+  }
 
   protected onPanelToggle(id: string, active: boolean): void {
     this.activeTestId.update((current) =>

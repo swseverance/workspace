@@ -1,0 +1,80 @@
+@if (tests().length === 0) {
+  <p class="empty">No test cases</p>
+} @else {
+  <nz-collapse nzAccordion>
+    @for (test of tests(); track test.id; let i = $index) {
+      <nz-collapse-panel
+        [nzHeader]="'Test Case ' + (i + 1)"
+        [nzExtra]="statusTpl"
+        [nzActive]="activeTestId() === test.id"
+        (nzActiveChange)="onPanelToggle(test.id, $event)"
+      >
+        @if (active(); as active) {
+          @if (active.test.id === test.id) {
+            @let verdict = active.verdict;
+
+            <div class="panel-content">
+              @if (!submissionPending()) {
+                <nz-alert
+                  [nzType]="verdict.tone"
+                  [nzMessage]="verdict.title"
+                  [nzDescription]="verdict.detail ?? ''"
+                  nzShowIcon
+                />
+              }
+
+              <section>
+                <h4>Input</h4>
+                <app-text-block [text]="test.stdin" emptyText="No input" />
+              </section>
+
+              <section>
+                @if (
+                  submissionPending() ||
+                  test.status === 'indeterminate' ||
+                  test.exitCode === null
+                ) {
+                  <h4>Expected output</h4>
+                  <app-text-block
+                    [text]="test.expectedStdout"
+                    emptyText="No output"
+                  />
+                } @else if (test.status === 'passed') {
+                  <h4>Output</h4>
+                  <app-text-block
+                    [text]="test.actualStdout"
+                    emptyText="No output"
+                  />
+                } @else if (active.rows.length > 0) {
+                  <h4>Output</h4>
+                  <app-output-diff [rows]="active.rows" />
+                } @else {
+                  <h4>Output</h4>
+                  <app-text-block text="" emptyText="No output, as expected" />
+                }
+              </section>
+
+              @if (test.actualStderr && !submissionPending()) {
+                <section>
+                  <h4>Error output (stderr)</h4>
+                  <app-text-block [text]="test.actualStderr" tone="error" />
+                </section>
+              }
+            </div>
+          }
+        }
+
+        <ng-template #statusTpl>
+          @if (submissionPending()) {
+            <nz-tag nzColor="processing">Pending...</nz-tag>
+          } @else {
+            @let verdict = verdicts().get(test.id);
+            <nz-tag [nzColor]="verdict ? tagColors[verdict.tone] : undefined">{{
+              verdict?.label
+            }}</nz-tag>
+          }
+        </ng-template>
+      </nz-collapse-panel>
+    }
+  </nz-collapse>
+}

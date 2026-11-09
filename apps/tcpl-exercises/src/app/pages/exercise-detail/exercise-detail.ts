@@ -9,6 +9,7 @@ import { CodeEditor } from '../../components/code-editor/code-editor';
 import { ExerciseDescription } from '../../components/exercise-description/exercise-description';
 import { Panel } from '../../components/panel/panel';
 import { TestCases } from '../../components/test-cases/test-cases';
+import { VisibleText } from '../../components/visible-text/visible-text';
 import { ExerciseFacade } from '../../store/exercise/exercise.facade';
 
 @Component({
@@ -20,6 +21,7 @@ import { ExerciseFacade } from '../../store/exercise/exercise.facade';
     CodeEditor,
     AsyncPipe,
     TestCases,
+    VisibleText,
     Panel,
     ExerciseDescription,
   ],
