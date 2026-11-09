@@ -3,13 +3,19 @@ import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
 import { ExerciseSource } from '../../models/exercise';
 import { ExerciseRecordTestResult } from '../../models/exercise-record';
-import { Exercise, ExerciseTestCase } from '../../shared/models';
+import {
+  Exercise,
+  ExerciseSubmission,
+  ExerciseTestCase,
+} from '../../shared/models';
 import { recordSubmission } from '../analytics/analytics';
 import { computeExerciseStatus } from '../exercises/status';
 import {
   getExerciseRecord,
+  getExerciseSubmissions,
   saveExerciseRecordCode,
   saveExerciseRecordSubmission,
+  SUBMISSION_HISTORY_LIMIT,
 } from '../firestore/exercise-records';
 import { gradeSubmission } from '../sandbox/run-c';
 
@@ -24,6 +30,7 @@ function toExercise(
   code: string,
   tests: Record<string, ExerciseRecordTestResult>,
   compilationError: string,
+  submissions: ExerciseSubmission[],
 ): Exercise {
   const { id, chapter, number, suffix, description, solution } = exercise;
 
@@ -70,6 +77,7 @@ function toExercise(
     tests: finalTests,
     status,
     compilationError,
+    submissions,
   };
 }
 
@@ -95,19 +103,8 @@ export const saveExerciseCodeHandler: RequestHandler<
   }
 
   try {
-    const record = await saveExerciseRecordCode(
-      req.user!.uid,
-      req.params.id,
-      code,
-    );
-    res.json(
-      toExercise(
-        req.exercise!,
-        record.code,
-        record.tests,
-        record.compilationError,
-      ),
-    );
+    await saveExerciseRecordCode(req.user!.uid, req.params.id, code);
+    res.status(204).end();
   } catch (err) {
     logger.error('[exercise] save code failed', err);
     res.status(500).json({ message: 'Failed to save code' });
@@ -118,13 +115,19 @@ export async function getExerciseForUser(
   exercise: ExerciseSource,
   user: SessionUser | undefined,
 ): Promise<Exercise> {
-  const record = user ? await getExerciseRecord(user.uid, exercise.id) : null;
+  const [record, submissions] = user
+    ? await Promise.all([
+        getExerciseRecord(user.uid, exercise.id),
+        getExerciseSubmissions(user.uid, exercise.id),
+      ])
+    : [undefined, []];
 
   return toExercise(
     exercise,
     record?.code ?? STARTER_CODE,
     record?.tests ?? {},
     record?.compilationError ?? '',
+    submissions,
   );
 }
 
@@ -161,10 +164,15 @@ export const submitExerciseHandler: RequestHandler<
   }
 
   try {
-    const { compilationError, results } = await gradeSubmission(
-      code,
-      req.exercise!.tests,
-    );
+    const uid = req.user!.uid;
+    const exercise = req.exercise!;
+
+    // Load the earlier submissions while the code is being graded.
+    const [{ compilationError, results }, previousSubmissions] =
+      await Promise.all([
+        gradeSubmission(code, exercise.tests),
+        getExerciseSubmissions(uid, exercise.id),
+      ]);
 
     const tests: Record<string, ExerciseRecordTestResult> = Object.fromEntries(
       results.map((result) => [
@@ -179,20 +187,27 @@ export const submitExerciseHandler: RequestHandler<
       ]),
     );
 
-    const record = await saveExerciseRecordSubmission(
-      req.user!.uid,
-      req.params.id,
+    const { record, submission } = await saveExerciseRecordSubmission(
+      uid,
+      exercise.id,
       code,
       tests,
       compilationError,
+      {
+        status: computeExerciseStatus(exercise.tests, tests),
+        passed: exercise.tests.filter((t) => tests[t.id]?.status === 'passed')
+          .length,
+        total: exercise.tests.length,
+      },
     );
-    await recordSubmission(req.user!.uid);
+    await recordSubmission(uid);
     res.json(
       toExercise(
-        req.exercise!,
+        exercise,
         record.code,
         record.tests,
         record.compilationError,
+        [submission, ...previousSubmissions].slice(0, SUBMISSION_HISTORY_LIMIT),
       ),
     );
   } catch (err) {

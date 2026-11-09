@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { Exercise } from '../../../shared/models';
+import { Exercise, ExerciseSubmission } from '../../../shared/models';
 
 export const codeEdited = createAction(
   'Code Edited',
@@ -49,6 +49,19 @@ export const exerciseNavigationSucceeded = createAction(
 export const exerciseNavigationFailed = createAction(
   'Exercise Navigation Failed',
   props<{ id: string; error: unknown }>(),
+);
+
+export const openSubmissionModal = createAction(
+  'Open Submission Modal',
+  props<{ submission: ExerciseSubmission }>(),
+);
+
+export const closeSubmissionModal = createAction('Close Submission Modal');
+
+/** Replaces the editor's code with an earlier submission's. */
+export const applyHistoricalSubmission = createAction(
+  'Apply Historical Submission',
+  props<{ submission: ExerciseSubmission }>(),
 );
 
 /**

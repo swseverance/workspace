@@ -42,6 +42,7 @@ import { analyticsReducer } from './store/analytics/analytics.reducer';
 import { ChaptersEffects } from './store/exercise/chapters.effects';
 import { ExerciseEffects } from './store/exercise/exercise.effects';
 import { exerciseReducer } from './store/exercise/exercise.reducer';
+import { SubmissionEffects } from './store/exercise/submission.effects';
 import { provideLogMetaReducer } from './store/log.meta-reducer';
 
 registerLocaleData(en);
@@ -92,7 +93,7 @@ export const appConfig: ApplicationConfig = {
     provideEffects(),
     provideAuth(),
     provideState('exercise', exerciseReducer),
-    provideEffects(ExerciseEffects, ChaptersEffects),
+    provideEffects(ExerciseEffects, ChaptersEffects, SubmissionEffects),
     provideState('analytics', analyticsReducer),
     provideEffects(AnalyticsEffects),
   ],

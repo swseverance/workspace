@@ -17,6 +17,18 @@ export type ExerciseTestCase = {
 
 export type ExerciseStatus = 'passed' | 'failed' | 'indeterminate' | 'pending';
 
+/** One graded submission, as it was when it was graded. */
+export type ExerciseSubmission = {
+  id: string;
+  /** ISO 8601. */
+  created: string;
+  status: ExerciseStatus;
+  /** How many of the exercise's tests passed. */
+  passed: number;
+  total: number;
+  code: string;
+};
+
 export type Exercise = {
   id: string;
   chapter: number;
@@ -29,6 +41,8 @@ export type Exercise = {
   tests: ExerciseTestCase[];
   status: ExerciseStatus;
   compilationError: string;
+  /** The user's most recent submissions, newest first. */
+  submissions: ExerciseSubmission[];
 };
 
 export type Chapter = {

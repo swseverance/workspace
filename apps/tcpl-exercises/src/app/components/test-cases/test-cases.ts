@@ -1,14 +1,6 @@
-import {
-  Component,
-  computed,
-  effect,
-  input,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, computed, input, signal } from '@angular/core';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
-import { NzTagModule } from 'ng-zorro-antd/tag';
 import { ExerciseTestCase } from '../../../shared/models';
 import {
   describeFirstDifference,
@@ -16,6 +8,7 @@ import {
   DiffRow,
 } from '../../../shared/output-diff';
 import { OutputDiff } from '../output-diff/output-diff';
+import { Status, StatusColor } from '../status/status';
 import { TextBlock } from '../text-block/text-block';
 
 // A process killed by a signal exits with 128 + the signal number.
@@ -130,22 +123,16 @@ export function describeVerdict(
   };
 }
 
-const TAG_COLORS: Record<VerdictTone, string | undefined> = {
+const TAG_COLORS: Record<VerdictTone, StatusColor> = {
   success: 'success',
-  info: undefined,
+  info: 'default',
   warning: 'warning',
   error: 'error',
 };
 
 @Component({
   selector: 'app-test-cases',
-  imports: [
-    NzAlertModule,
-    NzCollapseModule,
-    NzTagModule,
-    OutputDiff,
-    TextBlock,
-  ],
+  imports: [NzAlertModule, NzCollapseModule, OutputDiff, Status, TextBlock],
   templateUrl: './test-cases.html',
   styleUrl: './test-cases.scss',
 })
@@ -179,24 +166,6 @@ export class TestCases {
 
     return { test, rows, verdict: describeVerdict(test, rows) };
   });
-
-  constructor() {
-    // When a submission finishes, open the first failing test so the
-    // student lands right on what went wrong.
-    let wasPending = false;
-    effect(() => {
-      const pending = this.submissionPending();
-      const tests = this.tests();
-
-      if (wasPending && !pending) {
-        const failed = tests.find((t) => t.status === 'failed');
-        if (failed) {
-          untracked(() => this.activeTestId.set(failed.id));
-        }
-      }
-      wasPending = pending;
-    });
-  }
 
   protected onPanelToggle(id: string, active: boolean): void {
     this.activeTestId.update((current) =>

@@ -7,6 +7,7 @@ import {
   loadChaptersFailed,
 } from './chapters.actions';
 import {
+  applyHistoricalSubmission,
   codeEdited,
   exerciseNavigationSucceeded,
   exercisesReset,
@@ -64,9 +65,19 @@ export const exerciseReducer = createReducer(
 
   on(exercisesReset, () => initialExerciseState),
 
+  // `code` follows the editor too, so that applying a submission always
+  // changes it, even back to code the user has since typed over.
   on(codeEdited, (state, { code }) =>
     exerciseEntityAdapter.updateOne(
-      { id: state.id, changes: { pendingChanges: code } },
+      { id: state.id, changes: { code, pendingChanges: code } },
+      state,
+    ),
+  ),
+
+  // The editor shows the new code, and autosave keeps it.
+  on(applyHistoricalSubmission, (state, { submission: { code } }) =>
+    exerciseEntityAdapter.updateOne(
+      { id: state.id, changes: { code, pendingChanges: code } },
       state,
     ),
   ),

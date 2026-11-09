@@ -66,12 +66,13 @@
 
         <ng-template #statusTpl>
           @if (submissionPending()) {
-            <nz-tag nzColor="processing">Pending...</nz-tag>
+            <app-status color="processing">Pending...</app-status>
           } @else {
             @let verdict = verdicts().get(test.id);
-            <nz-tag [nzColor]="verdict ? tagColors[verdict.tone] : undefined">{{
-              verdict?.label
-            }}</nz-tag>
+            <app-status
+              [color]="verdict ? tagColors[verdict.tone] : 'default'"
+              >{{ verdict?.label }}</app-status
+            >
           }
         </ng-template>
       </nz-collapse-panel>

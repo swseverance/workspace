@@ -1,7 +1,12 @@
 import { inject, Service } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { ExerciseSubmission } from '../../../shared/models';
 import { loadChapters } from './chapters.actions';
-import { attemptToSubmitExercise, codeEdited } from './exercise.actions';
+import {
+  attemptToSubmitExercise,
+  codeEdited,
+  openSubmissionModal,
+} from './exercise.actions';
 import {
   selectChapters,
   selectChaptersLoading,
@@ -25,6 +30,10 @@ export class ExerciseFacade {
 
   submitExercise(code: string): void {
     this.store.dispatch(attemptToSubmitExercise({ code }));
+  }
+
+  viewSubmission(submission: ExerciseSubmission): void {
+    this.store.dispatch(openSubmissionModal({ submission }));
   }
 
   loadChapters(): void {

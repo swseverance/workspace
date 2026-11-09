@@ -1,0 +1,34 @@
+<nz-list
+  nzSize="small"
+  [nzDataSource]="submissions()"
+  [nzRenderItem]="item"
+  nzNoResult="No submissions yet"
+>
+  <ng-template #item let-submission>
+    @let tag = tagFor(submission);
+
+    <nz-list-item>
+      <span class="created">{{ submission.created | localDate }}</span>
+
+      @if (tag) {
+        <app-status class="status" [color]="tag.color">{{
+          tag.label
+        }}</app-status>
+      }
+
+      <ul nz-list-item-actions>
+        <nz-list-item-action>
+          <button
+            nz-button
+            nzType="link"
+            nzSize="small"
+            type="button"
+            (click)="view.emit(submission)"
+          >
+            View code
+          </button>
+        </nz-list-item-action>
+      </ul>
+    </nz-list-item>
+  </ng-template>
+</nz-list>
