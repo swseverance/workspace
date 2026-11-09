@@ -1,25 +1,29 @@
-import { isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, PLATFORM_ID, REQUEST } from '@angular/core';
-import {
-  Actions,
-  createEffect,
-  ofType,
-  type OnInitEffects,
-} from '@ngrx/effects';
-import type { Action } from '@ngrx/store';
+import { inject, Injectable, REQUEST } from '@angular/core';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { Action } from '@ngrx/store';
 import { AUTH } from '@org/firebase';
 import { Logger } from '@org/logger';
 import type {
   CreateSessionRequestBody,
   CreateSessionResponseBody,
   SessionResponseBody,
+  SessionUser,
 } from '@org/server';
-import { onAuthStateChanged } from 'firebase/auth';
+import {
+  Auth,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithRedirect,
+  signOut,
+} from 'firebase/auth';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import {
   catchError,
+  concat,
   EMPTY,
+  filter,
   from,
   map,
   Observable,
@@ -30,97 +34,65 @@ import {
 } from 'rxjs';
 import { AuthActions } from './auth.actions';
 
+/** Firebase's auth state, reduced to what the app needs. */
+function firebaseUser$(auth: Auth): Observable<SessionUser | null> {
+  return new Observable((observer) =>
+    onAuthStateChanged(auth, (user) =>
+      observer.next(user ? { uid: user.uid } : null),
+    ),
+  );
+}
+
 @Injectable()
-export class AuthEffects implements OnInitEffects {
+export class AuthEffects {
   private readonly actions$ = inject(Actions);
   private readonly http = inject(HttpClient);
   private readonly logger = inject(Logger);
+  private readonly modal = inject(NzModalService);
+  private readonly message = inject(NzMessageService);
   // Null on the server.
   private readonly auth = inject(AUTH);
-  private readonly message = inject(NzMessageService);
-  private readonly platformId = inject(PLATFORM_ID);
-  // Null in the browser and during build-time route extraction.
+  // Null in the browser and during the build's route extraction.
   private readonly request = inject(REQUEST, { optional: true });
 
   private readonly signedOut$ = this.actions$.pipe(
     ofType(AuthActions.clearCookie),
   );
 
-  /** Starts the auth flow once the effects are registered. */
-  ngrxOnInitEffects(): Action {
-    return AuthActions.loadSession();
-  }
-
   /**
-   * The server's view of the session cookie. During SSR the cookie is
-   * forwarded; in the browser the response is a synchronous transfer cache
-   * hit, so the first client render matches the SSR markup.
+   * First the server's view of the session cookie (during SSR via the
+   * forwarded cookie; in the browser a synchronous transfer cache hit, so
+   * the first client render matches the SSR markup). Then, in the browser,
+   * Firebase's auth state.
+   *
+   * Firebase is only followed after the session call completes, so a slow
+   * response can never overwrite newer state.
    */
-  loadSession$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.loadSession),
-      switchMap(() => {
-        // The Angular CLI starts the server app at build time to read its
-        // routes. There's no request then, so no session to load.
-        const isBuildRouteExtraction =
-          isPlatformServer(this.platformId) && !this.request;
+  authState$ = createEffect(() => {
+    // Neither a browser nor a real request: the build's route-extraction
+    // pass. Nothing to load.
+    if (!this.auth && !this.request) {
+      return of(AuthActions.sessionLoaded({ user: null }));
+    }
 
-        if (isBuildRouteExtraction) {
-          return of(AuthActions.sessionLoaded({ user: null }));
-        }
-
-        return this.http.get<SessionResponseBody>('/api/session').pipe(
-          map(({ user }) => AuthActions.sessionLoaded({ user })),
-          catchError((error: unknown) =>
-            of(AuthActions.loadSessionFailed({ error })),
-          ),
-        );
+    const session$ = this.http.get<SessionResponseBody>('/api/session').pipe(
+      map(({ user }) => AuthActions.sessionLoaded({ user })),
+      catchError((error) => {
+        this.logger.error('[auth] load session failed', error);
+        // Treat as no session rather than leave the status unknown, which
+        // would hold up route guards indefinitely.
+        return of(AuthActions.sessionLoaded({ user: null }));
       }),
-    ),
-  );
+    );
 
-  loadSessionFailed$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AuthActions.loadSessionFailed),
-        tap(({ type, error }) => {
-          this.logger.error(`[auth] ${type}`, error);
-          this.message.error('Failed to Load Session');
-        }),
-      ),
-    { dispatch: false },
-  );
+    const firebase$ = this.auth
+      ? firebaseUser$(this.auth).pipe(
+          map((user) => AuthActions.firebaseUserChanged({ user })),
+        )
+      : EMPTY;
 
-  /**
-   * Follows Firebase's auth state in the browser, starting only once the
-   * session call has finished, either way. Reducers run before effects, so
-   * the session result is always in the store first and a slow session
-   * response can't overwrite newer Firebase state.
-   */
-  firebaseUserChanged$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.sessionLoaded, AuthActions.loadSessionFailed),
-      switchMap(() => {
-        const auth = this.auth;
-
-        // Null on the server, including build-time route extraction.
-        if (!auth) {
-          return EMPTY;
-        }
-
-        // Unsubscribing removes the Firebase listener.
-        return new Observable<Action>((subscriber) =>
-          onAuthStateChanged(auth, (user) =>
-            subscriber.next(
-              AuthActions.firebaseUserChanged({
-                user: user ? { uid: user.uid } : null,
-              }),
-            ),
-          ),
-        );
-      }),
-    ),
-  );
+    return concat(session$, firebase$);
+  });
 
   /** Mints or clears the session cookie whenever Firebase's user changes. */
   syncCookie$ = createEffect(() =>
@@ -135,30 +107,22 @@ export class AuthEffects implements OnInitEffects {
   loadToken$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.validateCookie),
-      // Dispatched synchronously from Firebase's listener, which sets
-      // currentUser first, so neither is null here.
-      switchMap(({ user }) =>
-        from(this.auth!.currentUser!.getIdToken()).pipe(
+      switchMap(({ user }) => {
+        const firebaseUser = this.auth?.currentUser;
+
+        if (!firebaseUser) {
+          return EMPTY;
+        }
+
+        return from(firebaseUser.getIdToken()).pipe(
           map((token) => AuthActions.tokenLoaded({ token, user })),
           catchError((error: unknown) =>
             of(AuthActions.loadTokenFailed({ error })),
           ),
           takeUntil(this.signedOut$),
-        ),
-      ),
+        );
+      }),
     ),
-  );
-
-  loadTokenFailed$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AuthActions.loadTokenFailed),
-        tap(({ type, error }) => {
-          this.logger.error(`[auth] ${type}`, error);
-          this.message.error('Failed to Load Token');
-        }),
-      ),
-    { dispatch: false },
   );
 
   validateCookie$ = createEffect(() =>
@@ -185,18 +149,6 @@ export class AuthEffects implements OnInitEffects {
     ),
   );
 
-  validateCookieFailed$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AuthActions.validateCookieFailed),
-        tap(({ type, error }) => {
-          this.logger.error(`[auth] ${type}`, error);
-          this.message.error('Failed to Validate Cookie');
-        }),
-      ),
-    { dispatch: false },
-  );
-
   clearCookie$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.clearCookie),
@@ -211,13 +163,84 @@ export class AuthEffects implements OnInitEffects {
     ),
   );
 
-  clearCookieFailed$ = createEffect(
+  openSignInModal$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.openSignInModal),
+      switchMap(
+        () =>
+          new Observable<Action>((subscriber) => {
+            this.modal.confirm({
+              nzTitle: 'Sign in required',
+              nzContent: 'Sign in with your Google account to continue.',
+              nzOkText: 'Sign in with Google',
+              nzCancelText: 'Cancel',
+              nzOnOk: () =>
+                subscriber.next(AuthActions.signIn({ provider: 'google' })),
+              nzOnCancel: () => subscriber.next(AuthActions.closeSignInModal()),
+            });
+          }),
+      ),
+    ),
+  );
+
+  /**
+   * On success the page navigates away to Google, so only failure is
+   * reported back.
+   */
+  signIn$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.signIn),
+      filter(() => !!this.auth),
+      switchMap(() =>
+        signInWithRedirect(this.auth!, new GoogleAuthProvider()).then(
+          () => null,
+          (error: unknown) => AuthActions.signInFailed({ error }),
+        ),
+      ),
+      filter((action) => action !== null),
+    ),
+  );
+
+  signOut$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.signOut),
+      filter(() => !!this.auth),
+      switchMap(() =>
+        signOut(this.auth!)
+          .then(() => AuthActions.signOutSucceeded())
+          .catch((error: unknown) => AuthActions.signOutFailed({ error })),
+      ),
+    ),
+  );
+
+  signOutSucceeded$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.clearCookieFailed),
+        ofType(AuthActions.signOutSucceeded),
+        tap(() => this.message.success('Signed out')),
+      ),
+    { dispatch: false },
+  );
+
+  /** Logs every failure; the ones the user caused also get a toast. */
+  failures$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(
+          AuthActions.signInFailed,
+          AuthActions.signOutFailed,
+          AuthActions.loadTokenFailed,
+          AuthActions.validateCookieFailed,
+          AuthActions.clearCookieFailed,
+        ),
         tap(({ type, error }) => {
           this.logger.error(`[auth] ${type}`, error);
-          this.message.error('Failed to Clear Cookie');
+
+          if (type === AuthActions.signInFailed.type) {
+            this.message.error('Failed to sign in');
+          } else if (type === AuthActions.signOutFailed.type) {
+            this.message.error('Failed to sign out');
+          }
         }),
       ),
     { dispatch: false },

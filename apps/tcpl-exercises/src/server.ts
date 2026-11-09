@@ -11,7 +11,6 @@ import {
   firebaseAuthProxy,
   getSessionHandler,
   logHandler,
-  requireUserMiddleware,
   ssrRequestContext,
   verifySessionCookieMiddleware,
 } from '@org/server';
@@ -20,14 +19,6 @@ import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  getExerciseHandler,
-  saveExerciseCodeHandler,
-  submitExerciseHandler,
-} from './server/api/exercise.handler';
-import { getExercisesHandler } from './server/api/exercises.handler';
-import { exerciseExistsMiddleware } from './server/middleware/exercise-exists/exercise-exists';
-import { submitExerciseRateLimitMiddleware } from './server/middleware/rate-limit/rate-limit';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -83,23 +74,6 @@ app.post('/api/session', createSessionHandler);
 app.delete('/api/session', deleteSessionHandler);
 
 app.post('/api/logs', logHandler);
-
-app.get('/api/exercises', getExercisesHandler);
-app.get('/api/exercises/:id', exerciseExistsMiddleware, getExerciseHandler);
-app.put(
-  '/api/exercises/:id/code',
-  requireUserMiddleware,
-  exerciseExistsMiddleware,
-  saveExerciseCodeHandler,
-);
-// Submitting runs code in a paid Vercel Sandbox, hence the rate limit.
-app.post(
-  '/api/exercises/:id/submit',
-  requireUserMiddleware,
-  exerciseExistsMiddleware,
-  submitExerciseRateLimitMiddleware,
-  submitExerciseHandler,
-);
 
 /**
  * Handle all other requests by rendering the Angular application.
