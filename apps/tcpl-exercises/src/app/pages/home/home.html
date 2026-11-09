@@ -1,0 +1,15 @@
+<a nz-button nzType="primary" routerLink="/exercises">Begin the exercises</a>
+
+@if (analytics$ | async; as analytics) {
+  @if (analytics.submissions > 0) {
+    <nz-card>
+      <p class="stats">
+        <span class="stat">{{ analytics.submissions | number }}</span>
+        {{ analytics.submissions === 1 ? 'submission' : 'submissions' }}
+        across
+        <span class="stat">{{ analytics.users | number }}</span>
+        {{ analytics.users === 1 ? 'user' : 'users' }}
+      </p>
+    </nz-card>
+  }
+}
