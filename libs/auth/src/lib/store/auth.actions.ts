@@ -5,7 +5,9 @@ export const AuthActions = createActionGroup({
   source: 'Auth',
   events: {
     // The server's view of the session cookie (from GET /api/session).
+    'Load Session': emptyProps(),
     'Session Loaded': props<{ user: SessionUser | null }>(),
+    'Load Session Failed': props<{ error: unknown }>(),
     // Firebase's auth state; browser only.
     'Firebase User Changed': props<{ user: SessionUser | null }>(),
 

@@ -12,8 +12,8 @@ import { AuthActions } from './auth.actions';
  *   created. Route guards wait.
  * - `signedIn`: the server holds a valid session cookie for `user`, so API
  *   calls made now are authenticated.
- * - `signedOut`: confirmed signed out (by Firebase, or the cookie couldn't
- *   be created).
+ * - `signedOut`: no usable session: Firebase has no user, or it has one
+ *   but the session cookie couldn't be created.
  */
 export type AuthStatus =
   'unknown' | 'noSession' | 'signingIn' | 'signedIn' | 'signedOut';
@@ -37,6 +37,12 @@ export const authFeature = createFeature({
     on(AuthActions.sessionLoaded, (_state, { user }): AuthState =>
       user ? { status: 'signedIn', user } : { status: 'noSession', user: null },
     ),
+    // The server couldn't confirm a session. Treated like none rather than
+    // left unknown, which would hold up route guards indefinitely.
+    on(AuthActions.loadSessionFailed, (): AuthState => ({
+      status: 'noSession',
+      user: null,
+    })),
     on(AuthActions.firebaseUserChanged, (state, { user }): AuthState => {
       if (!user) {
         return signedOut;
@@ -55,10 +61,13 @@ export const authFeature = createFeature({
       AuthActions.cookieValidated,
       (_state, { user }): AuthState => ({ status: 'signedIn', user }),
     ),
+    // Firebase still has the user, but no session could be confirmed. An
+    // existing session cookie is still good, so keep it; otherwise there's
+    // no usable session and the API would reject calls.
     on(
       AuthActions.loadTokenFailed,
       AuthActions.validateCookieFailed,
-      (): AuthState => signedOut,
+      (state): AuthState => (state.status === 'signedIn' ? state : signedOut),
     ),
   ),
 });
