@@ -1,3 +1,4 @@
+import { serializeError } from '@org/server';
 import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
 import { RateLimitError, UserNotFoundError } from '../../models/errors';
@@ -9,7 +10,6 @@ import { api as issueCommentsApi } from '../github/fetch-issue-comments/fetch-is
 import { api as issuesApi } from '../github/fetch-issues/fetch-issues';
 import { api as pullRequestsApi } from '../github/fetch-pull-requests/fetch-pull-requests';
 import { rateLimit } from '../github/rate-limit/rate-limit';
-import { serializeError } from '../serialize-error';
 
 export const tableHandler: RequestHandler = async (req, res) => {
   const parsed = tableQuerySchema.safeParse(req.query);

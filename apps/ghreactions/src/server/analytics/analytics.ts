@@ -1,7 +1,7 @@
+import { redisKey, serializeError } from '@org/server';
 import * as logger from 'firebase-functions/logger';
 import { AnalyticsResponse } from '../../models/analytics';
-import { redis, redisKey } from '../redis/redis';
-import { serializeError } from '../serialize-error';
+import { redisProvider } from '../redis/redis';
 
 const searchesKey = () => redisKey('analytics:searches');
 // A HyperLogLog: counts distinct usernames (~1% error) in a fixed ~12 KB
@@ -11,6 +11,7 @@ const profilesKey = () => redisKey('analytics:profiles');
 /** Counts a new search. Never throws — analytics must not break a search. */
 export async function recordSearch(username: string): Promise<void> {
   try {
+    const redis = redisProvider.get();
     await Promise.all([
       redis.incr(searchesKey()),
       redis.pfadd(profilesKey(), username.toLowerCase()),
@@ -21,6 +22,7 @@ export async function recordSearch(username: string): Promise<void> {
 }
 
 export async function getStats(): Promise<AnalyticsResponse> {
+  const redis = redisProvider.get();
   const [searches, profiles] = await Promise.all([
     redis.get<number>(searchesKey()),
     redis.pfcount(profilesKey()),
