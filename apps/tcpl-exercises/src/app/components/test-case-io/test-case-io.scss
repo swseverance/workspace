@@ -1,0 +1,83 @@
+@use '../char-chip';
+
+:host {
+  display: block;
+}
+
+.io-table {
+  border-collapse: collapse;
+  font-size: 20px;
+}
+
+.io-table th,
+.io-table td {
+  padding: 0 4px;
+  font-weight: normal;
+}
+
+th[scope='row'] {
+  min-width: 140px;
+  text-align: left;
+  padding-right: 8px;
+  font-size: 15px;
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+th[scope='col'] {
+  text-align: center;
+  font-size: 14px;
+  font-weight: normal;
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.char-cell {
+  min-width: 2ch;
+  font-family: monospace;
+  text-align: center;
+}
+
+.empty {
+  font-family: monospace;
+  text-align: left;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.match-cell {
+  font-weight: 600;
+}
+
+.match-cell.match {
+  background: #f6ffed;
+  color: #389e0d;
+}
+
+.match-cell.mismatch {
+  background: #fff1f0;
+  color: #cf1322;
+}
+
+@include char-chip.char-chip-base;
+
+:host-context(.tcpl-exercises-dark-theme) {
+  th[scope='row'],
+  .empty {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  th[scope='col'] {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .match-cell.match {
+    background: rgba(56, 158, 13, 0.15);
+    color: #73d13d;
+  }
+
+  .match-cell.mismatch {
+    background: rgba(207, 19, 34, 0.15);
+    color: #ff7875;
+  }
+
+  @include char-chip.char-chip-dark;
+}

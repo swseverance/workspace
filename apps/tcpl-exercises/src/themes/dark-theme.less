@@ -1,3 +1,9 @@
 @import 'ng-zorro-antd/ng-zorro-antd.dark.less';
 
 @font-size-base: 16px;
+
+// Default dark-theme @component-background (#141414) is nearly black, making
+// components like nz-menu hard to distinguish from the page background.
+// Lighter than @popover-background too, so components stand out from the
+// page shell (app.scss's #1f1f1f) instead of blending into it.
+@component-background: #262626;

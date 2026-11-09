@@ -1,0 +1,19 @@
+:host {
+  display: contents;
+}
+
+.smart-loader-skeleton {
+  display: none;
+}
+
+.smart-loader-skeleton.visible {
+  display: contents;
+}
+
+.smart-loader-content {
+  display: contents;
+}
+
+.smart-loader-content.hidden {
+  display: none;
+}
