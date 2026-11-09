@@ -3,6 +3,7 @@ import * as logger from 'firebase-functions/logger';
 import { ExerciseTestCaseSource } from '../../models/exercise';
 import { ExerciseTestResult } from '../../models/exercise-submission';
 import { TestStopReason } from '../../shared/models';
+import { normalizeOutput } from '../../shared/output-diff';
 
 const SANDBOX_DIR = '/vercel/sandbox';
 
@@ -100,7 +101,7 @@ function stopReason(exitCode: number): TestStopReason | null {
 }
 
 function compareOutput(actual: string, expected: string): boolean {
-  return actual.trimEnd() === expected.trimEnd();
+  return normalizeOutput(actual) === normalizeOutput(expected);
 }
 
 /** Turns the grader's per-step output into what's stored and shown. */

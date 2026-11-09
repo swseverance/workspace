@@ -1,7 +1,9 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, computed, inject, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthFacade } from '@org/auth';
 import { Theme } from '@org/theme';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -16,6 +18,7 @@ import { ExerciseFacade } from '../../store/exercise/exercise.facade';
 @Component({
   selector: 'app-exercise-detail',
   imports: [
+    NzAlertModule,
     NzButtonModule,
     NzTabsModule,
     NzBadgeModule,
@@ -35,6 +38,11 @@ export class ExerciseDetail {
 
   protected readonly facade = inject(ExerciseFacade);
   protected readonly theme$ = inject(Theme).mode$;
+  protected readonly auth = inject(AuthFacade);
+  // Only signed-in users can edit, so there are never edits that can't be
+  // saved.
+  protected readonly user$ = this.auth.user$;
+  protected readonly authStatus$ = this.auth.status$;
   protected readonly exercise$ = this.facade.exercise$;
   // The resolver holds each navigation until its exercise has loaded, so a
   // navigation in progress means the next exercise is loading. The router

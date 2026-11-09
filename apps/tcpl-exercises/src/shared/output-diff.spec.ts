@@ -4,11 +4,20 @@ import {
   diffOutput,
   DiffRow,
   foldRows,
+  normalizeOutput,
   splitLines,
   toGlyphs,
 } from './output-diff';
 
 const kinds = (rows: DiffRow[]) => rows.map((r) => r.kind);
+
+describe('normalizeOutput', () => {
+  it('drops trailing whitespace at the very end only', () => {
+    expect(normalizeOutput('a \nb\n \t\n')).toBe('a \nb');
+    expect(normalizeOutput('a\nb')).toBe('a\nb');
+    expect(normalizeOutput(' a')).toBe(' a');
+  });
+});
 
 describe('splitLines', () => {
   it('ignores trailing whitespace like the grader does', () => {
