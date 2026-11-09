@@ -38,6 +38,7 @@
           <nz-tab nzTitle="Code">
             <div class="editor-section">
               <app-code-editor
+                [docId]="exercise.id"
                 [code]="exercise.code"
                 [theme]="theme!"
                 (codeChange)="onCodeChange($event)"
@@ -49,6 +50,7 @@
           <nz-tab [nzTitle]="compilationErrorsTitle">
             <div class="readonly-editor">
               <app-code-editor
+                [docId]="exercise.id"
                 [code]="exercise.compilationError"
                 [theme]="theme!"
                 [readonly]="true"
@@ -61,6 +63,7 @@
           <nz-tab nzTitle="Solution">
             <div class="readonly-editor">
               <app-code-editor
+                [docId]="exercise.id"
                 [code]="exercise.solution"
                 [theme]="theme!"
                 [readonly]="true"

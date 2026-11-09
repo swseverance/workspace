@@ -77,6 +77,15 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
 
   @Input() language: 'cpp' | 'text' = 'cpp';
 
+  /**
+   * Identifies the document being edited (e.g. the exercise id). Changing it
+   * starts a fresh editor state, so switching documents always shows the new
+   * `code` and never carries over the previous one's text or undo history.
+   * `code` alone can't signal this: it stays the same while the user types,
+   * and two documents can have identical code.
+   */
+  @Input() docId = '';
+
   @Output() codeChange = new EventEmitter<string>();
 
   @ViewChild('host', { static: true })
@@ -94,12 +103,8 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
     ];
   }
 
-  ngAfterViewInit(): void {
-    if (!this.isBrowser) {
-      return;
-    }
-
-    this.view = new EditorView({
+  private createState(): EditorState {
+    return EditorState.create({
       doc: this.code,
       extensions: [
         basicSetup,
@@ -119,12 +124,29 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
         this.themeCompartment.of(this.theme === 'dark' ? oneDark : []),
         this.readonlyCompartment.of(this.readonlyExtensions()),
       ],
+    });
+  }
+
+  ngAfterViewInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    this.view = new EditorView({
+      state: this.createState(),
       parent: this.host.nativeElement,
     });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!this.view) {
+      return;
+    }
+
+    // A new document: the fresh state already has the current code, theme
+    // and readonly setting.
+    if (changes['docId']) {
+      this.view.setState(this.createState());
       return;
     }
 
