@@ -1,6 +1,7 @@
 @let exercise = exercise$ | async;
 @let theme = theme$ | async;
 @let submissionPending = submissionPending$ | async;
+@let user = user$ | async;
 
 <!-- The resolver puts the exercise in the store before this page renders. -->
 @if (exercise) {
@@ -41,6 +42,7 @@
                 [docId]="exercise.id"
                 [code]="exercise.code"
                 [theme]="theme!"
+                [readonly]="!user"
                 (codeChange)="onCodeChange($event)"
                 [loading]="exerciseLoading()"
               />

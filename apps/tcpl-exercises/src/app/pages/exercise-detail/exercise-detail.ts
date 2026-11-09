@@ -1,6 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, computed, inject, signal, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthFacade } from '@org/auth';
 import { Theme } from '@org/theme';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -35,6 +36,9 @@ export class ExerciseDetail {
 
   protected readonly facade = inject(ExerciseFacade);
   protected readonly theme$ = inject(Theme).mode$;
+  // Only signed-in users can edit, so there are never edits that can't be
+  // saved.
+  protected readonly user$ = inject(AuthFacade).user$;
   protected readonly exercise$ = this.facade.exercise$;
   // The resolver holds each navigation until its exercise has loaded, so a
   // navigation in progress means the next exercise is loading. The router
