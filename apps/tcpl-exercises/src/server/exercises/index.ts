@@ -1,17 +1,22 @@
 import { ChapterSource, ExerciseSource } from '../../models/exercise';
+import { renderMarkdown } from '../markdown';
 import { exercise1_1 } from './1/1/exercise';
 import { exercise1_8 } from './1/8/exercise';
 import { exercise33_1 } from './33/1/exercise';
 import { exercise33_2 } from './33/2/exercise';
 import { exercise33_3 } from './33/3/exercise';
 
+// Descriptions are written in markdown and served as HTML.
 export const EXERCISES: ExerciseSource[] = [
   exercise1_1,
   exercise1_8,
   exercise33_1,
   exercise33_2,
   exercise33_3,
-];
+].map((exercise) => ({
+  ...exercise,
+  description: renderMarkdown(exercise.description),
+}));
 
 export const CHAPTERS: ChapterSource[] = Array.from(
   EXERCISES.reduce((chapters, exercise) => {
