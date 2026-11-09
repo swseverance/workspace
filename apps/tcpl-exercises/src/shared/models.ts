@@ -15,6 +15,7 @@ export type Exercise = {
   chapter: number;
   number: number;
   suffix?: string;
+  /** HTML, converted from the exercise's markdown on the server. */
   description: string;
   code: string;
   solution: string;
