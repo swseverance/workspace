@@ -7,8 +7,18 @@ import {
   Router,
   RouterStateSnapshot,
 } from '@angular/router';
+import { provideMockActions } from '@ngrx/effects/testing';
+import { Action } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { firstValueFrom, Observable, of, throwError, toArray } from 'rxjs';
+import { AuthActions } from '@org/auth';
+import {
+  firstValueFrom,
+  Observable,
+  of,
+  Subject,
+  throwError,
+  toArray,
+} from 'rxjs';
 import { Exercise } from '../../shared/models';
 import { ExerciseService } from '../services/exercise-service';
 import {
@@ -18,11 +28,14 @@ import {
 import { exerciseResolver } from './exercise.resolver';
 
 const EXERCISE = { id: '1-1' } as Exercise;
+let actions$: Subject<Action>;
 
 function resolve(getExercise: () => Observable<Exercise>) {
+  actions$ = new Subject<Action>();
   TestBed.configureTestingModule({
     providers: [
       provideMockStore(),
+      provideMockActions(() => actions$),
       { provide: ExerciseService, useValue: { getExercise } },
     ],
   });
@@ -48,6 +61,48 @@ describe('exerciseResolver', () => {
     expect(dispatch).toHaveBeenCalledWith(
       exerciseNavigationSucceeded({ exercise: EXERCISE }),
     );
+  });
+
+  it('starts the request again when a session cookie is created mid-request', async () => {
+    const stale = new Subject<Exercise>();
+    const fresh = { id: '1-1', code: 'saved' } as Exercise;
+    const getExercise = vi
+      .fn<() => Observable<Exercise>>()
+      .mockReturnValueOnce(stale)
+      .mockReturnValueOnce(of(fresh));
+    const { dispatch, emitted } = resolve(getExercise);
+
+    actions$.next(AuthActions.cookieCreated({ user: { uid: 'alice' } }));
+    stale.next({ id: '1-1', code: '' } as Exercise);
+
+    expect(await emitted).toEqual([true]);
+    expect(getExercise).toHaveBeenCalledTimes(2);
+    expect(stale.observed).toBe(false);
+    expect(dispatch).toHaveBeenCalledExactlyOnceWith(
+      exerciseNavigationSucceeded({ exercise: fresh }),
+    );
+  });
+
+  it('cancels the navigation when the restarted request fails', async () => {
+    const stale = new Subject<Exercise>();
+    const error = new HttpErrorResponse({ status: 500 });
+    const getExercise = vi
+      .fn<() => Observable<Exercise>>()
+      .mockReturnValueOnce(stale)
+      .mockReturnValueOnce(throwError(() => error));
+    const { dispatch, emitted } = resolve(getExercise);
+
+    actions$.next(AuthActions.cookieCreated({ user: { uid: 'alice' } }));
+
+    expect(await emitted).toEqual([]);
+    expect(stale.observed).toBe(false);
+    expect(dispatch).toHaveBeenCalledExactlyOnceWith(
+      exerciseNavigationFailed({ id: '1-1', error }),
+    );
+
+    // Done with: a later sign-in doesn't fetch again.
+    actions$.next(AuthActions.cookieCreated({ user: { uid: 'alice' } }));
+    expect(getExercise).toHaveBeenCalledTimes(2);
   });
 
   it('redirects to /exercises when the exercise does not exist', async () => {

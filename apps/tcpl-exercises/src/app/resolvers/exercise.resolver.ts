@@ -1,8 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { RedirectCommand, ResolveFn, Router } from '@angular/router';
+import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { catchError, EMPTY, map, of } from 'rxjs';
+import { AuthActions } from '@org/auth';
+import { catchError, EMPTY, map, of, startWith, switchMap, take } from 'rxjs';
 import { ExerciseService } from '../services/exercise-service';
 import {
   exerciseNavigationFailed,
@@ -19,10 +21,21 @@ export const exerciseResolver: ResolveFn<boolean> = (route) => {
   const store = inject(Store);
   const exercises = inject(ExerciseService);
   const router = inject(Router);
+  const cookieCreated$ = inject(Actions).pipe(
+    ofType(AuthActions.cookieCreated),
+  );
 
   // Always fetched fresh, even when revisiting: the reducer keeps any
   // unsaved pendingChanges and the submitting flag across the reload.
-  return exercises.getExercise(id).pipe(
+  //
+  // A sign-in finishing mid-request makes the response stale (signed out, so
+  // no saved code, which autosave would then write over), so start the
+  // request again, as loadChapters$ does. refreshExercise$ can't cover this:
+  // it refetches the exercise in the store, which is still the previous one.
+  return cookieCreated$.pipe(
+    startWith(null),
+    switchMap(() => exercises.getExercise(id)),
+    take(1),
     map((exercise) => {
       store.dispatch(exerciseNavigationSucceeded({ exercise }));
       return true;
