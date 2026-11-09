@@ -1,0 +1,62 @@
+nz-layout {
+  height: 100dvh;
+}
+
+nz-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+
+  a {
+    color: unset;
+  }
+
+  .icons {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+
+    span {
+      font-size: 20px;
+    }
+  }
+}
+
+nz-content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+:host-context(.tcpl-exercises-light-theme) {
+  background: #fff;
+  color: rgba(0, 0, 0, 0.85);
+
+  .ant-layout-header {
+    background: #fff;
+    color: rgba(0, 0, 0, 0.85);
+    border-bottom: 1px solid #1890ff;
+  }
+
+  .ant-layout-content {
+    background: #fff;
+  }
+}
+
+:host-context(.tcpl-exercises-dark-theme) {
+  background: #1f1f1f;
+  color: rgba(255, 255, 255, 0.85);
+
+  .ant-layout-header {
+    background: #1f1f1f;
+    color: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid #177ddc;
+  }
+
+  .ant-layout-content {
+    background: #1f1f1f;
+  }
+}

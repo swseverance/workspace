@@ -23,7 +23,7 @@ export class App {
 
   constructor() {
     inject(Actions)
-      .pipe(ofType(AuthActions.signOutSucceeded), takeUntilDestroyed())
+      .pipe(ofType(AuthActions.signOutSuccess), takeUntilDestroyed())
       .subscribe(() => this.router.navigateByUrl('/login'));
   }
 

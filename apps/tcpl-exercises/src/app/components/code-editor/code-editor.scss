@@ -1,0 +1,35 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.editor-container {
+  position: relative;
+  height: 100%;
+}
+
+.cm-host {
+  height: 100%;
+}
+
+app-skeleton-code-editor {
+  display: block;
+  height: 100%;
+}
+
+/* Force the skeleton visible (and the editor host hidden) until CodeMirror has
+   actually mounted, covering the SSR-to-hydration gap: the `loading` input
+   only reflects the exercise data fetch, not whether CodeMirror itself has
+   initialized client-side, and that gap can't be covered by app-smart-loader's
+   timer-based logic since nothing fires during the synchronous SSR render.
+   ::ng-deep is required here: .smart-loader-skeleton/.smart-loader-content are
+   rendered inside app-smart-loader's own template, under its own emulated
+   encapsulation attribute, not this component's — a plain selector can never
+   match across that boundary. */
+.editor-container:not(:has(.cm-editor)) ::ng-deep .smart-loader-skeleton {
+  display: contents !important;
+}
+
+.editor-container:not(:has(.cm-editor)) ::ng-deep .smart-loader-content {
+  display: none !important;
+}
