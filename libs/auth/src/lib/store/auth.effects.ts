@@ -1,7 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, REQUEST } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Action } from '@ngrx/store';
 import { AUTH } from '@org/firebase';
 import { Logger } from '@org/logger';
 import type {
@@ -10,20 +9,11 @@ import type {
   SessionResponseBody,
   SessionUser,
 } from '@org/server';
-import {
-  Auth,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signInWithRedirect,
-  signOut,
-} from 'firebase/auth';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { Auth, onAuthStateChanged } from 'firebase/auth';
 import {
   catchError,
   concat,
   EMPTY,
-  filter,
   from,
   map,
   Observable,
@@ -48,8 +38,6 @@ export class AuthEffects {
   private readonly actions$ = inject(Actions);
   private readonly http = inject(HttpClient);
   private readonly logger = inject(Logger);
-  private readonly modal = inject(NzModalService);
-  private readonly message = inject(NzMessageService);
   // Null on the server.
   private readonly auth = inject(AUTH);
   // Null in the browser and during the build's route extraction.
@@ -111,6 +99,7 @@ export class AuthEffects {
         const firebaseUser = this.auth?.currentUser;
 
         if (!firebaseUser) {
+          // TODO: doesn't EMPTY cause problems with ngrx effects?
           return EMPTY;
         }
 
@@ -163,85 +152,16 @@ export class AuthEffects {
     ),
   );
 
-  openSignInModal$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.openSignInModal),
-      switchMap(
-        () =>
-          new Observable<Action>((subscriber) => {
-            this.modal.confirm({
-              nzTitle: 'Sign in required',
-              nzContent: 'Sign in with your Google account to continue.',
-              nzOkText: 'Sign in with Google',
-              nzCancelText: 'Cancel',
-              nzOnOk: () =>
-                subscriber.next(AuthActions.signIn({ provider: 'google' })),
-              nzOnCancel: () => subscriber.next(AuthActions.closeSignInModal()),
-            });
-          }),
-      ),
-    ),
-  );
-
-  /**
-   * On success the page navigates away to Google, so only failure is
-   * reported back.
-   */
-  signIn$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.signIn),
-      filter(() => !!this.auth),
-      switchMap(() =>
-        signInWithRedirect(this.auth!, new GoogleAuthProvider()).then(
-          () => null,
-          (error: unknown) => AuthActions.signInFailed({ error }),
-        ),
-      ),
-      filter((action) => action !== null),
-    ),
-  );
-
-  signOut$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AuthActions.signOut),
-      filter(() => !!this.auth),
-      switchMap(() =>
-        signOut(this.auth!)
-          .then(() => AuthActions.signOutSucceeded())
-          .catch((error: unknown) => AuthActions.signOutFailed({ error })),
-      ),
-    ),
-  );
-
-  signOutSucceeded$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(AuthActions.signOutSucceeded),
-        tap(() => this.message.success('Signed out')),
-      ),
-    { dispatch: false },
-  );
-
-  /** Logs every failure; the ones the user caused also get a toast. */
+  /** Logs cookie-sync failures. Sign-in and sign-out log their own. */
   failures$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(
-          AuthActions.signInFailed,
-          AuthActions.signOutFailed,
           AuthActions.loadTokenFailed,
           AuthActions.validateCookieFailed,
           AuthActions.clearCookieFailed,
         ),
-        tap(({ type, error }) => {
-          this.logger.error(`[auth] ${type}`, error);
-
-          if (type === AuthActions.signInFailed.type) {
-            this.message.error('Failed to sign in');
-          } else if (type === AuthActions.signOutFailed.type) {
-            this.message.error('Failed to sign out');
-          }
-        }),
+        tap(({ type, error }) => this.logger.error(`[auth] ${type}`, error)),
       ),
     { dispatch: false },
   );

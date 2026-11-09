@@ -11,10 +11,13 @@ export const AuthActions = createActionGroup({
 
     'Open Sign In Modal': emptyProps(),
     'Close Sign In Modal': emptyProps(),
+
     'Sign In': props<{ provider: 'google' }>(),
+    'Sign In Success': emptyProps(),
     'Sign In Failed': props<{ error: unknown }>(),
+
     'Sign Out': emptyProps(),
-    'Sign Out Succeeded': emptyProps(),
+    'Sign Out Success': emptyProps(),
     'Sign Out Failed': props<{ error: unknown }>(),
 
     // Keeping the httpOnly session cookie in step with Firebase's auth state.
