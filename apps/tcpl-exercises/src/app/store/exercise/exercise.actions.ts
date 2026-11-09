@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { Chapter, Exercise } from '../../../shared/models';
+import { Exercise } from '../../../shared/models';
 
 export const selectExercise = createAction(
   'Select Exercise',
@@ -44,18 +44,6 @@ export const exerciseSubmitted = createAction(
 export const submitExerciseFailed = createAction(
   'Submit Exercise Failed',
   props<{ id: string; error: unknown }>(),
-);
-
-export const loadExercises = createAction('Load Exercises');
-
-export const exercisesLoaded = createAction(
-  'Exercises Loaded',
-  props<{ chapters: Chapter[] }>(),
-);
-
-export const loadExercisesFailed = createAction(
-  'Load Exercises Failed',
-  props<{ error: unknown }>(),
 );
 
 /**

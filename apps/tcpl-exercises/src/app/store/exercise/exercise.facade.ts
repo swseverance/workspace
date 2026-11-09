@@ -1,9 +1,9 @@
 import { inject, Service } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { loadChapters } from './chapters.actions';
 import {
   attemptToSubmitExercise,
   codeEdited,
-  loadExercises,
   selectExercise,
 } from './exercise.actions';
 import {
@@ -37,7 +37,7 @@ export class ExerciseFacade {
     this.store.dispatch(attemptToSubmitExercise({ code }));
   }
 
-  loadExercises(): void {
-    this.store.dispatch(loadExercises());
+  loadChapters(): void {
+    this.store.dispatch(loadChapters());
   }
 }

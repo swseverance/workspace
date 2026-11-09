@@ -36,6 +36,6 @@ export class Exercises implements OnInit {
   // During hydration this is answered synchronously from the transfer
   // cache, so the sidebar's first client render matches the SSR markup.
   ngOnInit(): void {
-    this.facade.loadExercises();
+    this.facade.loadChapters();
   }
 }

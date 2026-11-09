@@ -20,12 +20,12 @@ import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getChaptersHandler } from './server/api/chapters.handler';
 import {
   getExerciseHandler,
   saveExerciseCodeHandler,
   submitExerciseHandler,
 } from './server/api/exercise.handler';
-import { getExercisesHandler } from './server/api/exercises.handler';
 import { exerciseExistsMiddleware } from './server/middleware/exercise-exists/exercise-exists';
 import { submitExerciseRateLimitMiddleware } from './server/middleware/rate-limit/rate-limit';
 
@@ -84,7 +84,7 @@ app.delete('/api/session', deleteSessionHandler);
 
 app.post('/api/logs', logHandler);
 
-app.get('/api/exercises', getExercisesHandler);
+app.get('/api/chapters', getChaptersHandler);
 app.get('/api/exercises/:id', exerciseExistsMiddleware, getExerciseHandler);
 app.put(
   '/api/exercises/:id/code',

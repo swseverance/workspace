@@ -2,14 +2,16 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { createReducer, on } from '@ngrx/store';
 import { Chapter, Exercise, ExerciseStatus } from '../../../shared/models';
 import {
+  chaptersLoaded,
+  loadChapters,
+  loadChaptersFailed,
+} from './chapters.actions';
+import {
   codeEdited,
   exerciseNavigationFailed,
   exerciseNavigationStarted,
   exerciseNavigationSucceeded,
-  exercisesLoaded,
   exerciseSubmitted,
-  loadExercises,
-  loadExercisesFailed,
   pendingChangesSaved,
   savePendingChangesFailure,
   selectExercise,
@@ -148,18 +150,18 @@ export const exerciseReducer = createReducer(
     chapters: updateExerciseStatus(state.chapters, id, 'indeterminate'),
   })),
 
-  on(loadExercises, (state) => ({
+  on(loadChapters, (state) => ({
     ...state,
     chaptersLoading: true,
   })),
 
-  on(exercisesLoaded, (state, { chapters }) => ({
+  on(chaptersLoaded, (state, { chapters }) => ({
     ...state,
     chapters,
     chaptersLoading: false,
   })),
 
-  on(loadExercisesFailed, (state) => ({
+  on(loadChaptersFailed, (state) => ({
     ...state,
     chaptersLoading: false,
   })),

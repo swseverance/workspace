@@ -30,6 +30,6 @@ export type Chapter = {
   >;
 };
 
-export type ExercisesResponseBody = {
+export type ChaptersResponseBody = {
   chapters: Chapter[];
 };
