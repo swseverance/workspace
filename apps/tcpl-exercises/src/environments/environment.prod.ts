@@ -4,7 +4,8 @@ export const environment = {
   name: 'prod',
   firebaseConfig: {
     apiKey: 'AIzaSyD5ufzwDAEktLVKjhS_BYdk4xQ7Uwf3Mt4',
-    authDomain: 'tcpl-exercises--tcpl-exercises-prod.us-east4.hosted.app',
+    // The site's own domain: firebaseAuthProxy serves the sign-in helpers there.
+    authDomain: 'kandrexercises.com',
     projectId: 'tcpl-exercises-prod',
     storageBucket: 'tcpl-exercises-prod.firebasestorage.app',
     messagingSenderId: '153344388097',

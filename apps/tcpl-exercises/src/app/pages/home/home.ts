@@ -19,7 +19,7 @@ export class Home implements OnInit {
 
   constructor() {
     inject(SeoService).setPage(
-      null,
+      'The C Programming Language exercises',
       'Work through the exercises from Kernighan and Ritchie’s The C Programming Language (K&R) in your browser. Write C, run it against tests, and compare with a reference solution.',
       '/',
     );

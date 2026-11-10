@@ -9,7 +9,7 @@ import {
 import { Meta, Title } from '@angular/platform-browser';
 import type { SiteUrlRequestContext } from '../../shared/site-url';
 
-export const SITE_NAME = 'The C Programming Language Exercises';
+export const SITE_NAME = 'K&R Exercises';
 
 const SITE_URL_KEY = makeStateKey<string>('siteUrl');
 

@@ -1,5 +1,3 @@
-@use 'breakpoints' as bp;
-
 nz-layout {
   height: 100dvh;
 }
@@ -27,20 +25,6 @@ nz-header {
     left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
-  }
-
-  .title .short {
-    display: none;
-  }
-
-  @include bp.mobile {
-    .title .full {
-      display: none;
-    }
-
-    .title .short {
-      display: inline;
-    }
   }
 
   .icons {
