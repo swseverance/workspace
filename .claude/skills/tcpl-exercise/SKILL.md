@@ -9,95 +9,65 @@ disable-model-invocation: true
 
 Arguments: `$ARGUMENTS`
 
-The first word is the exercise id (`<chapter>-<number>`, e.g. `1-12`). Anything after it is the exercise's text from the book.
+The first word is the exercise id (`<chapter>-<number>`, e.g. `1-12`). Anything after it is the exercise's text from the book, or notes from the user about it.
 
-App: `apps/tcpl-exercises`. Exercises live in `src/server/exercises/<chapter>/<number>/` and are registered in `src/server/exercises/index.ts`. Look at `1/8/` (a stdin/stdout program) and `33/1/` (a fuller description) for the shape of the files.
+App: `apps/tcpl-exercises`. Exercises live in `src/server/exercises/<chapter>/<number>/` and are registered in `src/server/exercises/index.ts`. Copy the shape of the existing ones.
 
 ## 1. Check the inputs
 
-- If `src/server/exercises/<chapter>/<number>/` already exists, stop and ask whether to replace it.
-- If no exercise text was given, ask the user to paste it from their copy of the book, and wait. Don't write the exercise from memory: recalled wording is unreliable. Only go ahead without the text if the user says so.
+- If the exercise's folder already exists, stop and ask whether to replace it. Skip this if the user's notes make clear they want it redone.
+- The description uses the book's wording, so you need the book's text. If it isn't in the arguments, look in `apps/tcpl-exercises/[Kernighan-Ritchie]The_C_Programming_Language.txt` (the book's extracted text, kept locally and gitignored, so it may be missing). If it isn't there either, ask the user to paste it, and wait. Don't write it from memory: recalled wording is unreliable.
 
 ## 2. Check the grader can test it
 
-The grader (`src/server/sandbox/run-c.ts`) compiles one `main.c` with `gcc -Wall`, runs it once per test with that test's stdin, and compares stdout, ignoring trailing whitespace at the very end. Each run gets 250 ms and 64 KB of output. There are no command-line arguments, no input files, and no hidden test code.
+Read `src/server/sandbox/run-c.ts` and `src/shared/output-diff.ts` to see what the grader currently supports (input, arguments, files, limits) and how it compares output. Don't rely on what you remember about them.
 
-- **A program that reads stdin and writes stdout:** fine.
-- **"Write a function"** (e.g. `htoi`, `squeeze`, `strrindex`): make it a program. `main` reads input from stdin, calls the function, and prints the results. Specify that input and output format exactly in the description.
-- **Needs command-line arguments or files, or has no checkable output** (an experiment like 1-1, or results that depend on the machine like 2-1): stop. Tell the user what the grader would need, and don't create anything.
+- If the exercise asks for a function rather than a program, make it a program: `main` reads input, calls the function, and prints the results.
+- If the grader can't test the exercise (it needs something the grader doesn't support, or has no checkable output), stop. Tell the user what's missing, and create nothing.
 
-## 3. Write the description, in our own words
+## 3. Description
 
-Create `description.md`. **Never copy the book's wording**: it's copyrighted, and the site is public. Restate the task in your own words, then add what the book leaves out, because the tests compare output exactly:
+`description.md`:
 
-- An opening paragraph saying what to write.
-- `### Requirements`: the exact input and output format, and every edge case the tests cover (empty input, no newline at the end, tabs, long lines, and so on).
-- `### Examples`: a table or code block of input and output.
-- Optionally, a short `### Hints` section.
+1. The book's exercise text, as close to word for word as possible.
+2. Then, only if the tests need it, the exact input and output format. Keep it to a line or two, or a short example. For example: "Print the three counts on one line, separated by spaces."
 
-Don't mention test ids or the reference solution.
+Keep it brief. Never mention the grader, the tests, the site, or how submissions are checked: those change, and the description would go out of date. No links.
 
 ## 4. Title and summary
 
-These go in `exercise.ts` and become the page's heading, `<title>` and meta description.
+In `exercise.ts`. They become the page's heading, `<title>` and meta description.
 
-- `title`: short, sentence case, under about 40 characters, e.g. `Count blanks, tabs, and newlines`. No exercise number, since the page adds it.
+- `title`: short, in sentence case, with no exercise number, e.g. `Count blanks, tabs, and newlines`.
 - `summary`: plain text, at most 160 characters. Say what the program does, then end with `K&R exercise <id>, solved and tested in your browser.`
 
-## 5. Write the tests from the spec, before the solution
+## 5. Tests, written from the spec before the solution
 
-Work out each expected output by hand from the requirements, _before_ writing or running the solution. Tests derived from the solution's own output only prove it agrees with itself.
+Work out each expected output by hand from the description, before writing or running the solution. Tests built from the solution's output only prove it agrees with itself.
 
-**One test per distinct behaviour, typically 8 to 15.** List the behaviours first, then write a test for each. Near-duplicates don't catch anything new, and each one is another output to get right by hand.
+- **One test per distinct behaviour, typically 8 to 15.** List the behaviours first. Always cover the examples, empty input, and input without a final newline. Then cover the edge cases this exercise is about: tabs, consecutive blanks, blank lines, whitespace-only lines, EOF in the middle of a word or line. Never pad to reach a number.
+- **One or two stress tests** where a larger input could expose a real C bug: buffer overflow, off-by-one, a signed `char` compared with `EOF`. Build their input and expected output with JS expressions in `exercise.ts` (e.g. `'x'.repeat(10_000) + '\n'`), or with a short independent script. Never generate them by running the solution.
+- Keep every test within the grader's limits (see `run-c.ts`) and the storage limits (see `src/server/firestore/exercise-records.ts`).
+- Each test id is 8 random lowercase hex digits (`openssl rand -hex 4`). When redoing an exercise, keep the ids of tests that still check the same thing, so saved results still line up.
+- Omit `stdin` for a test with no input.
 
-- Always cover: the examples from the description, empty input, and input with no newline at the end.
-- Then the edge cases this exercise is about. For text processing, think about tabs, consecutive blanks, blank lines, a line that's only whitespace, and EOF in the middle of a word or line.
-- Go past 15 only when the exercise really has more cases, e.g. 1-23 (removing comments, with strings and character constants) or 4-3 (the calculator). Never pad to reach a number. The hard cap is 50, since every test's output is saved in one Firestore document.
+## 6. Reference solution
 
-**Add one or two stress tests** where a bigger input could expose a real C bug: a fixed-size buffer overflowing, an off-by-one error, a signed `char` compared with `EOF`, a counter overflowing. For example, a 10,000-character line, or 1,000 lines.
+`main.c`: idiomatic C in the book's style, using only what the book has covered by that chapter (e.g. no pointers in chapter 1). Match the existing solutions' formatting. It must compile without warnings.
 
-- Build the input and expected output with JS expressions in `exercise.ts` (e.g. `'x'.repeat(10_000) + '\n'`), so they come from the spec rather than the solution.
-- If the expected output can't be written as a simple expression, compute it with a short independent script (Python or Node), never by running the C solution.
-- Keep the input under about 20 KB, since the test panel displays it. Keep the expected output under 8 KB, because longer output is truncated when it's saved.
+## 7. Register it
 
-**For every test:**
-
-- The id is 8 random lowercase hex digits (`openssl rand -hex 4`), unique within the exercise.
-- It must run well under 250 ms, the grader's limit.
-- Omit `stdin` for a test that gets no input.
-
-## 6. Write the reference solution
-
-`main.c`:
-
-- Idiomatic, readable C in the book's style, using only what the book has covered by that chapter. For example, no pointers in chapter 1. Use `int main()`, 2-space indents, and `return 0;`, as in the existing solutions.
-- It must compile with `gcc -Wall` with no warnings.
-
-## 7. Add the files
-
-- `exercise.ts`: follow `1/8/exercise.ts`. Name the export `exercise<chapter>_<number>`, and import the description and solution with `with { type: 'text' }`.
-- `index.ts`: import it and add it to `EXERCISES`, ordered by chapter and then number. The sitemap and sidebar pick it up from there.
+Name the export `exercise<chapter>_<number>`, and import the description and solution with `with { type: 'text' }`. Add it to `EXERCISES` in `index.ts`, ordered by chapter and then number.
 
 ## 8. Verify
 
-Run the app's tests:
-
 ```bash
 npx nx run tcpl-exercises:test --skip-nx-cache
+npx prettier --write apps/tcpl-exercises/src/server/exercises
 ```
 
-`src/server/exercises/exercises.spec.ts` compiles every solution and runs its tests. It fails on compiler warnings, bad test ids, or a missing title or summary, or one over 160 characters.
-
-If a test fails, decide from the requirements whether the test or the solution is wrong, and fix that one. Never paste the actual output into `expectedStdout` without checking it against the spec.
-
-Then format the new files: `npx prettier --write apps/tcpl-exercises/src/server/exercises`.
+`exercises.spec.ts` compiles every solution and runs its tests. If one fails, decide from the description whether the test or the solution is wrong, and fix that one. Never copy actual output into `expectedStdout` without checking it.
 
 ## 9. Report
 
-Tell the user, briefly:
-
-- Which files were added.
-- Each test, in a word or two (e.g. "empty input", "tabs only", "stress: 10,000-character line").
-- Any judgment calls, where the book was ambiguous and you picked an interpretation.
-
-Don't commit.
+Briefly: the files added, each test in a few words, and any judgment calls where the book was ambiguous. Don't commit.
