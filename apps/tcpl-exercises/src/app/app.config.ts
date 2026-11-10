@@ -33,6 +33,7 @@ import {
   provideAuth,
 } from '@org/auth';
 import { provideEnvironment } from '@org/environment';
+import { provideLogMetaReducer } from '@org/logger';
 import { provideTheme } from '@org/theme';
 import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
@@ -45,7 +46,6 @@ import { ChaptersEffects } from './store/exercise/chapters.effects';
 import { ExerciseEffects } from './store/exercise/exercise.effects';
 import { exerciseReducer } from './store/exercise/exercise.reducer';
 import { SubmissionEffects } from './store/exercise/submission.effects';
-import { provideLogMetaReducer } from './store/log.meta-reducer';
 
 registerLocaleData(en);
 
