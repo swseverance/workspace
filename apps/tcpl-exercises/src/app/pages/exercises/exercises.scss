@@ -17,6 +17,8 @@
   min-width: 0;
   overflow-y: auto;
   padding: 16px;
+  // Lets the exercise page size its panels to the visible height (cqh units).
+  container-type: size;
 }
 
 @include bp.mobile {

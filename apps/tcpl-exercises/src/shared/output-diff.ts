@@ -292,6 +292,70 @@ export function foldRows(rows: DiffRow[], context = 3): DiffBlock[] {
   return blocks;
 }
 
+/**
+ * The most lines a text block or diff draws. A stress test's input or
+ * output can run to thousands of lines, which take seconds to render and
+ * nobody reads; the rest are only counted.
+ */
+export const MAX_SHOWN_LINES = 200;
+
+export type DiffViewItem =
+  | { kind: 'fold'; block: number; count: number; expandable: boolean }
+  | { kind: 'row'; row: DiffRow };
+
+/**
+ * What a diff draws: its rows, with unexpanded folds as one item each, up
+ * to `max` rows, and how many rows that leaves out. Folds don't count
+ * towards `max`, so the differences, which folding keeps, come first.
+ *
+ * A fold is expandable only if all its rows would then fit: expanding one
+ * never hides anything, such as a difference after it.
+ */
+export function visibleDiff(
+  blocks: DiffBlock[],
+  expanded: ReadonlySet<number>,
+  max = MAX_SHOWN_LINES,
+): { items: DiffViewItem[]; hidden: number } {
+  const items: DiffViewItem[] = [];
+  let shown = 0;
+  let hidden = 0;
+  const isFolded = (block: DiffBlock, b: number) =>
+    block.kind === 'fold' && !expanded.has(b);
+  // Rows the diff would draw with no limit.
+  const total = blocks.reduce(
+    (sum, block, b) => sum + (isFolded(block, b) ? 0 : block.rows.length),
+    0,
+  );
+
+  blocks.forEach((block, b) => {
+    if (isFolded(block, b)) {
+      const count = block.rows.length;
+      if (shown < max) {
+        items.push({
+          kind: 'fold',
+          block: b,
+          count,
+          expandable: total + count <= max,
+        });
+      } else {
+        hidden += count;
+      }
+      return;
+    }
+
+    for (const row of block.rows) {
+      if (shown < max) {
+        items.push({ kind: 'row', row });
+        shown++;
+      } else {
+        hidden++;
+      }
+    }
+  });
+
+  return { items, hidden };
+}
+
 function lineText(line: DiffLine): string {
   return line.spans.map((s) => s.text).join('');
 }

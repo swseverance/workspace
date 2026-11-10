@@ -29,21 +29,38 @@
   gap: 16px;
 }
 
+// On desktop the description and editor fill the visible height, each
+// scrolling on its own, so the editor, its tabs and Submit stay in view
+// however long the description is. The test cases and submissions are below.
+// 100cqh is the height of .detail (exercises.scss) inside its padding.
 .top-row {
   display: flex;
   gap: 16px;
+  height: 100cqh;
+  min-height: 480px; // a short window scrolls the page instead
 
   > app-panel {
     flex: 1 1 50%;
     min-width: 0;
+    min-height: 0;
   }
 
   @include bp.mobile {
     flex-direction: column;
+    height: auto;
+    min-height: 0;
 
     > app-panel {
       flex-basis: auto;
     }
+  }
+}
+
+.description-panel {
+  overflow-y: auto;
+
+  @include bp.mobile {
+    overflow-y: visible;
   }
 }
 
@@ -75,12 +92,11 @@
   margin-bottom: 12px;
 }
 
-// At least half the screen tall, and taller when the description beside it
-// is longer.
+// Fills the rest of the code panel; CodeMirror scrolls inside it.
 .editor-section,
 .readonly-editor {
   flex: 1;
-  min-height: 50vh;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 

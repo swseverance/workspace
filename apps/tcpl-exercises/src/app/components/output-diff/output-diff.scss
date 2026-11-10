@@ -107,9 +107,22 @@
   font-size: 13px;
   text-align: left;
   color: var(--tc-muted);
+}
+
+// Only folds small enough to show in full are buttons.
+button.fold {
   cursor: pointer;
 
   &:hover {
     color: inherit;
   }
+}
+
+.hidden-lines {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  padding: 2px 12px;
+  border-top: 1px dashed var(--tc-code-border);
+  font-size: 13px;
+  color: var(--tc-muted);
 }
