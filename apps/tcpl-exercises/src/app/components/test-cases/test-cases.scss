@@ -15,6 +15,19 @@
   margin-bottom: -16px;
 }
 
+.command-line {
+  display: block;
+  padding: 6px 12px;
+  border: 1px solid var(--tc-code-border);
+  border-radius: 6px;
+  background: var(--tc-code-bg);
+  font-family: var(--tc-code-font);
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 h4 {
   margin: 0 0 6px;
   font-size: 12px;

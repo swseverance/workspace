@@ -1,10 +1,15 @@
 import { ExerciseTestCase } from '../../../shared/models';
 import { diffOutput } from '../../../shared/output-diff';
-import { describeRuntimeError, describeVerdict } from './test-cases';
+import {
+  describeRuntimeError,
+  describeVerdict,
+  formatCommandLine,
+} from './test-cases';
 
 function test(overrides: Partial<ExerciseTestCase>): ExerciseTestCase {
   return {
     id: 't',
+    args: [],
     stdin: '',
     expectedStdout: '',
     actualStdout: '',
@@ -15,6 +20,24 @@ function test(overrides: Partial<ExerciseTestCase>): ExerciseTestCase {
     ...overrides,
   };
 }
+
+describe('formatCommandLine', () => {
+  it('shows the program alone with no arguments', () => {
+    expect(formatCommandLine([])).toBe('./main');
+  });
+
+  it('leaves plain arguments as they are', () => {
+    expect(formatCommandLine(['-r', '-n', '+4', '2.5'])).toBe(
+      './main -r -n +4 2.5',
+    );
+  });
+
+  it('quotes arguments a shell would change', () => {
+    expect(formatCommandLine(['2', '3', '*', 'a b', "it's", ''])).toBe(
+      "./main 2 3 '*' 'a b' 'it'\\''s' ''",
+    );
+  });
+});
 
 describe('describeRuntimeError', () => {
   it('names common crash signals', () => {

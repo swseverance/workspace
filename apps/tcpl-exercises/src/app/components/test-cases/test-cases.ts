@@ -23,6 +23,17 @@ const SIGNALS: Record<number, string> = {
  * Explains a non-zero exit that wasn't the sandbox stopping the program
  * (those have a stopReason), or null if there's nothing to explain.
  */
+/**
+ * How a test's program is run, as a shell command line that can be pasted
+ * as is: arguments a shell would change (blanks, quotes, *) are quoted.
+ */
+export function formatCommandLine(args: string[]): string {
+  const quote = (arg: string) =>
+    /^[\w@%+=:,./-]+$/.test(arg) ? arg : `'${arg.replaceAll("'", "'\\''")}'`;
+
+  return ['./main', ...args.map(quote)].join(' ');
+}
+
 export function describeRuntimeError(test: ExerciseTestCase): string | null {
   const { exitCode, stopReason } = test;
 
@@ -142,6 +153,8 @@ export class TestCases {
   submissionPending = input.required<boolean>();
 
   protected readonly tagColors = TAG_COLORS;
+
+  protected readonly formatCommandLine = formatCommandLine;
 
   protected readonly activeTestId = signal<string | null>(null);
 

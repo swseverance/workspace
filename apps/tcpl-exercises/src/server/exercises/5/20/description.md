@@ -1,0 +1,3 @@
+Expand `dcl` to handle declarations with function argument types, qualifiers like `const`, and so on.
+
+Handle `const` and `volatile` before a data type, which become part of it: `const char *s` is `s:  pointer to const char`. And handle parameter declarations in a function's parentheses, separated by commas, each a data type and a declarator whose name may be left out. Describe such a function as `function taking (A, B) returning`, where `A` and `B` are its parameters described the same way, without their names: `int f(char *, int n)` is `f:  function taking (pointer to char, int) returning int`. Empty parentheses are still `function returning`. The input has no errors, and the end of the input ends a line too.

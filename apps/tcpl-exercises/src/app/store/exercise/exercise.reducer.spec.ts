@@ -33,6 +33,7 @@ const EXERCISE: Exercise = {
   tests: [
     {
       id: 'a',
+      args: [],
       stdin: '',
       expectedStdout: 'hello, world\n',
       actualStdout: '',

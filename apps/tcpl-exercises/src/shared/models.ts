@@ -5,6 +5,8 @@ export type ExerciseTestCaseStatus = 'passed' | 'failed' | 'indeterminate';
 
 export type ExerciseTestCase = {
   id: string;
+  /** Command-line arguments, after the program name. */
+  args: string[];
   stdin: string;
   expectedStdout: string;
   actualStdout: string;

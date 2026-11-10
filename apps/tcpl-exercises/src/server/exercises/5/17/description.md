@@ -1,0 +1,3 @@
+Add a field-searching capability, so sorting may be done on fields within lines, each field sorted according to an independent set of options. (The index for this book was sorted with `-df` for the index category and `-n` for the page numbers.)
+
+A field is a run of characters other than blanks and tabs, numbered from 1; a line without a field has an empty one. Each argument is a key: `+` and a field number, then any of the options `n`, `r`, `f` and `d` for that field alone, as in `+1df +2n`. Compare lines by the first key's field, then by the next key's when those are equal, and so on; with no keys, compare whole lines as `strcmp` does. The input is at most 5000 lines of at most 1000 characters each, 10,000 characters in all, and its last line may have no newline.

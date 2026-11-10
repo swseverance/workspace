@@ -72,7 +72,7 @@ describe('exercise solutions', () => {
 
       exercise.tests.forEach((test) => {
         it(`passes test case ${test.id}`, () => {
-          const result = spawnSync(binPath, [], {
+          const result = spawnSync(binPath, test.args ?? [], {
             input: test.stdin ?? '',
             encoding: 'utf8',
             timeout: 5000,

@@ -41,6 +41,10 @@ const OUTPUT_LIMIT_EXIT_CODE = 153;
  *
  * -lm links the math library, which glibc keeps separate from libc, so
  * <math.h> functions such as sin and pow (chapter 4) can be used.
+ *
+ * Each test's arguments come from tests/<i>.args, NUL-terminated, read
+ * into an array so they reach main as given: no quoting, splitting or
+ * globbing (expr 2 3 '*' needs a literal *).
  */
 const GRADE_SCRIPT = `
 b64() { base64 -w0 "$1"; }
@@ -52,8 +56,9 @@ echo "compile:$code:$(b64 compile.out):$(b64 compile.err)"
 
 for ((i = 0; i < $1; i++)); do
   # ulimit -f caps each output file; a program exceeding it is killed.
+  mapfile -d '' -t args < "tests/$i.args"
   ( ulimit -f ${OUTPUT_LIMIT_KB}
-    timeout -k ${RUN_KILL_GRACE_MS / 1000} ${RUN_TIMEOUT_MS / 1000} ./main < "tests/$i.in" > "tests/$i.out" 2> "tests/$i.err" )
+    timeout -k ${RUN_KILL_GRACE_MS / 1000} ${RUN_TIMEOUT_MS / 1000} ./main "\${args[@]}" < "tests/$i.in" > "tests/$i.out" 2> "tests/$i.err" )
   code=$?
   echo "test:$code:$(b64 "tests/$i.out"):$(b64 "tests/$i.err")"
 done
@@ -177,9 +182,30 @@ function getCredentials():
 }
 
 /**
+ * The files GRADE_SCRIPT reads, relative to SANDBOX_DIR: the source, the
+ * script itself, and each test's input and arguments. Exported for tests.
+ */
+export function graderFiles(
+  code: string,
+  tests: ExerciseTestCaseSource[],
+): { path: string; content: string }[] {
+  return [
+    { path: 'main.c', content: code },
+    { path: 'grade.sh', content: GRADE_SCRIPT },
+    ...tests.flatMap((test, i) => [
+      { path: `tests/${i}.in`, content: test.stdin ?? '' },
+      {
+        path: `tests/${i}.args`,
+        content: (test.args ?? []).map((arg) => `${arg}\0`).join(''),
+      },
+    ]),
+  ];
+}
+
+/**
  * Compiles untrusted C source inside an isolated, network-less Vercel
- * Sandbox microVM and runs it once per test case, feeding that test's stdin
- * and capturing its stdout and stderr.
+ * Sandbox microVM and runs it once per test case, with that test's
+ * arguments and stdin, capturing its stdout and stderr.
  */
 export async function gradeSubmission(
   code: string,
@@ -195,14 +221,12 @@ export async function gradeSubmission(
   });
 
   try {
-    await sandbox.writeFiles([
-      { path: `${SANDBOX_DIR}/main.c`, content: code },
-      { path: `${SANDBOX_DIR}/grade.sh`, content: GRADE_SCRIPT },
-      ...tests.map((test, i) => ({
-        path: `${SANDBOX_DIR}/tests/${i}.in`,
-        content: test.stdin ?? '',
+    await sandbox.writeFiles(
+      graderFiles(code, tests).map(({ path, content }) => ({
+        path: `${SANDBOX_DIR}/${path}`,
+        content,
       })),
-    ]);
+    );
 
     const finished = await sandbox.runCommand({
       cmd: 'bash',

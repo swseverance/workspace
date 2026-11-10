@@ -1,5 +1,7 @@
 export type ExerciseTestCaseSource = {
   id: string;
+  /** Command-line arguments, after the program name. */
+  args?: string[];
   stdin?: string;
   expectedStdout: string;
 };
