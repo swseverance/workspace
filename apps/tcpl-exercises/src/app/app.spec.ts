@@ -38,7 +38,7 @@ describe('App', () => {
     const root = await render({ status: 'signedOut', user: null });
 
     expect(root.querySelector('strong')?.textContent).toContain(
-      'The C Programming Language Exercises',
+      'K&R Exercises',
     );
   });
 

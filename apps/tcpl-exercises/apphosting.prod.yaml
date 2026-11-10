@@ -24,8 +24,7 @@ env:
     availability:
       - RUNTIME
   # Origin for canonical links and the sitemap.
-  # TODO: switch to the custom domain once it's set up.
   - variable: SITE_URL
-    value: https://tcpl-exercises--tcpl-exercises-prod.us-east4.hosted.app
+    value: https://kandrexercises.com
     availability:
       - RUNTIME

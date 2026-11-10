@@ -100,7 +100,7 @@ export class ExerciseDetail {
 
       if (this.exerciseFound() && exercise) {
         seo.setPage(
-          `K&R ${this.exerciseHeading(exercise)}`,
+          this.exerciseHeading(exercise),
           exercise.summary,
           `/exercises/${exercise.id}`,
         );
