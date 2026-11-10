@@ -28,6 +28,13 @@
   word-break: break-all;
 }
 
+// File names keep their case inside the upper-case heading.
+.file-name {
+  font-family: var(--tc-code-font);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 h4 {
   margin: 0 0 6px;
   font-size: 12px;

@@ -9,7 +9,9 @@ import {
 function test(overrides: Partial<ExerciseTestCase>): ExerciseTestCase {
   return {
     id: 't',
+    program: './main',
     args: [],
+    files: [],
     stdin: '',
     expectedStdout: '',
     actualStdout: '',
@@ -23,19 +25,23 @@ function test(overrides: Partial<ExerciseTestCase>): ExerciseTestCase {
 
 describe('formatCommandLine', () => {
   it('shows the program alone with no arguments', () => {
-    expect(formatCommandLine([])).toBe('./main');
+    expect(formatCommandLine('./main', [])).toBe('./main');
+  });
+
+  it('uses the program name given', () => {
+    expect(formatCommandLine('upper', ['-x'])).toBe('upper -x');
   });
 
   it('leaves plain arguments as they are', () => {
-    expect(formatCommandLine(['-r', '-n', '+4', '2.5'])).toBe(
+    expect(formatCommandLine('./main', ['-r', '-n', '+4', '2.5'])).toBe(
       './main -r -n +4 2.5',
     );
   });
 
   it('quotes arguments a shell would change', () => {
-    expect(formatCommandLine(['2', '3', '*', 'a b', "it's", ''])).toBe(
-      "./main 2 3 '*' 'a b' 'it'\\''s' ''",
-    );
+    expect(
+      formatCommandLine('./main', ['2', '3', '*', 'a b', "it's", '']),
+    ).toBe("./main 2 3 '*' 'a b' 'it'\\''s' ''");
   });
 });
 

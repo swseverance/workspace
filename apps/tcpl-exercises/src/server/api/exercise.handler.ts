@@ -7,6 +7,7 @@ import {
   ExerciseRecordTestResult,
 } from '../../models/exercise-record';
 import {
+  DEFAULT_PROGRAM,
   Exercise,
   ExerciseSubmission,
   ExerciseTestCase,
@@ -42,13 +43,22 @@ function toExercise(
     exercise;
 
   const finalTests: ExerciseTestCase[] = exercise.tests.map(
-    ({ id: testId, args, stdin, expectedStdout }): ExerciseTestCase => {
+    ({
+      id: testId,
+      program,
+      args,
+      files,
+      stdin,
+      expectedStdout,
+    }): ExerciseTestCase => {
       const result: ExerciseRecordTestResult | undefined = tests[testId];
 
       if (!result) {
         return {
           id: testId,
+          program: program ?? DEFAULT_PROGRAM,
           args: args ?? [],
+          files: files ?? [],
           stdin: stdin ?? '',
           expectedStdout,
           actualStdout: '',
@@ -61,7 +71,9 @@ function toExercise(
 
       return {
         id: testId,
+        program: program ?? DEFAULT_PROGRAM,
         args: args ?? [],
+        files: files ?? [],
         stdin: stdin ?? '',
         expectedStdout,
         actualStdout: result.actualStdout,

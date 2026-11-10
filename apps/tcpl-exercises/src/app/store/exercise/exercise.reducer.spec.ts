@@ -33,7 +33,9 @@ const EXERCISE: Exercise = {
   tests: [
     {
       id: 'a',
+      program: './main',
       args: [],
+      files: [],
       stdin: '',
       expectedStdout: 'hello, world\n',
       actualStdout: '',

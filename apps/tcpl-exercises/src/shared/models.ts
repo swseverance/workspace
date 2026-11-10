@@ -3,10 +3,20 @@ export type TestStopReason = 'timeout' | 'outputLimit';
 
 export type ExerciseTestCaseStatus = 'passed' | 'failed' | 'indeterminate';
 
+/** The program's name when a test doesn't give one. */
+export const DEFAULT_PROGRAM = './main';
+
+/** A file in the directory a test's program runs in. */
+export type TestFile = { name: string; content: string };
+
 export type ExerciseTestCase = {
   id: string;
+  /** The program's name, its argv[0]. */
+  program: string;
   /** Command-line arguments, after the program name. */
   args: string[];
+  /** Files in the directory the program runs in. */
+  files: TestFile[];
   stdin: string;
   expectedStdout: string;
   actualStdout: string;

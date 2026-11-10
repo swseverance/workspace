@@ -1,7 +1,7 @@
 import { Component, computed, input, signal } from '@angular/core';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
-import { ExerciseTestCase } from '../../../shared/models';
+import { DEFAULT_PROGRAM, ExerciseTestCase } from '../../../shared/models';
 import {
   describeFirstDifference,
   diffOutput,
@@ -27,11 +27,11 @@ const SIGNALS: Record<number, string> = {
  * How a test's program is run, as a shell command line that can be pasted
  * as is: arguments a shell would change (blanks, quotes, *) are quoted.
  */
-export function formatCommandLine(args: string[]): string {
+export function formatCommandLine(program: string, args: string[]): string {
   const quote = (arg: string) =>
     /^[\w@%+=:,./-]+$/.test(arg) ? arg : `'${arg.replaceAll("'", "'\\''")}'`;
 
-  return ['./main', ...args.map(quote)].join(' ');
+  return [program, ...args].map(quote).join(' ');
 }
 
 export function describeRuntimeError(test: ExerciseTestCase): string | null {
@@ -155,6 +155,14 @@ export class TestCases {
   protected readonly tagColors = TAG_COLORS;
 
   protected readonly formatCommandLine = formatCommandLine;
+
+  /** Whether any test sets arguments or a program name: then every test
+   * shows its command line, even one that just runs ./main. */
+  protected readonly showCommandLine = computed(() =>
+    this.tests().some(
+      (test) => test.args.length > 0 || test.program !== DEFAULT_PROGRAM,
+    ),
+  );
 
   protected readonly activeTestId = signal<string | null>(null);
 
