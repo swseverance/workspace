@@ -1,18 +1,56 @@
 import { ChapterSource, ExerciseSource } from '../../models/exercise';
 import { renderMarkdown } from '../markdown';
 import { exercise1_1 } from './1/1/exercise';
+import { exercise1_10 } from './1/10/exercise';
+import { exercise1_11 } from './1/11/exercise';
+import { exercise1_12 } from './1/12/exercise';
+import { exercise1_13 } from './1/13/exercise';
+import { exercise1_14 } from './1/14/exercise';
+import { exercise1_15 } from './1/15/exercise';
+import { exercise1_16 } from './1/16/exercise';
+import { exercise1_17 } from './1/17/exercise';
+import { exercise1_18 } from './1/18/exercise';
+import { exercise1_19 } from './1/19/exercise';
+import { exercise1_2 } from './1/2/exercise';
+import { exercise1_20 } from './1/20/exercise';
+import { exercise1_21 } from './1/21/exercise';
+import { exercise1_22 } from './1/22/exercise';
+import { exercise1_23 } from './1/23/exercise';
+import { exercise1_24 } from './1/24/exercise';
+import { exercise1_3 } from './1/3/exercise';
+import { exercise1_4 } from './1/4/exercise';
+import { exercise1_5 } from './1/5/exercise';
+import { exercise1_6 } from './1/6/exercise';
+import { exercise1_7 } from './1/7/exercise';
 import { exercise1_8 } from './1/8/exercise';
-import { exercise33_1 } from './33/1/exercise';
-import { exercise33_2 } from './33/2/exercise';
-import { exercise33_3 } from './33/3/exercise';
+import { exercise1_9 } from './1/9/exercise';
 
 // Descriptions are written in markdown and served as HTML.
 export const EXERCISES: ExerciseSource[] = [
   exercise1_1,
+  exercise1_2,
+  exercise1_3,
+  exercise1_4,
+  exercise1_5,
+  exercise1_6,
+  exercise1_7,
   exercise1_8,
-  exercise33_1,
-  exercise33_2,
-  exercise33_3,
+  exercise1_9,
+  exercise1_10,
+  exercise1_11,
+  exercise1_12,
+  exercise1_13,
+  exercise1_14,
+  exercise1_15,
+  exercise1_16,
+  exercise1_17,
+  exercise1_18,
+  exercise1_19,
+  exercise1_20,
+  exercise1_21,
+  exercise1_22,
+  exercise1_23,
+  exercise1_24,
 ].map((exercise) => ({
   ...exercise,
   description: renderMarkdown(exercise.description),

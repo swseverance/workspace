@@ -8,7 +8,7 @@ export const exercise1_1: ExerciseSource = {
   number: 1,
   title: 'Hello, world',
   summary:
-    'Run the classic "hello, world" program, then remove parts of it to see what errors the compiler gives. K&R exercise 1-1, solved and tested in your browser.',
+    'Write the classic "hello, world" program, then break it on purpose to see what the compiler says. K&R exercise 1-1, solved and tested in your browser.',
   description,
   solution,
   tests: [{ id: '3ee816ef', expectedStdout: 'hello, world\n' }],

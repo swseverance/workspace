@@ -9,6 +9,7 @@ type WriteExerciseRecord = {
   code: string;
   tests: Record<string, ExerciseRecordTestResult>;
   compilationError: string;
+  compilerWarnings: string;
   created: FieldValue;
   lastUpdated: FieldValue;
 };
@@ -22,6 +23,7 @@ type UpdateExerciseRecordWithTests = {
   code: string;
   tests: Record<string, ExerciseRecordTestResult>;
   compilationError: string;
+  compilerWarnings: string;
   lastUpdated: FieldValue;
 };
 
@@ -29,6 +31,8 @@ type ReadExerciseRecord = {
   code: string;
   tests: Record<string, ExerciseRecordTestResult>;
   compilationError: string | undefined;
+  /** Missing on records saved before warnings were kept. */
+  compilerWarnings: string | undefined;
   created: Timestamp;
   lastUpdated: Timestamp;
 };
@@ -54,7 +58,7 @@ export const SUBMISSION_HISTORY_LIMIT = 20;
  */
 export const SAVED_OUTPUT_LIMIT_BYTES = 8 * 1024;
 
-/** Compiler errors get more room: there's only one of them. */
+/** Compiler errors and warnings get more room: there's only one of each. */
 export const SAVED_COMPILATION_ERROR_LIMIT_BYTES = 32 * 1024;
 
 const encoder = new TextEncoder();
@@ -138,6 +142,7 @@ export async function saveExerciseRecordCode(
       code,
       tests: {},
       compilationError: '',
+      compilerWarnings: '',
       created: FieldValue.serverTimestamp(),
       lastUpdated: FieldValue.serverTimestamp(),
     };
@@ -152,6 +157,12 @@ export async function saveExerciseRecordCode(
   await ref.update(update);
 }
 
+/** What grading a submission produced, before it's truncated for saving. */
+export type GradedSubmission = Pick<
+  ExerciseRecord,
+  'tests' | 'compilationError' | 'compilerWarnings'
+>;
+
 /**
  * Saves a graded submission as the exercise's current state and appends it
  * to the submission history, in one atomic write. Long outputs are truncated
@@ -162,13 +173,16 @@ export async function saveExerciseRecordSubmission(
   uid: string,
   exerciseId: string,
   code: string,
-  fullTests: Record<string, ExerciseRecordTestResult>,
-  fullCompilationError: string,
+  graded: GradedSubmission,
   summary: Pick<ExerciseSubmission, 'status' | 'passed' | 'total'>,
 ): Promise<{ record: ExerciseRecord; submission: ExerciseSubmission }> {
-  const tests = truncateTests(fullTests);
+  const tests = truncateTests(graded.tests);
   const compilationError = truncateOutput(
-    fullCompilationError,
+    graded.compilationError,
+    SAVED_COMPILATION_ERROR_LIMIT_BYTES,
+  );
+  const compilerWarnings = truncateOutput(
+    graded.compilerWarnings,
     SAVED_COMPILATION_ERROR_LIMIT_BYTES,
   );
   const ref = exerciseRecordRef(uid, exerciseId);
@@ -180,6 +194,7 @@ export async function saveExerciseRecordSubmission(
       code,
       tests,
       compilationError,
+      compilerWarnings,
       created: FieldValue.serverTimestamp(),
       lastUpdated: FieldValue.serverTimestamp(),
     };
@@ -189,6 +204,7 @@ export async function saveExerciseRecordSubmission(
       code,
       tests,
       compilationError,
+      compilerWarnings,
       lastUpdated: FieldValue.serverTimestamp(),
     };
     batch.update(ref, update);
@@ -207,7 +223,7 @@ export async function saveExerciseRecordSubmission(
   await batch.commit();
 
   return {
-    record: { id: exerciseId, code, tests, compilationError },
+    record: { id: exerciseId, code, tests, compilationError, compilerWarnings },
     submission: toSubmission(submissionRef.id, submissionDoc),
   };
 }
@@ -243,6 +259,7 @@ export async function getExerciseRecord(
     code: data.code,
     tests: data.tests,
     compilationError: data.compilationError ?? '',
+    compilerWarnings: data.compilerWarnings ?? '',
   };
 }
 

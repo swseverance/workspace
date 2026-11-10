@@ -32,6 +32,7 @@ import { VisibleText } from '../visible-text/visible-text';
                   role="cell"
                   [text]="expected.spans"
                   [newline]="expected.newline"
+                  [newlineChanged]="expected.newlineChanged"
                 />
               } @else {
                 <span class="number blank"></span>
@@ -45,6 +46,7 @@ import { VisibleText } from '../visible-text/visible-text';
                   role="cell"
                   [text]="actual.spans"
                   [newline]="actual.newline"
+                  [newlineChanged]="actual.newlineChanged"
                 />
               } @else {
                 <span class="number blank"></span>

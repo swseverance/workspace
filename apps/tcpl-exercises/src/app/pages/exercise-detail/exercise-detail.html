@@ -8,9 +8,19 @@
 @if (!exerciseFound()) {
   <app-not-found />
 } @else if (exercise) {
-  <ng-template #compilationErrorsTitle>
-    <nz-badge [nzDot]="!!exercise.compilationError">
-      <span>Compilation Errors&nbsp;&nbsp;</span>
+  <!-- Errors when it didn't compile, otherwise any warnings. -->
+  @let compilerOutput = exercise.compilationError || exercise.compilerWarnings;
+
+  <ng-template #compilerOutputTitle>
+    <!-- Colored with nzStyle, not nzColor: nzColor without a visible dot
+         switches nz-badge to a status dot drawn left of the text. -->
+    <nz-badge
+      [nzDot]="!!compilerOutput"
+      [nzStyle]="
+        exercise.compilationError ? null : { backgroundColor: '#faad14' }
+      "
+    >
+      <span>Compiler Output&nbsp;&nbsp;</span>
     </nz-badge>
   </ng-template>
 
@@ -79,11 +89,11 @@
             </div>
           </nz-tab>
 
-          <nz-tab [nzTitle]="compilationErrorsTitle">
+          <nz-tab [nzTitle]="compilerOutputTitle">
             <div class="readonly-editor">
               <app-code-editor
                 [docId]="exercise.id"
-                [code]="exercise.compilationError"
+                [code]="compilerOutput"
                 [theme]="theme!"
                 [readonly]="true"
                 language="text"

@@ -18,7 +18,12 @@ import { Span, toGlyphs } from '../../../shared/output-diff';
       </span>
     }
     @if (newline()) {
-      <span class="newline" aria-label="newline">↵</span>
+      <span
+        class="newline"
+        [class.changed]="newlineChanged()"
+        aria-label="newline"
+        >↵</span
+      >
     }
   `,
   styles: `
@@ -70,6 +75,9 @@ export class VisibleText {
 
   /** Draws a trailing newline marker. */
   newline = input(false);
+
+  /** Highlights that marker as a difference. */
+  newlineChanged = input(false);
 
   protected readonly runs = computed(() => {
     const text = this.text();

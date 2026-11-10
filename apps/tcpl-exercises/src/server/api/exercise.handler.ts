@@ -2,7 +2,10 @@ import type { SessionUser } from '@org/server';
 import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
 import { ExerciseSource } from '../../models/exercise';
-import { ExerciseRecordTestResult } from '../../models/exercise-record';
+import {
+  ExerciseRecord,
+  ExerciseRecordTestResult,
+} from '../../models/exercise-record';
 import {
   Exercise,
   ExerciseSubmission,
@@ -27,9 +30,12 @@ type ExerciseCodeRequestBody = {
 
 function toExercise(
   exercise: ExerciseSource,
-  code: string,
-  tests: Record<string, ExerciseRecordTestResult>,
-  compilationError: string,
+  {
+    code,
+    tests,
+    compilationError,
+    compilerWarnings,
+  }: Omit<ExerciseRecord, 'id'>,
   submissions: ExerciseSubmission[],
 ): Exercise {
   const { id, chapter, number, suffix, title, summary, description, solution } =
@@ -80,6 +86,7 @@ function toExercise(
     tests: finalTests,
     status,
     compilationError,
+    compilerWarnings,
     submissions,
   };
 }
@@ -127,9 +134,12 @@ export async function getExerciseForUser(
 
   return toExercise(
     exercise,
-    record?.code ?? STARTER_CODE,
-    record?.tests ?? {},
-    record?.compilationError ?? '',
+    record ?? {
+      code: STARTER_CODE,
+      tests: {},
+      compilationError: '',
+      compilerWarnings: '',
+    },
     submissions,
   );
 }
@@ -171,11 +181,13 @@ export const submitExerciseHandler: RequestHandler<
     const exercise = req.exercise!;
 
     // Load the earlier submissions while the code is being graded.
-    const [{ compilationError, results }, previousSubmissions] =
-      await Promise.all([
-        gradeSubmission(code, exercise.tests),
-        getExerciseSubmissions(uid, exercise.id),
-      ]);
+    const [
+      { compilationError, compilerWarnings, results },
+      previousSubmissions,
+    ] = await Promise.all([
+      gradeSubmission(code, exercise.tests),
+      getExerciseSubmissions(uid, exercise.id),
+    ]);
 
     const tests: Record<string, ExerciseRecordTestResult> = Object.fromEntries(
       results.map((result) => [
@@ -194,8 +206,7 @@ export const submitExerciseHandler: RequestHandler<
       uid,
       exercise.id,
       code,
-      tests,
-      compilationError,
+      { tests, compilationError, compilerWarnings },
       {
         status: computeExerciseStatus(exercise.tests, tests),
         passed: exercise.tests.filter((t) => tests[t.id]?.status === 'passed')
@@ -207,9 +218,7 @@ export const submitExerciseHandler: RequestHandler<
     res.json(
       toExercise(
         exercise,
-        record.code,
-        record.tests,
-        record.compilationError,
+        record,
         [submission, ...previousSubmissions].slice(0, SUBMISSION_HISTORY_LIMIT),
       ),
     );

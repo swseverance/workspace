@@ -57,3 +57,8 @@ vitest.config.*.timestamp*
 # Local App Hosting emulator overrides (may contain secrets)
 apphosting.emulator.yaml
 apphosting.local.yaml
+
+# The book and its extracted text, kept locally for reference. Copyrighted,
+# so never committed.
+apps/tcpl-exercises/*.pdf
+apps/tcpl-exercises/*The_C_Programming_Language.txt

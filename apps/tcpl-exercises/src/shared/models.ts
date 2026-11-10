@@ -45,6 +45,8 @@ export type Exercise = {
   tests: ExerciseTestCase[];
   status: ExerciseStatus;
   compilationError: string;
+  /** gcc's warnings from a submission that compiled. */
+  compilerWarnings: string;
   /** The user's most recent submissions, newest first. */
   submissions: ExerciseSubmission[];
 };

@@ -7,6 +7,8 @@ export type DiffLine = {
   spans: Span[];
   /** Whether a newline follows this line. */
   newline: boolean;
+  /** Whether the other side differs in having a newline here. */
+  newlineChanged: boolean;
 };
 
 export type DiffRow =
@@ -124,38 +126,54 @@ export function diffChars(
 }
 
 /**
- * What of a program's output counts: everything except trailing whitespace
- * at the very end. The grader compares outputs through this and the diff
- * shows them through it, so the two can't disagree about what passed.
- * Must return a prefix of `text`: splitLines relies on that.
+ * What of a program's output counts: everything up to and including the
+ * first newline in the whitespace at the very end. So extra blank lines and
+ * whitespace after the final newline are ignored, but a missing final
+ * newline isn't, and neither are spaces just before it (as on any other
+ * line). Output with no newline in its trailing whitespace counts up to the
+ * last non-whitespace character.
+ *
+ * The grader compares outputs through this and the diff shows them through
+ * it, so the two can't disagree about what passed. Must return a prefix of
+ * `text`: splitLines relies on that.
  */
 export function normalizeOutput(text: string): string {
-  return text.trimEnd();
+  const content = text.trimEnd();
+  const newline = text.indexOf('\n', content.length);
+
+  return newline === -1 ? content : text.slice(0, newline + 1);
 }
 
 type RawLine = { text: string; newline: boolean };
 
 /** Splits output into lines the way the grader sees it. */
 export function splitLines(text: string): RawLine[] {
-  const trimmed = normalizeOutput(text);
+  const kept = normalizeOutput(text);
 
-  if (trimmed === '') {
+  if (kept === '') {
     return [];
   }
 
-  const lines = trimmed.split('\n');
+  const endsWithNewline = kept.endsWith('\n');
+  const lines = (endsWithNewline ? kept.slice(0, -1) : kept).split('\n');
 
   return lines.map((line, i) => ({
     text: line,
-    newline: i < lines.length - 1 || text[trimmed.length] === '\n',
+    newline: i < lines.length - 1 || endsWithNewline,
   }));
 }
 
-function toLine(raw: RawLine, index: number, spans?: Span[]): DiffLine {
+function toLine(
+  raw: RawLine,
+  index: number,
+  spans?: Span[],
+  newlineChanged = false,
+): DiffLine {
   return {
     number: index + 1,
     spans: spans ?? (raw.text ? [{ text: raw.text, changed: false }] : []),
     newline: raw.newline,
+    newlineChanged,
   };
 }
 
@@ -163,11 +181,10 @@ function toLine(raw: RawLine, index: number, spans?: Span[]): DiffLine {
 export function diffOutput(expected: string, actual: string): DiffRow[] {
   const a = splitLines(expected);
   const b = splitLines(actual);
-  const ops = editScript(
-    a.map((l) => l.text),
-    b.map((l) => l.text),
-    MAX_LINE_CELLS,
-  );
+  // A line only matches if it ends the same way too, so a missing final
+  // newline shows up as a changed line.
+  const key = (line: RawLine) => (line.newline ? `${line.text}\n` : line.text);
+  const ops = editScript(a.map(key), b.map(key), MAX_LINE_CELLS);
 
   const rows: DiffRow[] = [];
   let i = 0;
@@ -204,10 +221,11 @@ export function diffOutput(expected: string, actual: string): DiffRow[] {
       const ei = deleted[p];
       const ai = inserted[p];
       const spans = diffChars(a[ei].text, b[ai].text);
+      const newlineChanged = a[ei].newline !== b[ai].newline;
       rows.push({
         kind: 'changed',
-        expected: toLine(a[ei], ei, spans.expected),
-        actual: toLine(b[ai], ai, spans.actual),
+        expected: toLine(a[ei], ei, spans.expected, newlineChanged),
+        actual: toLine(b[ai], ai, spans.actual, newlineChanged),
       });
     }
     for (const ei of deleted.slice(paired)) {
@@ -313,6 +331,13 @@ export function describeFirstDifference(rows: DiffRow[]): string | null {
     let col = 0;
     while (col < a.length && col < b.length && a[col] === b[col]) {
       col++;
+    }
+
+    // Same text: the lines differ only in how they end.
+    if (col === a.length && col === b.length) {
+      return row.expected.newline
+        ? `Line ${row.actual.number}: expected a newline at the end.`
+        : `Line ${row.actual.number}: expected no newline at the end.`;
     }
 
     return (

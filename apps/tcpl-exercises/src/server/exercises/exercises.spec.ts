@@ -4,6 +4,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { EXERCISES } from './index';
 
+// The grader compiles with -std=c17 (see run-c.ts), where glibc's headers
+// leave out POSIX extras like getline that the book defines itself. macOS
+// headers ignore -std for this, so ask them for plain ANSI C here.
+const MACOS_STRICT_HEADERS =
+  process.platform === 'darwin' ? ['-D_ANSI_SOURCE'] : [];
+
 describe('exercise test ids', () => {
   for (const exercise of EXERCISES) {
     it(`are 8 hex digits and unique within exercise ${exercise.id}`, () => {
@@ -43,7 +49,14 @@ describe('exercise solutions', () => {
 
         const compile = spawnSync(
           'gcc',
-          ['-Wall', '-o', binPath, join(dir, 'main.c')],
+          [
+            '-Wall',
+            '-std=c17',
+            ...MACOS_STRICT_HEADERS,
+            '-o',
+            binPath,
+            join(dir, 'main.c'),
+          ],
           { encoding: 'utf8' },
         );
 

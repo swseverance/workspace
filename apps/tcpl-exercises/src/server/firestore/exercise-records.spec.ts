@@ -76,8 +76,11 @@ describe('saveExerciseRecordSubmission', () => {
         'uid',
         '1-1',
         'int main() {}',
-        tests,
-        unit.repeat(100_000),
+        {
+          tests,
+          compilationError: unit.repeat(100_000),
+          compilerWarnings: unit.repeat(100_000),
+        },
         { status: 'failed', passed: 0, total: 25 },
       );
 
@@ -86,7 +89,8 @@ describe('saveExerciseRecordSubmission', () => {
         saved.tests,
       ) as ExerciseRecordTestResult[];
       const note = 100; // room for the note about what was cut
-      let totalBytes = utf8Bytes(saved.compilationError);
+      let totalBytes =
+        utf8Bytes(saved.compilationError) + utf8Bytes(saved.compilerWarnings);
 
       for (const test of savedTests) {
         expect(utf8Bytes(test.actualStdout)).toBeLessThan(
@@ -103,11 +107,15 @@ describe('saveExerciseRecordSubmission', () => {
       expect(utf8Bytes(saved.compilationError)).toBeLessThan(
         SAVED_COMPILATION_ERROR_LIMIT_BYTES + note,
       );
+      expect(utf8Bytes(saved.compilerWarnings)).toBeLessThan(
+        SAVED_COMPILATION_ERROR_LIMIT_BYTES + note,
+      );
       // Well inside Firestore's 1 MiB document limit.
       expect(totalBytes).toBeLessThan(512 * 1024);
       // The response shows what a reload would.
       expect(record.tests).toEqual(saved.tests);
       expect(record.compilationError).toBe(saved.compilationError);
+      expect(record.compilerWarnings).toBe(saved.compilerWarnings);
     });
   }
 });

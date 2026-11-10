@@ -42,16 +42,16 @@ describe('CodeEditor', () => {
     const { editor, type, switchTo } = await render();
 
     type('typed in 1-1');
-    await switchTo('33-1', 'code for 33-1');
+    await switchTo('1-2', 'code for 1-2');
 
-    expect(editor.getCode()).toBe('code for 33-1');
+    expect(editor.getCode()).toBe('code for 1-2');
   });
 
   it('drops typed text when switching to a document with the same code', async () => {
     const { editor, type, switchTo } = await render();
 
     type('typed in 1-1');
-    await switchTo('33-1', STARTER);
+    await switchTo('1-2', STARTER);
 
     expect(editor.getCode()).toBe(STARTER);
   });
@@ -60,10 +60,10 @@ describe('CodeEditor', () => {
     const { editor, view, type, switchTo } = await render();
 
     type('typed in 1-1');
-    await switchTo('33-1', 'code for 33-1');
+    await switchTo('1-2', 'code for 1-2');
     undo(view);
 
-    expect(editor.getCode()).toBe('code for 33-1');
+    expect(editor.getCode()).toBe('code for 1-2');
   });
 
   it('keeps what the user typed when only the code input changes', async () => {
