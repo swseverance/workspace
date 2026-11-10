@@ -44,17 +44,23 @@ export const authFeature = createFeature({
       user: null,
     })),
     on(AuthActions.firebaseUserChanged, (state, { user }): AuthState => {
-      if (!user) {
+      if (user) {
+        // Already have a session for this user (cookie re-validated in the
+        // background), so stay signed in rather than flicker.
+        if (state.status === 'signedIn' && state.user.uid === user.uid) {
+          return state;
+        }
+
+        // We do NOT yet flag this user as signed in. We are going to wait
+        // for the app to send the user's idToken to the server and the
+        // server to respond. If the server created a cookie, it's attached
+        // to the response via headers. If it validated the existing cookie,
+        // it responds 200 with { status: 'valid' }. Only THEN will we
+        // consider them signed in.
+        return { status: 'signingIn', user: null };
+      } else {
         return signedOut;
       }
-
-      // Already have a session for this user (cookie re-validated in the
-      // background), so stay signed in rather than flicker.
-      if (state.status === 'signedIn' && state.user.uid === user.uid) {
-        return state;
-      }
-
-      return { status: 'signingIn', user: null };
     }),
     on(
       AuthActions.cookieCreated,

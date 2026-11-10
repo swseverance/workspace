@@ -22,8 +22,10 @@ export class App {
   });
 
   constructor() {
+    // sessionEnded, not signOutSuccess: it also fires in other tabs, which
+    // Firebase signs out too.
     inject(Actions)
-      .pipe(ofType(AuthActions.signOutSuccess), takeUntilDestroyed())
+      .pipe(ofType(AuthActions.sessionEnded), takeUntilDestroyed())
       .subscribe(() => this.router.navigateByUrl('/login'));
   }
 

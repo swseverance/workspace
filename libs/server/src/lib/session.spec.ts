@@ -10,6 +10,7 @@ import {
 
 const auth = vi.hoisted(() => ({
   verifySessionCookie: vi.fn(),
+  verifyIdToken: vi.fn(),
   createSessionCookie: vi.fn(),
   revokeRefreshTokens: vi.fn(),
 }));
@@ -116,17 +117,52 @@ describe('getSessionHandler', () => {
 });
 
 describe('createSessionHandler', () => {
-  it('reports "valid" without re-minting when the cookie already verified', async () => {
+  it('reports "valid" without re-minting when the cookie is for the same user', async () => {
+    auth.verifyIdToken.mockResolvedValue({ uid: 'u1' });
     const res = createResponse();
 
     await createSessionHandler(
-      createRequest({ user: { uid: 'u1' } }),
+      createRequest({ user: { uid: 'u1' }, body: { idToken: 'id-token' } }),
       res,
       vi.fn(),
     );
 
+    expect(auth.verifyIdToken).toHaveBeenCalledWith('id-token');
     expect(auth.createSessionCookie).not.toHaveBeenCalled();
     expect(res.json).toHaveBeenCalledWith({ status: 'valid' });
+  });
+
+  it('replaces a valid cookie that belongs to another user', async () => {
+    auth.verifyIdToken.mockResolvedValue({ uid: 'u2' });
+    auth.createSessionCookie.mockResolvedValue('session-cookie');
+    const res = createResponse();
+
+    await createSessionHandler(
+      createRequest({ user: { uid: 'u1' }, body: { idToken: 'id-token' } }),
+      res,
+      vi.fn(),
+    );
+
+    expect(res.cookie).toHaveBeenCalledWith(
+      SESSION_COOKIE_NAME,
+      'session-cookie',
+      expect.any(Object),
+    );
+    expect(res.json).toHaveBeenCalledWith({ status: 'created' });
+  });
+
+  it('401s when the ID token fails verification despite a valid cookie', async () => {
+    auth.verifyIdToken.mockRejectedValue(new Error('bad token'));
+    const res = createResponse();
+
+    await createSessionHandler(
+      createRequest({ user: { uid: 'u1' }, body: { idToken: 'bad' } }),
+      res,
+      vi.fn(),
+    );
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.cookie).not.toHaveBeenCalled();
   });
 
   it('mints an httpOnly cookie from the ID token', async () => {
