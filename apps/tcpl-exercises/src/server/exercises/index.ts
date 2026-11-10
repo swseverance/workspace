@@ -24,6 +24,16 @@ import { exercise1_6 } from './1/6/exercise';
 import { exercise1_7 } from './1/7/exercise';
 import { exercise1_8 } from './1/8/exercise';
 import { exercise1_9 } from './1/9/exercise';
+import { exercise2_1 } from './2/1/exercise';
+import { exercise2_10 } from './2/10/exercise';
+import { exercise2_2 } from './2/2/exercise';
+import { exercise2_3 } from './2/3/exercise';
+import { exercise2_4 } from './2/4/exercise';
+import { exercise2_5 } from './2/5/exercise';
+import { exercise2_6 } from './2/6/exercise';
+import { exercise2_7 } from './2/7/exercise';
+import { exercise2_8 } from './2/8/exercise';
+import { exercise2_9 } from './2/9/exercise';
 
 // Descriptions are written in markdown and served as HTML.
 export const EXERCISES: ExerciseSource[] = [
@@ -51,6 +61,16 @@ export const EXERCISES: ExerciseSource[] = [
   exercise1_22,
   exercise1_23,
   exercise1_24,
+  exercise2_1,
+  exercise2_2,
+  exercise2_3,
+  exercise2_4,
+  exercise2_5,
+  exercise2_6,
+  exercise2_7,
+  exercise2_8,
+  exercise2_9,
+  exercise2_10,
 ].map((exercise) => ({
   ...exercise,
   description: renderMarkdown(exercise.description),
