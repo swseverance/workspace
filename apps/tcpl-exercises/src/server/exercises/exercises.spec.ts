@@ -1,4 +1,4 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -6,11 +6,26 @@ import { EXERCISES } from './index';
 
 describe('exercise test ids', () => {
   for (const exercise of EXERCISES) {
-    it(`are non-empty and unique within exercise ${exercise.id}`, () => {
+    it(`are 8 hex digits and unique within exercise ${exercise.id}`, () => {
       const ids = exercise.tests.map((test) => test.id);
 
-      expect(ids.every((id) => id.length > 0)).toBe(true);
+      expect(exercise.tests.length).toBeGreaterThan(0);
+      expect(ids.every((id) => /^[0-9a-f]{8}$/.test(id))).toBe(true);
       expect(new Set(ids).size).toBe(ids.length);
+    });
+  }
+});
+
+describe('exercise metadata', () => {
+  for (const exercise of EXERCISES) {
+    it(`is complete for exercise ${exercise.id}`, () => {
+      const { chapter, number, suffix } = exercise;
+
+      expect(exercise.id).toBe(`${chapter}-${number}${suffix ?? ''}`);
+      expect(exercise.title.trim()).not.toBe('');
+      expect(exercise.summary.trim()).not.toBe('');
+      // Search results cut meta descriptions off at about this length.
+      expect(exercise.summary.length).toBeLessThanOrEqual(160);
     });
   }
 });
@@ -26,7 +41,15 @@ describe('exercise solutions', () => {
         writeFileSync(join(dir, 'main.c'), exercise.solution);
         binPath = join(dir, 'main');
 
-        execFileSync('gcc', ['-Wall', '-o', binPath, join(dir, 'main.c')]);
+        const compile = spawnSync(
+          'gcc',
+          ['-Wall', '-o', binPath, join(dir, 'main.c')],
+          { encoding: 'utf8' },
+        );
+
+        // Warnings fail too: a reference solution should compile cleanly.
+        expect(compile.stderr).toBe('');
+        expect(compile.status).toBe(0);
       });
 
       afterAll(() => {
