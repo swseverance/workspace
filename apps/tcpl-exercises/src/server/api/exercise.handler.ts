@@ -42,12 +42,13 @@ function toExercise(
     exercise;
 
   const finalTests: ExerciseTestCase[] = exercise.tests.map(
-    ({ id: testId, stdin, expectedStdout }): ExerciseTestCase => {
+    ({ id: testId, args, stdin, expectedStdout }): ExerciseTestCase => {
       const result: ExerciseRecordTestResult | undefined = tests[testId];
 
       if (!result) {
         return {
           id: testId,
+          args: args ?? [],
           stdin: stdin ?? '',
           expectedStdout,
           actualStdout: '',
@@ -60,6 +61,7 @@ function toExercise(
 
       return {
         id: testId,
+        args: args ?? [],
         stdin: stdin ?? '',
         expectedStdout,
         actualStdout: result.actualStdout,

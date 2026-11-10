@@ -23,6 +23,15 @@
                 />
               }
 
+              @if (test.args.length > 0) {
+                <section>
+                  <h4>Command line</h4>
+                  <code class="command-line">{{
+                    formatCommandLine(test.args)
+                  }}</code>
+                </section>
+              }
+
               <section>
                 <h4>Input</h4>
                 <app-text-block [text]="test.stdin" emptyText="No input" />

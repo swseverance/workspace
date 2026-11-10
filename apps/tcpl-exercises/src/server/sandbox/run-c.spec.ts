@@ -1,5 +1,5 @@
 import { ExerciseTestCaseSource } from '../../models/exercise';
-import { parseGraderOutput, toGradeResult } from './run-c';
+import { graderFiles, parseGraderOutput, toGradeResult } from './run-c';
 
 const b64 = (text: string) => Buffer.from(text).toString('base64');
 
@@ -208,5 +208,22 @@ describe('toGradeResult', () => {
     );
 
     expect(compilationError).toBe('Compilation timed out after 10 seconds.');
+  });
+});
+
+describe('graderFiles', () => {
+  it("writes each test's input and NUL-terminated arguments", () => {
+    const files = graderFiles('int main() {}', [
+      { id: 'a', args: ['2', '3', '*', 'a b', ''], expectedStdout: '6\n' },
+      { id: 'b', stdin: 'x\n', expectedStdout: '' },
+    ]);
+    const content = (path: string) =>
+      files.find((file) => file.path === path)?.content;
+
+    expect(content('main.c')).toBe('int main() {}');
+    expect(content('tests/0.in')).toBe('');
+    expect(content('tests/0.args')).toBe('2\x003\x00*\x00a b\x00\x00');
+    expect(content('tests/1.in')).toBe('x\n');
+    expect(content('tests/1.args')).toBe('');
   });
 });
