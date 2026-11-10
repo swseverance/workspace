@@ -52,9 +52,17 @@ export class AuthEffects implements OnInitEffects {
   }
 
   /**
-   * The server's view of the session cookie. During SSR the cookie is
-   * forwarded; in the browser the response is a synchronous transfer cache
-   * hit, so the first client render matches the SSR markup.
+   * GET /api/session
+   *
+   * SSR:
+   *   cookie is taken from actual client request (if present)
+   *   and attached to the SSR GET /api/session request by the
+   *   forwardCookieInterceptor
+   *
+   * Browser:
+   *   When this effect fires in the browser it SYNCHRONOUSLY reads the
+   *   SessionResponseBody from the transfer cache (no network call actually
+   *   takes place) whether the user has a cookie or not
    */
   loadSession$ = createEffect(() =>
     this.actions$.pipe(
@@ -161,6 +169,12 @@ export class AuthEffects implements OnInitEffects {
     { dispatch: false },
   );
 
+  // POST { idToken } to /api/session. The server responds:
+  // - { status: 'valid' }: the request's cookie is valid and for this user
+  // - { status: 'created' }: it set a new cookie from the token
+  // An error (e.g. a rejected token) becomes validateCookieFailed.
+  // If cookieCreated or cookieValidated is dispatched we now consider
+  // the user to be completely signedIn
   validateCookie$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.tokenLoaded),

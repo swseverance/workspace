@@ -44,6 +44,7 @@ export class SignInEffects {
     ),
   );
 
+  // AuthActions.signInSuccess() will never actually fire because of redirect but is there for consistency
   signIn$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.signIn),
