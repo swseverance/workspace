@@ -14,6 +14,7 @@ import {
   requireUserMiddleware,
   ssrRequestContext,
   verifySessionCookieMiddleware,
+  type SsrRequestContext,
 } from '@org/server';
 import cookieParser from 'cookie-parser';
 import express from 'express';
@@ -29,6 +30,14 @@ import {
 } from './server/api/exercise.handler';
 import { exerciseExistsMiddleware } from './server/middleware/exercise-exists/exercise-exists';
 import { submitExerciseRateLimitMiddleware } from './server/middleware/rate-limit/rate-limit';
+import {
+  exercisesIndexRedirectHandler,
+  noindexOutsideProdMiddleware,
+  robotsHandler,
+  siteUrl,
+  sitemapHandler,
+} from './server/seo/seo';
+import type { SiteUrlRequestContext } from './shared/site-url';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -47,6 +56,8 @@ const angularApp = new AngularNodeAppEngine();
  * than `true` keeps a client-supplied X-Forwarded-For from setting req.ip.
  */
 app.set('trust proxy', 1);
+
+app.use(noindexOutsideProdMiddleware);
 
 /**
  * Firebase Auth's sign-in redirect helpers, served from this domain.
@@ -103,12 +114,21 @@ app.post(
   submitExerciseHandler,
 );
 
+app.get('/robots.txt', robotsHandler);
+app.get('/sitemap.xml', sitemapHandler);
+app.get('/exercises', exercisesIndexRedirectHandler);
+
 /**
  * Handle all other requests by rendering the Angular application.
  */
 app.use('/**', (req, res, next) => {
+  const context: SsrRequestContext & SiteUrlRequestContext = {
+    ...ssrRequestContext(req),
+    siteUrl: siteUrl(),
+  };
+
   angularApp
-    .handle(req, ssrRequestContext(req))
+    .handle(req, context)
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )

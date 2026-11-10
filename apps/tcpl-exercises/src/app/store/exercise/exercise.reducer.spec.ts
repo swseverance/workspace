@@ -24,6 +24,8 @@ const EXERCISE: Exercise = {
   id: '1-1',
   chapter: 1,
   number: 1,
+  title: 'Hello, world',
+  summary: 'Print "hello, world".',
   description: 'Print "hello, world"',
   code: '#include <stdio.h>\n',
   solution:

@@ -6,6 +6,9 @@ export const exercise33_1: ExerciseSource = {
   id: '33-1',
   chapter: 33,
   number: 1,
+  title: 'Double an integer',
+  summary:
+    'Practice exercise: read an integer from standard input and print double its value.',
   description,
   solution,
   tests: [

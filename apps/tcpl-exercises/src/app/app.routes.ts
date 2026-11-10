@@ -14,7 +14,7 @@ export const appRoutes: Route[] = [
       { path: '', redirectTo: '1-1', pathMatch: 'full' },
       {
         path: ':id',
-        resolve: { exerciseReady: exerciseResolver },
+        resolve: { exerciseFound: exerciseResolver },
         loadComponent: () =>
           import('./pages/exercise-detail/exercise-detail').then(
             (m) => m.ExerciseDetail,
@@ -22,5 +22,9 @@ export const appRoutes: Route[] = [
       },
     ],
   },
-  { path: '**', redirectTo: '' },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./pages/not-found/not-found').then((m) => m.NotFound),
+  },
 ];

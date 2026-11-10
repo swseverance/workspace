@@ -6,6 +6,9 @@ export const exercise1_8: ExerciseSource = {
   id: '1-8',
   chapter: 1,
   number: 8,
+  title: 'Count blanks, tabs, and newlines',
+  summary:
+    'Write a C program that counts the blanks, tabs, and newlines in its input. K&R exercise 1-8, solved and tested in your browser.',
   description,
   solution,
   tests: [

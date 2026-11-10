@@ -6,6 +6,9 @@ export const exercise1_1: ExerciseSource = {
   id: '1-1',
   chapter: 1,
   number: 1,
+  title: 'Hello, world',
+  summary:
+    'Run the classic "hello, world" program, then remove parts of it to see what errors the compiler gives. K&R exercise 1-1, solved and tested in your browser.',
   description,
   solution,
   tests: [{ id: '3ee816ef', expectedStdout: 'hello, world\n' }],
