@@ -56,6 +56,7 @@ describe('exercise solutions', () => {
             '-o',
             binPath,
             join(dir, 'main.c'),
+            '-lm', // as in run-c.ts
           ],
           { encoding: 'utf8' },
         );

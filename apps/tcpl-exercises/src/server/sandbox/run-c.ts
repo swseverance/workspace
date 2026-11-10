@@ -38,11 +38,14 @@ const OUTPUT_LIMIT_EXIT_CODE = 153;
  * -std=c17 rather than gcc's default GNU dialect: in strict ISO mode glibc leaves
  * out POSIX extras such as getline and strdup, which the book defines
  * itself with different signatures.
+ *
+ * -lm links the math library, which glibc keeps separate from libc, so
+ * <math.h> functions such as sin and pow (chapter 4) can be used.
  */
 const GRADE_SCRIPT = `
 b64() { base64 -w0 "$1"; }
 
-timeout -k 1 ${COMPILE_TIMEOUT_S} gcc -Wall -std=c17 -o main main.c > compile.out 2> compile.err
+timeout -k 1 ${COMPILE_TIMEOUT_S} gcc -Wall -std=c17 -o main main.c -lm > compile.out 2> compile.err
 code=$?
 echo "compile:$code:$(b64 compile.out):$(b64 compile.err)"
 [ "$code" -eq 0 ] || exit 0
