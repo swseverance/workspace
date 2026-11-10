@@ -3,8 +3,6 @@ import { TestBed } from '@angular/core/testing';
 import {
   ActivatedRouteSnapshot,
   convertToParamMap,
-  RedirectCommand,
-  Router,
   RouterStateSnapshot,
 } from '@angular/router';
 import { provideMockActions } from '@ngrx/effects/testing';
@@ -48,7 +46,7 @@ function resolve(getExercise: () => Observable<Exercise>) {
 
   const result$ = TestBed.runInInjectionContext(() =>
     exerciseResolver(route, {} as RouterStateSnapshot),
-  ) as Observable<boolean | RedirectCommand>;
+  ) as Observable<boolean>;
 
   return { dispatch, emitted: firstValueFrom(result$.pipe(toArray())) };
 }
@@ -105,21 +103,12 @@ describe('exerciseResolver', () => {
     expect(getExercise).toHaveBeenCalledTimes(2);
   });
 
-  it('redirects to /exercises when the exercise does not exist', async () => {
+  it('resolves false when the exercise does not exist', async () => {
     const error = new HttpErrorResponse({ status: 404 });
     const { dispatch, emitted } = resolve(() => throwError(() => error));
 
-    const [result] = await emitted;
-
-    expect(result).toBeInstanceOf(RedirectCommand);
-    expect(
-      TestBed.inject(Router).serializeUrl(
-        (result as RedirectCommand).redirectTo,
-      ),
-    ).toBe('/exercises');
-    expect(dispatch).toHaveBeenCalledWith(
-      exerciseNavigationFailed({ id: '1-1', error }),
-    );
+    expect(await emitted).toEqual([false]);
+    expect(dispatch).not.toHaveBeenCalled();
   });
 
   it('cancels the navigation on any other failure', async () => {

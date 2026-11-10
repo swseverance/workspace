@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { SeoService } from '../../services/seo-service';
 import { AnalyticsFacade } from '../../store/analytics/analytics.facade';
 
 @Component({
@@ -15,6 +16,14 @@ export class Home implements OnInit {
   private readonly facade = inject(AnalyticsFacade);
 
   protected readonly analytics$ = this.facade.analytics$;
+
+  constructor() {
+    inject(SeoService).setPage(
+      null,
+      'Work through the exercises from Kernighan and Ritchie’s The C Programming Language (K&R) in your browser. Write C, run it against tests, and compare with a reference solution.',
+      '/',
+    );
+  }
 
   // During hydration this is answered synchronously from the transfer
   // cache, so the stats in the server-rendered page don't flicker.

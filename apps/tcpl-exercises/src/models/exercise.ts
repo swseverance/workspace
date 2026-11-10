@@ -9,6 +9,10 @@ export type ExerciseSource = {
   chapter: number;
   number: number;
   suffix?: string;
+  /** Short name, shown in the page heading and title. */
+  title: string;
+  /** One or two plain-text sentences for the meta description. */
+  summary: string;
   description: string;
   solution: string;
   tests: ExerciseTestCaseSource[];

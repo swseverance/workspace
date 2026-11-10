@@ -5,7 +5,9 @@
 @let authStatus = authStatus$ | async;
 
 <!-- The resolver puts the exercise in the store before this page renders. -->
-@if (exercise) {
+@if (!exerciseFound()) {
+  <app-not-found />
+} @else if (exercise) {
   <ng-template #compilationErrorsTitle>
     <nz-badge [nzDot]="!!exercise.compilationError">
       <span>Compilation Errors&nbsp;&nbsp;</span>
@@ -26,7 +28,11 @@
 
   <div class="exercise-layout">
     <div class="top-row">
-      <app-panel heading="Description" [loading]="exerciseLoading()">
+      <app-panel
+        [heading]="exerciseHeading(exercise)"
+        [headingLevel]="1"
+        [loading]="exerciseLoading()"
+      >
         <app-exercise-description [description]="exercise.description" />
       </app-panel>
 
@@ -39,7 +45,7 @@
         >
           <nz-tab nzTitle="Code">
             <!-- Not during noSession: the user may be mid sign-in. -->
-            @if (authStatus === 'signedOut') {
+            @if (hydrated() && authStatus === 'signedOut') {
               <ng-template #signInAction>
                 <button
                   nz-button

@@ -6,6 +6,9 @@ export const exercise33_2: ExerciseSource = {
   id: '33-2',
   chapter: 33,
   number: 2,
+  title: 'Fahrenheit-Celsius table',
+  summary:
+    'Practice exercise: print a formatted Fahrenheit-to-Celsius table for a range of temperatures.',
   description,
   solution,
   tests: [

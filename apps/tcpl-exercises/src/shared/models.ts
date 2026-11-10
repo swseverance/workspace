@@ -34,6 +34,10 @@ export type Exercise = {
   chapter: number;
   number: number;
   suffix?: string;
+  /** Short name, shown in the page heading and title. */
+  title: string;
+  /** Plain text, for the meta description. */
+  summary: string;
   /** HTML, converted from the exercise's markdown on the server. */
   description: string;
   code: string;

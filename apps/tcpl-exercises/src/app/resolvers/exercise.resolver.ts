@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { RedirectCommand, ResolveFn, Router } from '@angular/router';
+import { ResolveFn } from '@angular/router';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { AuthActions } from '@org/auth';
@@ -15,12 +15,14 @@ import {
  * Blocks activating the :id route until the exercise has loaded. Runs on
  * the initial navigation too, so SSR renders with the exercise loaded and
  * hydration finds the same response in the transfer cache.
+ *
+ * Resolves false when there's no such exercise (a typo, old bookmark or
+ * removed exercise), so the page shows the 404 page at the same URL.
  */
 export const exerciseResolver: ResolveFn<boolean> = (route) => {
   const id = route.paramMap.get('id')!;
   const store = inject(Store);
   const exercises = inject(ExerciseService);
-  const router = inject(Router);
   const cookieCreated$ = inject(Actions).pipe(
     ofType(AuthActions.cookieCreated),
   );
@@ -41,13 +43,11 @@ export const exerciseResolver: ResolveFn<boolean> = (route) => {
       return true;
     }),
     catchError((error: unknown) => {
-      store.dispatch(exerciseNavigationFailed({ id, error }));
-
-      // No such exercise (a typo, old bookmark or removed exercise): go to
-      // the default one rather than leave an empty pane on a first load.
       if (error instanceof HttpErrorResponse && error.status === 404) {
-        return of(new RedirectCommand(router.parseUrl('/exercises')));
+        return of(false);
       }
+
+      store.dispatch(exerciseNavigationFailed({ id, error }));
 
       // Any other failure: completing without emitting cancels the navigation, keeping the
       // user on the previous exercise.

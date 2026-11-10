@@ -32,7 +32,8 @@ function toExercise(
   compilationError: string,
   submissions: ExerciseSubmission[],
 ): Exercise {
-  const { id, chapter, number, suffix, description, solution } = exercise;
+  const { id, chapter, number, suffix, title, summary, description, solution } =
+    exercise;
 
   const finalTests: ExerciseTestCase[] = exercise.tests.map(
     ({ id: testId, stdin, expectedStdout }): ExerciseTestCase => {
@@ -71,6 +72,8 @@ function toExercise(
     chapter,
     number,
     suffix,
+    title,
+    summary,
     description,
     code,
     solution,
