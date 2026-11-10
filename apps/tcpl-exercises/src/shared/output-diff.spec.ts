@@ -12,10 +12,25 @@ import {
 const kinds = (rows: DiffRow[]) => rows.map((r) => r.kind);
 
 describe('normalizeOutput', () => {
-  it('drops trailing whitespace at the very end only', () => {
-    expect(normalizeOutput('a \nb\n \t\n')).toBe('a \nb');
+  it('keeps the final newline but drops whitespace after it', () => {
+    expect(normalizeOutput('a \nb\n \t\n')).toBe('a \nb\n');
+    expect(normalizeOutput('a\n\n\n')).toBe('a\n');
+  });
+
+  it('keeps spaces before the final newline, as on any other line', () => {
+    expect(normalizeOutput('a \n')).toBe('a \n');
+  });
+
+  it('drops trailing whitespace when there is no newline in it', () => {
+    expect(normalizeOutput('a  \t')).toBe('a');
     expect(normalizeOutput('a\nb')).toBe('a\nb');
     expect(normalizeOutput(' a')).toBe(' a');
+  });
+
+  it('returns a prefix of its input', () => {
+    for (const text of ['a \nb\n \t\n', 'a  ', ' \n', '', 'x\n\ny']) {
+      expect(text.startsWith(normalizeOutput(text))).toBe(true);
+    }
   });
 });
 
@@ -29,7 +44,8 @@ describe('splitLines', () => {
       { text: 'a', newline: true },
       { text: 'b', newline: false },
     ]);
-    expect(splitLines(' \n')).toEqual([]);
+    expect(splitLines('  ')).toEqual([]);
+    expect(splitLines('')).toEqual([]);
   });
 
   it('keeps blank lines and spaces inside the output', () => {
@@ -38,8 +54,18 @@ describe('splitLines', () => {
 });
 
 describe('diffOutput', () => {
-  it('matches identical output', () => {
-    expect(kinds(diffOutput('1\n2\n', '1\n2'))).toEqual(['equal', 'equal']);
+  it('matches identical output, ignoring blank lines after the final newline', () => {
+    expect(kinds(diffOutput('1\n2\n', '1\n2\n\n'))).toEqual(['equal', 'equal']);
+  });
+
+  it('marks a line that differs only in its final newline', () => {
+    const rows = diffOutput('1\n2\n', '1\n2');
+    expect(kinds(rows)).toEqual(['equal', 'changed']);
+    expect(rows[1]).toMatchObject({
+      expected: { newline: true, newlineChanged: true },
+      actual: { newline: false, newlineChanged: true },
+    });
+    expect(rows[0]).toMatchObject({ expected: { newlineChanged: false } });
   });
 
   it('pairs a wrong line and highlights the wrong characters', () => {
@@ -134,6 +160,15 @@ describe('describeFirstDifference', () => {
     expect(describeFirstDifference(diffOutput('ab', 'ab '))).toBeNull();
     expect(describeFirstDifference(diffOutput('ab\nc', 'ab \nc'))).toBe(
       'Line 1, column 3: expected the end of the line but got a space.',
+    );
+  });
+
+  it('names a missing or unexpected final newline', () => {
+    expect(
+      describeFirstDifference(diffOutput('hello, world\n', 'hello, world')),
+    ).toBe('Line 1: expected a newline at the end.');
+    expect(describeFirstDifference(diffOutput('abc', 'abc\n'))).toBe(
+      'Line 1: expected no newline at the end.',
     );
   });
 

@@ -42,12 +42,12 @@ describe('parseGraderOutput', () => {
 });
 
 describe('toGradeResult', () => {
-  it('passes tests that exit 0 with matching stdout, ignoring trailing whitespace', () => {
+  it('passes tests that exit 0 with matching stdout, ignoring whitespace after the final newline', () => {
     const result = toGradeResult(
       {
         compile: { exitCode: 0, stdout: '', stderr: '' },
         tests: [
-          { exitCode: 0, stdout: '10', stderr: '' },
+          { exitCode: 0, stdout: '10\n\n  \n', stderr: '' },
           { exitCode: 0, stdout: '1\n', stderr: 'debug\n' },
         ],
       },
@@ -56,11 +56,12 @@ describe('toGradeResult', () => {
 
     expect(result).toEqual({
       compilationError: '',
+      compilerWarnings: '',
       results: [
         {
           id: 'a',
           passed: true,
-          stdout: '10',
+          stdout: '10\n\n  \n',
           stderr: '',
           stopReason: null,
           exitCode: 0,
@@ -75,6 +76,22 @@ describe('toGradeResult', () => {
         },
       ],
     });
+  });
+
+  it('fails a test whose output is missing the final newline', () => {
+    const result = toGradeResult(
+      {
+        compile: { exitCode: 0, stdout: '', stderr: '' },
+        tests: [
+          { exitCode: 0, stdout: '10', stderr: '' },
+          { exitCode: 0, stdout: '0 \n', stderr: '' },
+        ],
+      },
+      TESTS,
+    );
+
+    // The second has a space before its newline, which counts too.
+    expect(result.results.map((r) => r.passed)).toEqual([false, false]);
   });
 
   it('fails a test with matching stdout but a non-zero exit code', () => {
@@ -133,6 +150,24 @@ describe('toGradeResult', () => {
     });
   });
 
+  it('reports gcc warnings when it compiles, and still runs the tests', () => {
+    const warning = "main.c:4:10: warning: unknown escape sequence: '\\k'\n";
+    const result = toGradeResult(
+      {
+        compile: { exitCode: 0, stdout: '', stderr: warning },
+        tests: [
+          { exitCode: 0, stdout: '10\n', stderr: '' },
+          { exitCode: 0, stdout: '0\n', stderr: '' },
+        ],
+      },
+      TESTS,
+    );
+
+    expect(result.compilationError).toBe('');
+    expect(result.compilerWarnings).toBe(warning);
+    expect(result.results.map((r) => r.passed)).toEqual([true, true]);
+  });
+
   it('fails every test and reports gcc errors when compilation fails', () => {
     const result = toGradeResult(
       {
@@ -144,6 +179,7 @@ describe('toGradeResult', () => {
 
     expect(result).toEqual({
       compilationError: 'main.c:1: error',
+      compilerWarnings: '',
       results: [
         {
           id: 'a',

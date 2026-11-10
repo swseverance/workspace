@@ -44,6 +44,7 @@ const EXERCISE: Exercise = {
   ],
   status: 'indeterminate',
   compilationError: '',
+  compilerWarnings: '',
   submissions: [],
 };
 

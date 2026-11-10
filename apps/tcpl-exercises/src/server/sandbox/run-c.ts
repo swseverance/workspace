@@ -34,11 +34,15 @@ const OUTPUT_LIMIT_EXIT_CODE = 153;
  * one line per step, `<step>:<exit code>:<base64 stdout>:<base64 stderr>`;
  * base64 keeps arbitrary bytes and newlines intact, and its alphabet has no
  * colon.
+ *
+ * -std=c17 rather than gcc's default GNU dialect: in strict ISO mode glibc leaves
+ * out POSIX extras such as getline and strdup, which the book defines
+ * itself with different signatures.
  */
 const GRADE_SCRIPT = `
 b64() { base64 -w0 "$1"; }
 
-timeout -k 1 ${COMPILE_TIMEOUT_S} gcc -Wall -o main main.c > compile.out 2> compile.err
+timeout -k 1 ${COMPILE_TIMEOUT_S} gcc -Wall -std=c17 -o main main.c > compile.out 2> compile.err
 code=$?
 echo "compile:$code:$(b64 compile.out):$(b64 compile.err)"
 [ "$code" -eq 0 ] || exit 0
@@ -59,6 +63,8 @@ type GraderOutput = { compile: StepResult; tests: StepResult[] };
 export type GradeResult = {
   /** gcc's errors, or '' when it compiled. */
   compilationError: string;
+  /** gcc's warnings when it compiled, or ''. */
+  compilerWarnings: string;
   results: ExerciseTestResult[];
 };
 
@@ -118,6 +124,7 @@ export function toGradeResult(
         (timedOut
           ? `Compilation timed out after ${COMPILE_TIMEOUT_S} seconds.`
           : `Compilation failed (exit code ${compile.exitCode}).`),
+      compilerWarnings: '',
       results: tests.map((test) => ({
         id: test.id,
         passed: false,
@@ -131,6 +138,7 @@ export function toGradeResult(
 
   return {
     compilationError: '',
+    compilerWarnings: compile.stderr,
     results: tests.map((test, i) => {
       const run = runs[i];
 

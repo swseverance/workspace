@@ -15,4 +15,6 @@ export type ExerciseRecord = {
   code: string;
   tests: Record<string, ExerciseRecordTestResult>;
   compilationError: string;
+  /** gcc's warnings from a submission that compiled. */
+  compilerWarnings: string;
 };
