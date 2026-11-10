@@ -7,6 +7,7 @@ import {
   normalizeOutput,
   splitLines,
   toGlyphs,
+  visibleDiff,
 } from './output-diff';
 
 const kinds = (rows: DiffRow[]) => rows.map((r) => r.kind);
@@ -118,6 +119,102 @@ describe('diffChars', () => {
       { text: 'X', changed: true },
       { text: 'bc', changed: false },
     ]);
+  });
+});
+
+describe('visibleDiff', () => {
+  const lines = (n: number, from = 0) =>
+    Array.from({ length: n }, (_, i) => `line ${from + i}`).join('\n');
+
+  it('shows everything up to the limit', () => {
+    const blocks = foldRows(diffOutput(lines(5), lines(5)));
+    const view = visibleDiff(blocks, new Set(), 5);
+
+    expect(view.items).toHaveLength(5);
+    expect(view.hidden).toBe(0);
+  });
+
+  it('counts the rows past the limit instead of showing them', () => {
+    const blocks = foldRows(diffOutput(lines(10), lines(10)));
+    const view = visibleDiff(blocks, new Set(), 4);
+
+    expect(view.items).toHaveLength(4);
+    expect(view.hidden).toBe(6);
+  });
+
+  it("doesn't count an unexpanded fold towards the limit", () => {
+    // 20 matching lines, then 10 that all differ.
+    const blocks = foldRows(
+      diffOutput(
+        `${lines(20)}\n${lines(10, 100)}`,
+        `${lines(20)}\n${lines(10, 200)}`,
+      ),
+    );
+    const view = visibleDiff(blocks, new Set(), 5);
+
+    expect(view.items.map((item) => item.kind)).toEqual([
+      'fold',
+      'row',
+      'row',
+      'row',
+      'row',
+      'row',
+    ]);
+    expect(view.hidden).toBe(8);
+  });
+
+  it('counts an expanded fold like any other rows', () => {
+    const blocks = foldRows(
+      diffOutput(`${lines(20)}\nend`, `${lines(20)}\nEND`),
+    );
+    const fold = blocks.findIndex((b) => b.kind === 'fold');
+    const view = visibleDiff(blocks, new Set([fold]), 10);
+
+    expect(view.items.every((item) => item.kind === 'row')).toBe(true);
+    expect(view.items).toHaveLength(10);
+    expect(view.hidden).toBe(11);
+  });
+
+  it('lets a fold expand only if all its rows would then fit', () => {
+    // A fold of 17 matching lines, then 4 rows: 3 matching and 1 changed.
+    const blocks = foldRows(
+      diffOutput(`${lines(20)}\nend`, `${lines(20)}\nEND`),
+    );
+    const fold = (max: number) => visibleDiff(blocks, new Set(), max).items[0];
+
+    expect(fold(21)).toMatchObject({ kind: 'fold', expandable: true });
+    expect(fold(20)).toMatchObject({ kind: 'fold', expandable: false });
+  });
+
+  it("won't expand a fold when rows are already hidden", () => {
+    // A fold of 17, then 13 rows, with room for 5.
+    const blocks = foldRows(
+      diffOutput(
+        `${lines(20)}\n${lines(10, 100)}`,
+        `${lines(20)}\n${lines(10, 200)}`,
+      ),
+    );
+
+    expect(visibleDiff(blocks, new Set(), 5).items[0]).toMatchObject({
+      kind: 'fold',
+      expandable: false,
+    });
+  });
+
+  it('counts a fold past the limit as hidden rows', () => {
+    // 10 differing lines, then 20 matching ones that fold.
+    const blocks = foldRows(
+      diffOutput(
+        `${lines(10, 100)}\n${lines(20)}`,
+        `${lines(10, 200)}\n${lines(20)}`,
+      ),
+    );
+    const view = visibleDiff(blocks, new Set(), 5);
+
+    // Shown: 5 of the 10 changed rows. Hidden: the other 5, the 3
+    // matching rows kept beside them, and the 17 folded after those.
+    expect(view.items).toHaveLength(5);
+    expect(view.hidden).toBe(5 + 3 + 17);
   });
 });
 
