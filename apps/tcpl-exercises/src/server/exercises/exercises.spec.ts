@@ -1,7 +1,8 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { DEFAULT_PROGRAM } from '../../shared/models';
 import { EXERCISES } from './index';
 
 // The grader compiles with -std=c17 (see run-c.ts), where glibc's headers
@@ -18,6 +19,20 @@ describe('exercise test ids', () => {
       expect(exercise.tests.length).toBeGreaterThan(0);
       expect(ids.every((id) => /^[0-9a-f]{8}$/.test(id))).toBe(true);
       expect(new Set(ids).size).toBe(ids.length);
+    });
+  }
+});
+
+describe('exercise test files', () => {
+  for (const exercise of EXERCISES) {
+    it(`have plain names in exercise ${exercise.id}`, () => {
+      const names = exercise.tests.flatMap((test) =>
+        (test.files ?? []).map((file) => file.name),
+      );
+
+      // The grader writes them inside the test's directory.
+      expect(names.every((name) => /^[\w.-]+$/.test(name))).toBe(true);
+      expect(names.every((name) => name !== '.' && name !== '..')).toBe(true);
     });
   }
 });
@@ -72,7 +87,17 @@ describe('exercise solutions', () => {
 
       exercise.tests.forEach((test) => {
         it(`passes test case ${test.id}`, () => {
+          // Like run-c.ts: its own directory holding its files, and its
+          // program name as argv[0].
+          const cwd = join(dir, `${test.id}.d`);
+          mkdirSync(cwd);
+          for (const file of test.files ?? []) {
+            writeFileSync(join(cwd, file.name), file.content);
+          }
+
           const result = spawnSync(binPath, test.args ?? [], {
+            argv0: test.program ?? DEFAULT_PROGRAM,
+            cwd,
             input: test.stdin ?? '',
             encoding: 'utf8',
             timeout: 5000,

@@ -23,12 +23,21 @@
                 />
               }
 
-              @if (test.args.length > 0) {
+              @if (showCommandLine()) {
                 <section>
                   <h4>Command line</h4>
                   <code class="command-line">{{
-                    formatCommandLine(test.args)
+                    formatCommandLine(test.program, test.args)
                   }}</code>
+                </section>
+              }
+
+              @for (file of test.files; track file.name) {
+                <section>
+                  <h4>
+                    File <span class="file-name">{{ file.name }}</span>
+                  </h4>
+                  <app-text-block [text]="file.content" emptyText="Empty" />
                 </section>
               }
 

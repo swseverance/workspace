@@ -1,7 +1,13 @@
+import { TestFile } from '../shared/models';
+
 export type ExerciseTestCaseSource = {
   id: string;
+  /** The program's name, its argv[0]; DEFAULT_PROGRAM if not given. */
+  program?: string;
   /** Command-line arguments, after the program name. */
   args?: string[];
+  /** Files in the directory the program runs in. */
+  files?: TestFile[];
   stdin?: string;
   expectedStdout: string;
 };

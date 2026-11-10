@@ -2,7 +2,7 @@ import { Sandbox } from '@vercel/sandbox';
 import * as logger from 'firebase-functions/logger';
 import { ExerciseTestCaseSource } from '../../models/exercise';
 import { ExerciseTestResult } from '../../models/exercise-submission';
-import { TestStopReason } from '../../shared/models';
+import { DEFAULT_PROGRAM, TestStopReason } from '../../shared/models';
 import { normalizeOutput } from '../../shared/output-diff';
 
 const SANDBOX_DIR = '/vercel/sandbox';
@@ -44,7 +44,10 @@ const OUTPUT_LIMIT_EXIT_CODE = 153;
  *
  * Each test's arguments come from tests/<i>.args, NUL-terminated, read
  * into an array so they reach main as given: no quoting, splitting or
- * globbing (expr 2 3 '*' needs a literal *).
+ * globbing (expr 2 3 '*' needs a literal *). Its program name comes from
+ * tests/<i>.prog and is set as argv[0] with exec -a; exec replaces the
+ * inner bash, so exit codes and signals reach timeout as before. Each
+ * test runs in its own directory, tests/<i>.d, which holds its files.
  */
 const GRADE_SCRIPT = `
 b64() { base64 -w0 "$1"; }
@@ -57,8 +60,10 @@ echo "compile:$code:$(b64 compile.out):$(b64 compile.err)"
 for ((i = 0; i < $1; i++)); do
   # ulimit -f caps each output file; a program exceeding it is killed.
   mapfile -d '' -t args < "tests/$i.args"
-  ( ulimit -f ${OUTPUT_LIMIT_KB}
-    timeout -k ${RUN_KILL_GRACE_MS / 1000} ${RUN_TIMEOUT_MS / 1000} ./main "\${args[@]}" < "tests/$i.in" > "tests/$i.out" 2> "tests/$i.err" )
+  prog=$(cat "tests/$i.prog")
+  mkdir -p "tests/$i.d"
+  ( cd "tests/$i.d" && ulimit -f ${OUTPUT_LIMIT_KB}
+    timeout -k ${RUN_KILL_GRACE_MS / 1000} ${RUN_TIMEOUT_MS / 1000} bash -c 'exec -a "$0" ../../main "$@"' "$prog" "\${args[@]}" < "../$i.in" > "../$i.out" 2> "../$i.err" )
   code=$?
   echo "test:$code:$(b64 "tests/$i.out"):$(b64 "tests/$i.err")"
 done
@@ -183,7 +188,8 @@ function getCredentials():
 
 /**
  * The files GRADE_SCRIPT reads, relative to SANDBOX_DIR: the source, the
- * script itself, and each test's input and arguments. Exported for tests.
+ * script itself, and each test's input, arguments, program name and
+ * files. Exported for tests.
  */
 export function graderFiles(
   code: string,
@@ -198,6 +204,11 @@ export function graderFiles(
         path: `tests/${i}.args`,
         content: (test.args ?? []).map((arg) => `${arg}\0`).join(''),
       },
+      { path: `tests/${i}.prog`, content: test.program ?? DEFAULT_PROGRAM },
+      ...(test.files ?? []).map((file) => ({
+        path: `tests/${i}.d/${file.name}`,
+        content: file.content,
+      })),
     ]),
   ];
 }

@@ -212,10 +212,16 @@ describe('toGradeResult', () => {
 });
 
 describe('graderFiles', () => {
-  it("writes each test's input and NUL-terminated arguments", () => {
+  it("writes each test's input, arguments, program name and files", () => {
     const files = graderFiles('int main() {}', [
       { id: 'a', args: ['2', '3', '*', 'a b', ''], expectedStdout: '6\n' },
-      { id: 'b', stdin: 'x\n', expectedStdout: '' },
+      {
+        id: 'b',
+        program: 'upper',
+        stdin: 'x\n',
+        files: [{ name: 'a.txt', content: 'one\n' }],
+        expectedStdout: '',
+      },
     ]);
     const content = (path: string) =>
       files.find((file) => file.path === path)?.content;
@@ -225,5 +231,8 @@ describe('graderFiles', () => {
     expect(content('tests/0.args')).toBe('2\x003\x00*\x00a b\x00\x00');
     expect(content('tests/1.in')).toBe('x\n');
     expect(content('tests/1.args')).toBe('');
+    expect(content('tests/0.prog')).toBe('./main');
+    expect(content('tests/1.prog')).toBe('upper');
+    expect(content('tests/1.d/a.txt')).toBe('one\n');
   });
 });
