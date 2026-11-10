@@ -1,6 +1,7 @@
 # See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 runConfig:
   minInstances: 0
+  maxInstances: 1 # caps cost; environments may raise it
 
 env:
   - variable: UPSTASH_REDIS_REST_URL
