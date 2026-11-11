@@ -156,7 +156,13 @@ export const exerciseReducer = createReducer(
       { id, changes: { submitting: false } },
       state,
     ),
-    chapters: updateExerciseStatus(state.chapters, id, 'indeterminate'),
+    // Nothing was graded (e.g. rate limited), so put back the last known
+    // status rather than losing a previous pass.
+    chapters: updateExerciseStatus(
+      state.chapters,
+      id,
+      state.entities[id]?.status ?? 'indeterminate',
+    ),
   })),
 
   on(loadChapters, (state) => ({
