@@ -23,7 +23,8 @@
       "@org/theme": ["./libs/theme/src/index.ts"],
       "@org/auth": ["./libs/auth/src/index.ts"],
       "@org/server": ["./libs/server/src/index.ts"],
-      "@org/logger": ["./libs/logger/src/index.ts"]
+      "@org/logger": ["./libs/logger/src/index.ts"],
+      "@org/ui": ["./libs/ui/src/index.ts"]
     }
   }
 }
