@@ -1,0 +1,46 @@
+{
+  "name": "ghreactions-functions",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ghreactions-functions/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "platform": "node",
+        "outputPath": "dist/apps/ghreactions-functions",
+        "format": ["cjs"],
+        "bundle": true,
+        "thirdParty": false,
+        "main": "apps/ghreactions-functions/src/main.ts",
+        "tsConfig": "apps/ghreactions-functions/tsconfig.app.json",
+        "generatePackageJson": true,
+        "esbuildOptions": {
+          "sourcemap": true,
+          "outExtension": {
+            ".js": ".js"
+          }
+        }
+      },
+      "configurations": {
+        "development": {},
+        "production": {
+          "esbuildOptions": {
+            "sourcemap": false,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        }
+      }
+    },
+    "emulate": {
+      "dependsOn": ["build"],
+      "continuous": true,
+      "command": "npm exec firebase-tools -- emulators:start --only functions --project ghreactionsdev"
+    }
+  }
+}
