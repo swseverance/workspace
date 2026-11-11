@@ -7,11 +7,16 @@ const STARTER = '#include <stdio.h>\n';
 
 @Component({
   imports: [CodeEditor],
-  template: `<app-code-editor [docId]="docId()" [code]="code()" />`,
+  template: `<app-code-editor
+    [docId]="docId()"
+    [code]="code()"
+    [readonly]="readonly()"
+  />`,
 })
 class Host {
   readonly docId = signal('1-1');
   readonly code = signal(STARTER);
+  readonly readonly = signal(false);
   readonly editor = viewChild.required(CodeEditor);
 }
 
@@ -34,7 +39,12 @@ async function render() {
     await fixture.whenStable();
   };
 
-  return { editor: host.editor(), view, type, switchTo };
+  const setReadonly = async (readonly: boolean) => {
+    host.readonly.set(readonly);
+    await fixture.whenStable();
+  };
+
+  return { editor: host.editor(), view, type, switchTo, setReadonly };
 }
 
 describe('CodeEditor', () => {
@@ -64,6 +74,16 @@ describe('CodeEditor', () => {
     undo(view);
 
     expect(editor.getCode()).toBe('code for 1-2');
+  });
+
+  it('blocks edits but keeps text selectable when readonly', async () => {
+    const { view, setReadonly } = await render();
+
+    await setReadonly(true);
+
+    expect(view.state.readOnly).toBe(true);
+    // Still focusable, so the selection works and can be copied.
+    expect(view.contentDOM.getAttribute('contenteditable')).toBe('true');
   });
 
   it('keeps what the user typed when only the code input changes', async () => {

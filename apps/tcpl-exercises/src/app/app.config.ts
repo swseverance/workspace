@@ -16,6 +16,8 @@ import {
 } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import {
+  CheckOutline,
+  CopyOutline,
   GithubOutline,
   LoginOutline,
   LogoutOutline,
@@ -88,6 +90,8 @@ export const appConfig: ApplicationConfig = {
     provideNzI18n(en_US),
     provideNzDateFnsAdapter(),
     provideNzIcons([
+      CheckOutline,
+      CopyOutline,
       GithubOutline,
       LoginOutline,
       LogoutOutline,
