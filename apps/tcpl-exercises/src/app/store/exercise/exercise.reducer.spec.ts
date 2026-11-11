@@ -463,7 +463,49 @@ describe('exerciseReducer', () => {
       });
     });
 
-    it('sets the sidebar status of the exercise being submitted back to indeterminate, leaving other exercises untouched', () => {
+    it('restores the sidebar status of a previously passed exercise', () => {
+      const previousState = {
+        ...withEntities({ ...ENTITY, status: 'passed', submitting: true }),
+        chapters: [
+          {
+            number: 1,
+            exercises: [
+              { id: '1-1', chapter: 1, number: 1, status: 'pending' },
+            ],
+          },
+        ] as Chapter[],
+      };
+
+      const state = exerciseReducer(
+        previousState,
+        submitExerciseFailed({ id: '1-1', error: 'boom' }),
+      );
+
+      expect(state.chapters[0].exercises[0].status).toBe('passed');
+    });
+
+    it('falls back to indeterminate when the exercise is not loaded', () => {
+      const previousState = {
+        ...initialExerciseState,
+        chapters: [
+          {
+            number: 1,
+            exercises: [
+              { id: '1-1', chapter: 1, number: 1, status: 'pending' },
+            ],
+          },
+        ] as Chapter[],
+      };
+
+      const state = exerciseReducer(
+        previousState,
+        submitExerciseFailed({ id: '1-1', error: 'boom' }),
+      );
+
+      expect(state.chapters[0].exercises[0].status).toBe('indeterminate');
+    });
+
+    it('sets the sidebar status of the exercise being submitted back to its last known status, leaving other exercises untouched', () => {
       const previousState = {
         ...withEntities({ ...ENTITY, submitting: true }),
         chapters: [

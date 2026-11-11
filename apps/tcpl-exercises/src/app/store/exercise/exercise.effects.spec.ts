@@ -87,7 +87,9 @@ describe('ExerciseEffects submission messages', () => {
       setup(submitExercise({ code: '' })).displayPendingMessage$,
     );
 
-    expect(message.info).toHaveBeenCalledWith('Running Tests...');
+    expect(message.info).toHaveBeenCalledWith('Running Tests...', {
+      nzDuration: 0,
+    });
   });
 
   it('reports a compilation error instead of test results', async () => {

@@ -96,11 +96,11 @@ export class CodeEditor implements AfterViewInit, OnChanges, OnDestroy {
   private readonly readonlyCompartment = new Compartment();
   private view?: EditorView;
 
+  // readOnly blocks edits but leaves the editor focusable, so text can still
+  // be selected (mouse or keyboard) and copied. EditorView.editable(false)
+  // would also stop CodeMirror tracking the selection, making it invisible.
   private readonlyExtensions() {
-    return [
-      EditorView.editable.of(!this.readonly),
-      EditorState.readOnly.of(this.readonly),
-    ];
+    return EditorState.readOnly.of(this.readonly);
   }
 
   private createState(): EditorState {

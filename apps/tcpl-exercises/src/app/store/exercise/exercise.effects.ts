@@ -160,7 +160,7 @@ export class ExerciseEffects {
     () =>
       this.actions$.pipe(
         ofType(submitExercise),
-        tap(() => this.message.info('Running Tests...')),
+        tap(() => this.message.info('Running Tests...', { nzDuration: 0 })),
       ),
     { dispatch: false },
   );
