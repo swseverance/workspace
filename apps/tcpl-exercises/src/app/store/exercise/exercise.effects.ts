@@ -201,13 +201,24 @@ export class ExerciseEffects {
         tap(({ error }) => {
           this.logger.error('[exercise] submit failed:', error);
 
-          this.message.error(
-            error instanceof HttpErrorResponse && error.status === 429
-              ? 'Too many submissions. Please wait a moment and try again.'
-              : 'Failed to Submit Exercise',
-          );
+          this.message.error(submitErrorMessage(error));
         }),
       ),
     { dispatch: false },
   );
+}
+
+/**
+ * A 429 carries the server's own explanation (per-user or site-wide limit),
+ * so show that. Anything else gets a generic message.
+ */
+function submitErrorMessage(error: unknown): string {
+  if (error instanceof HttpErrorResponse && error.status === 429) {
+    const message = error.error?.message;
+    if (typeof message === 'string' && message) {
+      return message;
+    }
+    return 'Too many submissions. Please wait a moment and try again.';
+  }
+  return 'Failed to Submit Exercise';
 }

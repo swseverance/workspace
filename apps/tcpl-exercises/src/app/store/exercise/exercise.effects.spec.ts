@@ -117,7 +117,20 @@ describe('ExerciseEffects submission messages', () => {
     expect(message.error).not.toHaveBeenCalled();
   });
 
-  it('tells a rate-limited user to wait', async () => {
+  it("shows the server's message for a 429", async () => {
+    const error = new HttpErrorResponse({
+      status: 429,
+      error: { message: 'The site is busy.' },
+    });
+
+    await firstValueFrom(
+      setup(submitExerciseFailed({ id: '1-1', error })).submitExerciseFailed$,
+    );
+
+    expect(message.error).toHaveBeenCalledWith('The site is busy.');
+  });
+
+  it('falls back to a wait message for a 429 without one', async () => {
     const error = new HttpErrorResponse({ status: 429 });
 
     await firstValueFrom(
