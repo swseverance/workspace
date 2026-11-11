@@ -18,7 +18,7 @@ import { rateLimitMiddleware } from './server/middleware/rate-limit';
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 
-initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
+initializeApp({ projectId: process.env['PROJECT_ID'] });
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();

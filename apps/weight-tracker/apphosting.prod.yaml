@@ -1,5 +1,5 @@
 env:
-  - variable: FIREBASE_PROJECT_ID
+  - variable: PROJECT_ID
     value: weight-tracker-2592f
     availability:
       - RUNTIME

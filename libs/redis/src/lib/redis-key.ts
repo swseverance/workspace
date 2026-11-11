@@ -6,4 +6,4 @@
  * read on each call, so tests can stub them.
  */
 export const redisKey = (name: string) =>
-  `${process.env['FIREBASE_PROJECT_ID']}:${process.env['ENVIRONMENT_NAME']}:${name}`;
+  `${process.env['PROJECT_ID']}:${process.env['ENVIRONMENT_NAME']}:${name}`;

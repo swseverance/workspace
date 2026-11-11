@@ -31,7 +31,7 @@ import {
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
-const projectId = process.env['FIREBASE_PROJECT_ID'] as string;
+const projectId = process.env['PROJECT_ID'] as string;
 
 initializeApp({ projectId });
 
