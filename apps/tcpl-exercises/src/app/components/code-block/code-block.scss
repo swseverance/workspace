@@ -1,0 +1,17 @@
+// The <pre> itself is styled by exercise-description.scss.
+:host {
+  display: block;
+  position: relative;
+}
+
+.copy {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0.6;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
+}
