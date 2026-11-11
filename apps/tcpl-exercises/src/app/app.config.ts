@@ -35,6 +35,7 @@ import {
 import { provideEnvironment } from '@org/environment';
 import { provideLogMetaReducer } from '@org/logger';
 import { provideTheme } from '@org/theme';
+import { provideNzConfig } from 'ng-zorro-antd/core/config';
 import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
@@ -81,6 +82,9 @@ export const appConfig: ApplicationConfig = {
     ),
     // Must come after provideHttpClient so it overrides withFetch()'s backend.
     provideAppCheckBackend(),
+    provideNzConfig({
+      message: { nzMaxStack: 1 },
+    }),
     provideNzI18n(en_US),
     provideNzDateFnsAdapter(),
     provideNzIcons([
