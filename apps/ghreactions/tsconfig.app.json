@@ -8,22 +8,25 @@
   "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts"],
   "references": [
     {
-      "path": "../../libs/server/tsconfig.lib.json"
+      "path": "../../libs/redis/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/redis/tsconfig.lib.json"
+      "path": "../../libs/server/tsconfig.lib.json"
     },
     {
       "path": "../../libs/ghreactions-github/tsconfig.lib.json"
     },
     {
-      "path": "../../libs/theme/tsconfig.lib.json"
-    },
-    {
       "path": "../../libs/firebase/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/theme/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/environment/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/auth/tsconfig.lib.json"
     }
   ]
 }

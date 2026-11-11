@@ -1,3 +1,4 @@
+import { ssrRequestContext } from '@org/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { rateLimitMiddleware, ratelimitProvider } from './rate-limit';
@@ -6,7 +7,24 @@ import { rateLimitMiddleware, ratelimitProvider } from './rate-limit';
 let mockLimit: Mock;
 
 function makeReq(token?: string) {
-  return { headers: { 'x-firebase-appcheck': token } } as any;
+  return {
+    headers: { 'x-firebase-appcheck': token },
+    socket: { remoteAddress: '203.0.113.7' },
+  } as any;
+}
+
+// A request carrying this process's real loopback token, as SSR sends it.
+function makeLoopbackReq() {
+  const { loopbackHeaders } = ssrRequestContext({
+    socket: { localPort: 4000 },
+    headers: {},
+    protocol: 'http',
+    get: () => 'localhost:4000',
+  } as any);
+  return {
+    headers: loopbackHeaders,
+    socket: { remoteAddress: '127.0.0.1' },
+  } as any;
 }
 
 function makeRes() {
@@ -27,6 +45,13 @@ afterEach(() => {
 });
 
 describe('rateLimitMiddleware', () => {
+  it("skips SSR's own loopback calls without touching the limiter", async () => {
+    const next = vi.fn();
+    await rateLimitMiddleware(makeLoopbackReq(), makeRes(), next);
+    expect(next).toHaveBeenCalled();
+    expect(mockLimit).not.toHaveBeenCalled();
+  });
+
   it('calls next() when under the limit', async () => {
     mockLimit.mockResolvedValue({
       success: true,

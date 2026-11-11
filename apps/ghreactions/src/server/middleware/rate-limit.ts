@@ -1,5 +1,9 @@
 import { redisKey, redisProvider } from '@org/redis';
-import { createProvider, serializeError } from '@org/server';
+import {
+  createProvider,
+  isSsrLoopbackRequest,
+  serializeError,
+} from '@org/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
@@ -14,6 +18,13 @@ export const ratelimitProvider = createProvider(
 );
 
 export const rateLimitMiddleware: RequestHandler = async (req, res, next) => {
+  // SSR's own API calls have no App Check token to key on, so they'd all
+  // share one bucket. They come from this process, not a visitor.
+  if (isSsrLoopbackRequest(req)) {
+    next();
+    return;
+  }
+
   const identifier = req.headers['x-firebase-appcheck'] as string;
 
   try {

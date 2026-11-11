@@ -22,6 +22,7 @@
       "@org/window": ["./libs/window/src/index.ts"],
       "@org/theme": ["./libs/theme/src/index.ts"],
       "@org/auth": ["./libs/auth/src/index.ts"],
+      "@org/auth/http": ["./libs/auth/src/http.ts"],
       "@org/server": ["./libs/server/src/index.ts"],
       "@org/server/core": ["./libs/server/src/core.ts"],
       "@org/logger": ["./libs/logger/src/index.ts"],

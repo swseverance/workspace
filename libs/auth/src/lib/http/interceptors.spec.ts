@@ -12,9 +12,13 @@ import { PLATFORM_ID, REQUEST, REQUEST_CONTEXT } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import type { SsrRequestContext } from '@org/server';
 import { WINDOW } from '@org/window';
-import { provideSsrTransferCacheOrigins } from '../provide-auth';
 import { absoluteUrlInterceptor } from './absolute-url.interceptor';
-import { forwardCookieInterceptor } from './forward-cookie.interceptor';
+import {
+  forwardCookieInterceptor,
+  ssrLoopbackInterceptor,
+} from './forward-cookie.interceptor';
+import { provideSsrHttp } from './provide-http-client';
+import { provideSsrTransferCacheOrigins } from './ssr-transfer-cache-origins';
 
 const context: SsrRequestContext = {
   loopbackOrigin: 'http://localhost:8080',
@@ -72,6 +76,64 @@ describe('forwardCookieInterceptor', () => {
     http.get('/api/session').subscribe();
 
     backend.expectOne('/api/session');
+  });
+});
+
+describe('ssrLoopbackInterceptor without forwardCookie', () => {
+  it('sends SSR calls to the loopback origin with the token but no cookie', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(
+          withInterceptors([ssrLoopbackInterceptor({ forwardCookie: false })]),
+        ),
+        provideHttpClientTesting(),
+        {
+          provide: REQUEST,
+          useValue: new Request('https://app.example.com/', {
+            headers: { cookie: '__session=abc' },
+          }),
+        },
+        { provide: REQUEST_CONTEXT, useValue: context },
+      ],
+    });
+
+    TestBed.inject(HttpClient).get('/api/profile/x').subscribe();
+    const req = TestBed.inject(HttpTestingController).expectOne(
+      'http://localhost:8080/api/profile/x',
+    );
+
+    expect(req.request.headers.get('x-ssr-loopback-token')).toBe('secret');
+    expect(req.request.headers.has('Cookie')).toBe(false);
+  });
+});
+
+describe.each([
+  [true, '__session=abc'],
+  [false, null],
+])('provideSsrHttp({ forwardCookie: %s })', (forwardCookie, expectedCookie) => {
+  it('routes SSR calls through the loopback', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideSsrHttp({ forwardCookie }),
+        provideHttpClientTesting(),
+        { provide: PLATFORM_ID, useValue: 'server' },
+        {
+          provide: REQUEST,
+          useValue: new Request('https://app.example.com/', {
+            headers: { cookie: '__session=abc' },
+          }),
+        },
+        { provide: REQUEST_CONTEXT, useValue: context },
+      ],
+    });
+
+    TestBed.inject(HttpClient).get('/api/x').subscribe();
+    const req = TestBed.inject(HttpTestingController).expectOne(
+      'http://localhost:8080/api/x',
+    );
+
+    expect(req.request.headers.get('x-ssr-loopback-token')).toBe('secret');
+    expect(req.request.headers.get('Cookie')).toBe(expectedCookie);
   });
 });
 
