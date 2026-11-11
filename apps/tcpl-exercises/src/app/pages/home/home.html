@@ -1,4 +1,64 @@
+<h1 nz-typography>K&amp;R Exercises</h1>
+
+<p nz-typography>
+  Work through every exercise in <em>The C Programming Language</em> without
+  leaving your browser. Write your solution, submit it, and it's compiled and
+  run against a set of tests, with any difference from the expected output
+  highlighted line by line. When you're stuck, compare with a reference
+  solution.
+</p>
+
 <a nz-button nzType="primary" routerLink="/exercises">Begin the exercises</a>
+
+<h2 nz-typography>Why K&amp;R</h2>
+
+<p nz-typography>
+  Written by Brian Kernighan and Dennis Ritchie, the creator of C,
+  <em>The C Programming Language</em> is one of the most celebrated programming
+  books ever written. It's short and precise, and it's known for its exercises:
+  they build directly on the text, leave the edge cases to you, and are famously
+  challenging. Solving them is one of the best ways to really learn C.
+</p>
+
+<h2 nz-typography>How it works</h2>
+
+<ul nz-typography>
+  <li>Pick an exercise and write your solution in the editor.</li>
+  <li>
+    Sign in with Google to save your code as you type and submit it for testing.
+  </li>
+  <li>
+    Each submission is compiled with <code>gcc -Wall -std=c17</code> and run
+    against tests that supply input, command-line arguments and files.
+  </li>
+  <li>
+    See which tests pass, exactly where your output differs, and your submission
+    history.
+  </li>
+</ul>
+
+<h2 nz-typography>Architecture</h2>
+
+<ul nz-typography>
+  <li>
+    Angular with server-side rendering and an Express API, hosted on Firebase
+    App Hosting
+  </li>
+  <li>
+    Every submission runs in its own isolated Vercel Sandbox microVM with no
+    network access and strict time limits
+  </li>
+  <li>
+    Firebase Authentication with Google sign-in, exchanged for an httpOnly
+    session cookie so pages render already signed in
+  </li>
+  <li>Firestore for your code, test results and submission history</li>
+  <li>Upstash Redis for rate limiting and anonymous totals</li>
+  <li>Firebase App Check with reCAPTCHA to protect the API</li>
+  <li>
+    NgRx for state, CodeMirror for the editor and NG-Zorro for UI components
+  </li>
+</ul>
 
 @if (analytics$ | async; as analytics) {
   @if (analytics.submissions > 0) {

@@ -3,12 +3,20 @@ import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { SeoService } from '../../services/seo-service';
 import { AnalyticsFacade } from '../../store/analytics/analytics.facade';
 
 @Component({
   selector: 'app-home',
-  imports: [AsyncPipe, DecimalPipe, RouterLink, NzButtonModule, NzCardModule],
+  imports: [
+    AsyncPipe,
+    DecimalPipe,
+    RouterLink,
+    NzButtonModule,
+    NzCardModule,
+    NzTypographyModule,
+  ],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
