@@ -1,10 +1,11 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { AuthActions, authFeature } from '@org/auth';
 import { Logger } from '@org/logger';
-import { NzMessageRef, NzMessageService } from 'ng-zorro-antd/message';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import {
   catchError,
   filter,
@@ -46,7 +47,6 @@ export class ExerciseEffects {
   private message = inject(NzMessageService);
   private logger = inject(Logger);
   private router = inject(Router);
-  private messageRef: NzMessageRef | null = null;
 
   /**
    * Leave the exercise pages and then drop their data, so the next person
@@ -160,12 +160,7 @@ export class ExerciseEffects {
     () =>
       this.actions$.pipe(
         ofType(submitExercise),
-        tap(
-          () =>
-            (this.messageRef = this.message.info('Running Tests...', {
-              nzDuration: 0,
-            })),
-        ),
+        tap(() => this.message.info('Running Tests...')),
       ),
     { dispatch: false },
   );
@@ -175,11 +170,6 @@ export class ExerciseEffects {
       this.actions$.pipe(
         ofType(exerciseSubmitted),
         tap(({ exercise }) => {
-          if (this.messageRef) {
-            this.message.remove(this.messageRef.messageId);
-            this.messageRef = null;
-          }
-
           if (exercise.compilationError) {
             this.message.error('Compilation Error');
           } else {
@@ -210,8 +200,12 @@ export class ExerciseEffects {
         ofType(submitExerciseFailed),
         tap(({ error }) => {
           this.logger.error('[exercise] submit failed:', error);
-          // TODO - CHECK IF USER WAS RATE LIMITED
-          this.message.error('Failed to Submit Exercise');
+
+          this.message.error(
+            error instanceof HttpErrorResponse && error.status === 429
+              ? 'Too many submissions. Please wait a moment and try again.'
+              : 'Failed to Submit Exercise',
+          );
         }),
       ),
     { dispatch: false },

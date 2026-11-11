@@ -111,7 +111,16 @@
       "executor": "@angular/build:unit-test",
       "options": {
         "watch": false,
-        "buildTarget": "tcpl-exercises:build:local"
+        "buildTarget": "tcpl-exercises:build:local",
+        "exclude": ["server/exercises/exercises.spec.ts"]
+      }
+    },
+    "test-exercises": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false,
+        "buildTarget": "tcpl-exercises:build:local",
+        "include": ["server/exercises/exercises.spec.ts"]
       }
     },
     "serve-static": {
