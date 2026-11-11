@@ -1,20 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Logger } from '@org/logger';
-import { catchError, map, of, switchMap, tap, timeout } from 'rxjs';
+import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { AnalyticsService } from '../../services/analytics-service';
 import {
   analyticsLoaded,
   loadAnalytics,
   loadAnalyticsFailed,
 } from './analytics.actions';
-
-/**
- * The page is server-rendered with the stats, so this caps how long it can
- * wait on them. Upstash retries with backoff when Redis is down, which
- * would otherwise hold up the home page for seconds.
- */
-export const ANALYTICS_TIMEOUT_MS = 500;
 
 @Injectable()
 export class AnalyticsEffects {
@@ -27,7 +20,6 @@ export class AnalyticsEffects {
       ofType(loadAnalytics),
       switchMap(() =>
         this.analytics.getStats().pipe(
-          timeout(ANALYTICS_TIMEOUT_MS),
           map((analytics) => analyticsLoaded({ analytics })),
           catchError((error) => of(loadAnalyticsFailed({ error }))),
         ),

@@ -2,14 +2,14 @@ import { TestBed } from '@angular/core/testing';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Action } from '@ngrx/store';
 import { Logger } from '@org/logger';
-import { firstValueFrom, NEVER, Observable, of, throwError } from 'rxjs';
+import { firstValueFrom, Observable, of, throwError } from 'rxjs';
 import { AnalyticsService } from '../../services/analytics-service';
 import {
   analyticsLoaded,
   loadAnalytics,
   loadAnalyticsFailed,
 } from './analytics.actions';
-import { ANALYTICS_TIMEOUT_MS, AnalyticsEffects } from './analytics.effects';
+import { AnalyticsEffects } from './analytics.effects';
 
 function setup(getStats: AnalyticsService['getStats']) {
   const actions$: Observable<Action> = of(loadAnalytics());
@@ -43,21 +43,5 @@ describe('AnalyticsEffects.loadAnalytics$', () => {
     await expect(firstValueFrom(effects.loadAnalytics$)).resolves.toEqual(
       loadAnalyticsFailed({ error }),
     );
-  });
-
-  it('gives up when the stats take too long', async () => {
-    vi.useFakeTimers();
-    try {
-      const effects = setup(() => NEVER);
-      const result = firstValueFrom(effects.loadAnalytics$);
-
-      await vi.advanceTimersByTimeAsync(ANALYTICS_TIMEOUT_MS);
-
-      await expect(result).resolves.toMatchObject({
-        type: loadAnalyticsFailed.type,
-      });
-    } finally {
-      vi.useRealTimers();
-    }
   });
 });
