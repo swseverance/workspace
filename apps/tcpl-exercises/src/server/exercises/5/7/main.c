@@ -5,7 +5,7 @@
 #define MAXLEN 1000    /* max length of any input line */
 #define MAXSTORE 50001 /* room for all the lines, each ended by '\0' */
 
-char *lineptr[MAXLINES]; /* pointers to text lines */
+char *lineptr[MAXLINES];  /* pointers to text lines */
 char linestore[MAXSTORE]; /* the text of the lines */
 
 int readlines(char *lineptr[], int maxlines, char *store, int storesize);

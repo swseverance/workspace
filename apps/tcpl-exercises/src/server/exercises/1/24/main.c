@@ -10,7 +10,7 @@
 /* check a C program for unmatched parentheses, brackets and braces */
 int main() {
   int c, d, want, state, line, commentline, depth, error;
-  char open[MAXDEPTH];  /* unclosed openers */
+  char open[MAXDEPTH];    /* unclosed openers */
   int openline[MAXDEPTH]; /* the line each one is on */
 
   state = CODE;

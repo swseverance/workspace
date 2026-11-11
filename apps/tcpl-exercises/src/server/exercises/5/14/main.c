@@ -25,15 +25,15 @@ int main(int argc, char *argv[]) {
   while (--argc > 0 && (*++argv)[0] == '-')
     while ((c = *++argv[0]))
       switch (c) {
-        case 'n':
-          numeric = 1;
-          break;
-        case 'r':
-          reverse = 1;
-          break;
-        default:
-          printf("sort: illegal option %c\n", c);
-          return 1;
+      case 'n':
+        numeric = 1;
+        break;
+      case 'r':
+        reverse = 1;
+        break;
+      default:
+        printf("sort: illegal option %c\n", c);
+        return 1;
       }
   if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
     quicksort((void **)lineptr, 0, nlines - 1, compare);
@@ -144,6 +144,6 @@ char *alloc(int n) {
   if (allocbuf + ALLOCSIZE - allocp >= n) { /* it fits */
     allocp += n;
     return allocp - n; /* old p */
-  } else /* not enough room */
+  } else               /* not enough room */
     return 0;
 }

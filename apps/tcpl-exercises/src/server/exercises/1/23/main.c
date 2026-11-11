@@ -46,8 +46,7 @@ int main() {
         d = getchar();
         if (d != EOF)
           putchar(d);
-      } else if ((state == STRING && c == '"') ||
-                 (state == CHAR && c == '\''))
+      } else if ((state == STRING && c == '"') || (state == CHAR && c == '\''))
         state = CODE;
       c = getchar();
     }

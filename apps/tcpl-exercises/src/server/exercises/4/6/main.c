@@ -47,7 +47,7 @@ int main() {
         printf("error: zero divisor\n");
       break;
     case '=': /* x V = : set V to x, leaving x on the stack */
-      pop();    /* V's old value */
+      pop();  /* V's old value */
       if (var >= 'A' && var <= 'Z')
         push(variable[var - 'A'] = pop());
       else
