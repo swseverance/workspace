@@ -40,7 +40,7 @@
     "emulate": {
       "dependsOn": ["build"],
       "continuous": true,
-      "command": "npm exec firebase-tools -- emulators:start --only functions --project ghreactionsdev"
+      "command": "cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- emulators:start --only functions --project ghreactionsdev"
     }
   }
 }

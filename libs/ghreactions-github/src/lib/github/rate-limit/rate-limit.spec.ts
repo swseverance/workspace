@@ -35,7 +35,7 @@ beforeEach(() => {
   redisProvider.provide({ get: mockGet, set: mockSet } as unknown as Redis);
   vi.useFakeTimers();
   vi.setSystemTime(NOW * 1000);
-  vi.stubEnv('FIREBASE_PROJECT_ID', 'proj');
+  vi.stubEnv('PROJECT_ID', 'proj');
   vi.stubEnv('ENVIRONMENT_NAME', 'test');
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });

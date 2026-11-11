@@ -22,7 +22,7 @@ beforeEach(() => {
     get: mockGet,
     pfcount: mockPfcount,
   } as unknown as Redis);
-  vi.stubEnv('FIREBASE_PROJECT_ID', 'proj');
+  vi.stubEnv('PROJECT_ID', 'proj');
   vi.stubEnv('ENVIRONMENT_NAME', 'test');
 });
 

@@ -56,6 +56,9 @@ vitest.config.*.timestamp*
 
 # Local App Hosting emulator overrides (may contain secrets)
 apphosting.emulator.yaml
+
+# Local Cloud Functions emulator secrets
+.secret.local
 apphosting.local.yaml
 
 # The book and its extracted text, kept locally for reference. Copyrighted,
