@@ -15,8 +15,6 @@ import {
   getFirestore,
 } from 'firebase/firestore';
 
-export * from './recaptcha-interceptor';
-
 declare global {
   interface Window {
     FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean;

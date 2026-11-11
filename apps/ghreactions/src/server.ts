@@ -5,6 +5,11 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import { EnvironmentName, RequestContext } from '@org/environment';
+import {
+  appCheckMiddleware,
+  SsrRequestContext,
+  ssrRequestContext,
+} from '@org/server';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
@@ -12,7 +17,6 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { analyticsHandler } from './server/api/analytics.handler';
 import { tableHandler } from './server/api/table.handler';
-import { appCheckMiddleware } from './server/middleware/appcheck';
 import { rateLimitMiddleware } from './server/middleware/rate-limit';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
@@ -21,6 +25,14 @@ const browserDistFolder = resolve(serverDistFolder, '../browser');
 initializeApp({ projectId: process.env['PROJECT_ID'] });
 
 const app = express();
+
+/**
+ * TLS ends at App Hosting's proxy, so trust the one hop in front of it for
+ * X-Forwarded-Proto. ssrRequestContext needs that to report the browser's
+ * https origin. A hop count rather than `true` keeps a client-supplied
+ * X-Forwarded-For from setting req.ip.
+ */
+app.set('trust proxy', 1);
 const angularApp = new AngularNodeAppEngine();
 
 app.use('/api/', (_req, res, next) => {
@@ -48,7 +60,8 @@ app.use(
  * Handle all other requests by rendering the Angular application.
  */
 app.use('/**', (req, res, next) => {
-  const requestContext: RequestContext = {
+  const requestContext: RequestContext & SsrRequestContext = {
+    ...ssrRequestContext(req),
     environmentName: process.env['ENVIRONMENT_NAME'] as EnvironmentName,
   };
 

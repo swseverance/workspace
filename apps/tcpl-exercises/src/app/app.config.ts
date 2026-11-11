@@ -1,19 +1,9 @@
 import { registerLocaleData } from '@angular/common';
-import {
-  provideHttpClient,
-  withFetch,
-  withInterceptors,
-} from '@angular/common/http';
 import en from '@angular/common/locales/en';
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import {
-  provideClientHydration,
-  withEventReplay,
-  withHttpTransferCacheOptions,
-} from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import {
   CheckOutline,
@@ -28,12 +18,7 @@ import {
 } from '@ant-design/icons-angular/icons';
 import { provideEffects } from '@ngrx/effects';
 import { provideState, provideStore } from '@ngrx/store';
-import {
-  absoluteUrlInterceptor,
-  forwardCookieInterceptor,
-  provideAppCheckBackend,
-  provideAuth,
-} from '@org/auth';
+import { provideCookieAuth } from '@org/auth';
 import { provideEnvironment } from '@org/environment';
 import { provideLogMetaReducer } from '@org/logger';
 import { provideTheme } from '@org/theme';
@@ -54,20 +39,6 @@ registerLocaleData(en);
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // includeRequestsWithAuthHeaders: forwardCookieInterceptor attaches a
-    // Cookie header to SSR-time API calls, which the transfer cache
-    // otherwise refuses to store at all.
-    // includeNonCacheableRequests: /api responds with Cache-Control:
-    // no-store (meant for real HTTP caches and CDNs), which the transfer
-    // cache otherwise also treats as an opt-out of its SSR-to-hydration
-    // handoff.
-    provideClientHydration(
-      withEventReplay(),
-      withHttpTransferCacheOptions({
-        includeRequestsWithAuthHeaders: true,
-        includeNonCacheableRequests: true,
-      }),
-    ),
     provideBrowserGlobalErrorListeners(),
     provideRouter(appRoutes),
     provideEnvironment(environment),
@@ -78,12 +49,6 @@ export const appConfig: ApplicationConfig = {
         dark: 'tcpl-exercises-dark-theme',
       },
     }),
-    provideHttpClient(
-      withFetch(),
-      withInterceptors([forwardCookieInterceptor, absoluteUrlInterceptor]),
-    ),
-    // Must come after provideHttpClient so it overrides withFetch()'s backend.
-    provideAppCheckBackend(),
     provideNzConfig({
       message: { nzMaxStack: 1 },
     }),
@@ -103,7 +68,7 @@ export const appConfig: ApplicationConfig = {
     provideStore(),
     provideLogMetaReducer(),
     provideEffects(),
-    provideAuth(),
+    provideCookieAuth(),
     provideState('exercise', exerciseReducer),
     provideEffects(ExerciseEffects, ChaptersEffects, SubmissionEffects),
     provideState('analytics', analyticsReducer),
