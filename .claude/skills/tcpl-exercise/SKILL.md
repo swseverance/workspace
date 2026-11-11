@@ -67,7 +67,7 @@ Name the export `exercise<chapter>_<number>`, and import the description and sol
 Once every exercise is added:
 
 ```bash
-npx nx run tcpl-exercises:test --skip-nx-cache
+npx nx run-many -t test test-exercises -p tcpl-exercises --skip-nx-cache
 npx prettier --write apps/tcpl-exercises/src/server/exercises
 ```
 
