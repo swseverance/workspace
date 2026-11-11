@@ -1,0 +1,45 @@
+@if (submissions().length === 0) {
+  <p class="empty">No submissions yet</p>
+} @else {
+  <nz-collapse nzAccordion>
+    @for (submission of submissions(); track submission.id) {
+      <nz-collapse-panel
+        [nzHeader]="submission.created | localDate"
+        [nzExtra]="statusTpl"
+        [nzActive]="activeId() === submission.id"
+        (nzActiveChange)="onPanelToggle(submission.id, $event)"
+      >
+        @if (active()?.id === submission.id) {
+          <div class="panel-content">
+            <div class="editor">
+              <app-code-editor
+                [docId]="submission.id"
+                [code]="submission.code"
+                [theme]="theme()"
+                [readonly]="true"
+              />
+            </div>
+
+            <div class="actions">
+              <button
+                nz-button
+                nzType="primary"
+                type="button"
+                (click)="apply.emit(submission)"
+              >
+                Restore
+              </button>
+            </div>
+          </div>
+        }
+
+        <ng-template #statusTpl>
+          @let tag = tagFor(submission);
+          @if (tag) {
+            <app-status [color]="tag.color">{{ tag.label }}</app-status>
+          }
+        </ng-template>
+      </nz-collapse-panel>
+    }
+  </nz-collapse>
+}

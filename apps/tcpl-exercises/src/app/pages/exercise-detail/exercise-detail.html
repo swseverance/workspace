@@ -1,0 +1,148 @@
+@let exercise = exercise$ | async;
+@let theme = theme$ | async;
+@let submissionPending = submissionPending$ | async;
+@let user = user$ | async;
+@let authStatus = authStatus$ | async;
+
+<!-- The resolver puts the exercise in the store before this page renders. -->
+@if (!exerciseFound()) {
+  <app-not-found />
+} @else if (exercise) {
+  <!-- Errors when it didn't compile, otherwise any warnings. -->
+  @let compilerOutput = exercise.compilationError || exercise.compilerWarnings;
+
+  <ng-template #compilerOutputTitle>
+    <!-- Colored with nzStyle, not nzColor: nzColor without a visible dot
+         switches nz-badge to a status dot drawn left of the text. -->
+    <nz-badge
+      [nzDot]="!!compilerOutput"
+      [nzStyle]="
+        exercise.compilationError ? null : { backgroundColor: '#faad14' }
+      "
+    >
+      <span>Compiler Output&nbsp;&nbsp;</span>
+    </nz-badge>
+  </ng-template>
+
+  <ng-template #submit>
+    <button
+      nz-button
+      nzType="primary"
+      type="button"
+      [disabled]="submissionPending || selectedTabIndex() !== 0"
+      (click)="onSubmit()"
+    >
+      Submit
+    </button>
+  </ng-template>
+
+  <div class="exercise-layout">
+    <div class="top-row">
+      <app-panel
+        class="description-panel"
+        libScrollTopOnNavigation
+        [heading]="exerciseHeading(exercise)"
+        [headingLevel]="1"
+        [loading]="exerciseLoading()"
+      >
+        <app-exercise-description [description]="exercise.description" />
+      </app-panel>
+
+      <app-panel class="code-panel">
+        <nz-tabs
+          nzDestroyInactiveTabPane
+          [nzTabBarExtraContent]="submit"
+          [nzSelectedIndex]="selectedTabIndex()"
+          (nzSelectedIndexChange)="selectedTabIndex.set($event)"
+        >
+          <nz-tab nzTitle="Code">
+            <!-- Not during noSession: the user may be mid sign-in. -->
+            @if (hydrated() && authStatus === 'signedOut') {
+              <ng-template #signInAction>
+                <button
+                  nz-button
+                  nzType="link"
+                  nzSize="small"
+                  type="button"
+                  (click)="auth.openSignInModal()"
+                >
+                  Sign in
+                </button>
+              </ng-template>
+
+              <nz-alert
+                class="sign-in-alert"
+                nzType="info"
+                nzShowIcon
+                nzMessage="Sign in to edit and submit your solution."
+                [nzAction]="signInAction"
+              />
+            }
+
+            <div class="editor-section">
+              <app-code-editor
+                [docId]="exercise.id"
+                [code]="exercise.code"
+                [theme]="theme!"
+                [readonly]="!user"
+                (codeChange)="onCodeChange($event)"
+                [loading]="exerciseLoading()"
+              />
+            </div>
+          </nz-tab>
+
+          <nz-tab [nzTitle]="compilerOutputTitle">
+            <div class="readonly-editor">
+              <app-code-editor
+                [docId]="exercise.id"
+                [code]="compilerOutput"
+                [theme]="theme!"
+                [readonly]="true"
+                language="text"
+                [loading]="exerciseLoading()"
+              />
+            </div>
+          </nz-tab>
+
+          <nz-tab nzTitle="Solution">
+            <div class="readonly-editor">
+              <app-code-editor
+                [docId]="exercise.id"
+                [code]="exercise.solution"
+                [theme]="theme!"
+                [readonly]="true"
+                [loading]="exerciseLoading()"
+              />
+            </div>
+          </nz-tab>
+        </nz-tabs>
+      </app-panel>
+    </div>
+
+    <app-panel heading="Test Cases" [loading]="exerciseLoading()">
+      @if (exercise.tests.length > 0) {
+        <div panel-extra class="legend">
+          <span class="legend-item"><app-visible-text text=" " /> space</span>
+          <span class="legend-item"><app-visible-text text="&#9;" /> tab</span>
+          <span class="legend-item"
+            ><app-visible-text [newline]="true" /> newline</span
+          >
+        </div>
+      }
+
+      <app-test-cases
+        [tests]="exercise.tests"
+        [submissionPending]="submissionPending ?? false"
+        ngSkipHydration
+      />
+    </app-panel>
+
+    <app-panel heading="Submissions" [loading]="exerciseLoading()">
+      <app-submissions
+        [submissions]="exercise.submissions"
+        [theme]="theme!"
+        (apply)="facade.applySubmission($event)"
+      />
+    </app-panel>
+  </div>
+}

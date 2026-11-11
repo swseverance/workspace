@@ -1,0 +1,111 @@
+:host {
+  display: block;
+}
+
+// [innerHTML] content doesn't get this component's style scoping, hence
+// ::ng-deep, kept under .description so it can't leak elsewhere.
+.description ::ng-deep {
+  line-height: 1.6;
+
+  p,
+  ul,
+  ol,
+  pre,
+  table,
+  blockquote {
+    margin: 0 0 0.75em;
+  }
+
+  h3,
+  h4 {
+    margin: 1.25em 0 0.5em;
+    font-size: 1.05em;
+    font-weight: 600;
+  }
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    padding: 0.25em 0.75em;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  th {
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  blockquote {
+    padding: 0.5em 1em;
+    border-left: 3px solid #1890ff;
+    background: rgba(24, 144, 255, 0.06);
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+
+  ul,
+  ol {
+    padding-left: 1.5em;
+  }
+
+  code {
+    font-family: monospace;
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  pre {
+    padding: 0.75em 1em;
+    overflow-x: auto;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.04);
+
+    code {
+      padding: 0;
+      background: none;
+    }
+  }
+}
+
+:host-context(.tcpl-exercises-dark-theme) .description ::ng-deep {
+  th,
+  td {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  th {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  blockquote {
+    border-left-color: #177ddc;
+    background: rgba(23, 125, 220, 0.12);
+  }
+
+  code {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  pre {
+    background: rgba(255, 255, 255, 0.06);
+
+    code {
+      background: none;
+    }
+  }
+}

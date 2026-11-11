@@ -1,0 +1,3 @@
+Write a routine `bfree(p,n)` that will free any arbitrary block `p` of `n` characters into the free list maintained by `malloc` and `free`. By using `bfree`, a user can add a static or external array to the free list at any time.
+
+Here `bfree` adds to the list kept by `kr_malloc` and `kr_free`; `p` need not be aligned, and a block too small to hold a header and some space is ignored. Use it in a program with a static array `arena` of 10,000 characters, whose input lines are commands. `bfree off n` calls `bfree(arena + off, n)`. `malloc n` calls `kr_malloc(n)` and prints `arena` if the block is inside `arena`, `heap` if it isn't, or `NULL`. `free` frees the block from the latest `malloc`.

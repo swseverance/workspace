@@ -1,0 +1,115 @@
+@use 'breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--tc-muted);
+
+  app-visible-text {
+    font-family: var(--tc-code-font);
+    font-size: 16px;
+    --tc-glyph: currentColor;
+  }
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.exercise-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+// On desktop the description and editor fill the visible height, each
+// scrolling on its own, so the editor, its tabs and Submit stay in view
+// however long the description is. The test cases and submissions are below.
+// 100cqh is the height of .detail (exercises.scss) inside its padding.
+.top-row {
+  display: flex;
+  gap: 16px;
+  height: 100cqh;
+  min-height: 480px; // a short window scrolls the page instead
+
+  > app-panel {
+    flex: 1 1 50%;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  @include bp.mobile {
+    flex-direction: column;
+    height: auto;
+    min-height: 0;
+
+    > app-panel {
+      flex-basis: auto;
+    }
+  }
+}
+
+.description-panel {
+  overflow-y: auto;
+
+  @include bp.mobile {
+    overflow-y: visible;
+  }
+}
+
+// The editor fills whatever height the panel has, so the flex column has to
+// run down through nz-tabs' own wrappers to the active pane.
+.code-panel {
+  display: flex;
+  flex-direction: column;
+
+  nz-tabs {
+    flex: 1;
+    min-height: 0;
+    margin-top: -12px;
+  }
+
+  ::ng-deep {
+    .ant-tabs-content-holder,
+    .ant-tabs-content,
+    .ant-tabs-tabpane-active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+  }
+}
+
+.sign-in-alert {
+  margin-bottom: 12px;
+}
+
+// Fills the rest of the code panel; CodeMirror scrolls inside it.
+.editor-section,
+.readonly-editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  app-code-editor {
+    flex: 1;
+    min-height: 0;
+  }
+
+  // Stacked on mobile, nothing beside the panel sets its height, and the
+  // editor's height: 100% only resolves against a definite height. flex: none
+  // because flex: 1's zero basis would override the height.
+  @include bp.mobile {
+    flex: none;
+    height: 50vh;
+  }
+}

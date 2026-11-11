@@ -1,7 +1,7 @@
+import { serializeError } from '@org/server';
 import { RequestHandler } from 'express';
 import { getAppCheck } from 'firebase-admin/app-check';
 import * as logger from 'firebase-functions/logger';
-import { serializeError } from '../serialize-error';
 
 export const appCheckMiddleware: RequestHandler = async (req, res, next) => {
   try {

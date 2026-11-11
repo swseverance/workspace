@@ -1,17 +1,9 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  MockInstance,
-  vi,
-} from 'vitest';
-import { ratelimit, rateLimitMiddleware } from './rate-limit';
+import { Ratelimit } from '@upstash/ratelimit';
+import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { rateLimitMiddleware, ratelimitProvider } from './rate-limit';
 
-// Spy on the shared limiter rather than vi.mock('@upstash/ratelimit'): the
-// test runner doesn't isolate spec files, so module mocks are order-dependent.
-let mockLimit: MockInstance;
+// Provide a fake limiter so no real Upstash client is ever built.
+let mockLimit: Mock;
 
 function makeReq(token?: string) {
   return { headers: { 'x-firebase-appcheck': token } } as any;
@@ -24,11 +16,15 @@ function makeRes() {
 }
 
 beforeEach(() => {
-  mockLimit = vi.spyOn(ratelimit, 'limit');
+  mockLimit = vi.fn();
+  ratelimitProvider.provide({ limit: mockLimit } as unknown as Ratelimit);
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  ratelimitProvider.reset();
+  vi.restoreAllMocks();
+});
 
 describe('rateLimitMiddleware', () => {
   it('calls next() when under the limit', async () => {

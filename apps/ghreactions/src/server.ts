@@ -15,10 +15,6 @@ import { tableHandler } from './server/api/table.handler';
 import { appCheckMiddleware } from './server/middleware/appcheck';
 import { rateLimitMiddleware } from './server/middleware/rate-limit';
 
-if (process.env['ENVIRONMENT_NAME'] === 'prod') {
-  process.env['NG_ALLOWED_HOSTS'] += ',ghreactions.io';
-}
-
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 

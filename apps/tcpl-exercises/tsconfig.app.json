@@ -11,7 +11,13 @@
       "path": "../../libs/server/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/ui/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/theme/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/logger/tsconfig.lib.json"
     },
     {
       "path": "../../libs/environment/tsconfig.lib.json"

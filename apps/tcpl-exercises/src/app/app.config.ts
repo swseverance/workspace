@@ -1,8 +1,10 @@
+import { registerLocaleData } from '@angular/common';
 import {
   provideHttpClient,
   withFetch,
   withInterceptors,
 } from '@angular/common/http';
+import en from '@angular/common/locales/en';
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
@@ -13,8 +15,17 @@ import {
   withHttpTransferCacheOptions,
 } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import {
+  GithubOutline,
+  LoginOutline,
+  LogoutOutline,
+  MenuFoldOutline,
+  MenuUnfoldOutline,
+  MoonOutline,
+  SunOutline,
+} from '@ant-design/icons-angular/icons';
 import { provideEffects } from '@ngrx/effects';
-import { provideStore } from '@ngrx/store';
+import { provideState, provideStore } from '@ngrx/store';
 import {
   absoluteUrlInterceptor,
   forwardCookieInterceptor,
@@ -22,9 +33,22 @@ import {
   provideAuth,
 } from '@org/auth';
 import { provideEnvironment } from '@org/environment';
+import { provideLogMetaReducer } from '@org/logger';
 import { provideTheme } from '@org/theme';
+import { provideNzConfig } from 'ng-zorro-antd/core/config';
+import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
+import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
+import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { environment } from '../environments/environment';
 import { appRoutes } from './app.routes';
+import { AnalyticsEffects } from './store/analytics/analytics.effects';
+import { analyticsReducer } from './store/analytics/analytics.reducer';
+import { ChaptersEffects } from './store/exercise/chapters.effects';
+import { ExerciseEffects } from './store/exercise/exercise.effects';
+import { exerciseReducer } from './store/exercise/exercise.reducer';
+import { SubmissionEffects } from './store/exercise/submission.effects';
+
+registerLocaleData(en);
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -58,8 +82,27 @@ export const appConfig: ApplicationConfig = {
     ),
     // Must come after provideHttpClient so it overrides withFetch()'s backend.
     provideAppCheckBackend(),
+    provideNzConfig({
+      message: { nzMaxStack: 1 },
+    }),
+    provideNzI18n(en_US),
+    provideNzDateFnsAdapter(),
+    provideNzIcons([
+      GithubOutline,
+      LoginOutline,
+      LogoutOutline,
+      MenuFoldOutline,
+      MenuUnfoldOutline,
+      MoonOutline,
+      SunOutline,
+    ]),
     provideStore(),
+    provideLogMetaReducer(),
     provideEffects(),
     provideAuth(),
+    provideState('exercise', exerciseReducer),
+    provideEffects(ExerciseEffects, ChaptersEffects, SubmissionEffects),
+    provideState('analytics', analyticsReducer),
+    provideEffects(AnalyticsEffects),
   ],
 };

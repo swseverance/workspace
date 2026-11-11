@@ -18,14 +18,9 @@
   }
 }
 
-// The search button's column is left unstyled on purpose: with no span
-// of its own, it naturally wraps onto its own line after the field
-// columns above fill exactly two full rows on mobile (12 + 12 = 24,
-// twice), or sits inline after them on desktop once they're fixed-width
-// — either way sized to its own content, never stretched.
-
+nz-form-control,
 button {
-  height: 34px;
+  min-height: 34px;
 }
 
 section {

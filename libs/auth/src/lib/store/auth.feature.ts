@@ -12,8 +12,8 @@ import { AuthActions } from './auth.actions';
  *   created. Route guards wait.
  * - `signedIn`: the server holds a valid session cookie for `user`, so API
  *   calls made now are authenticated.
- * - `signedOut`: confirmed signed out (by Firebase, or the cookie couldn't
- *   be created).
+ * - `signedOut`: no usable session: Firebase has no user, or it has one
+ *   but the session cookie couldn't be created.
  */
 export type AuthStatus =
   'unknown' | 'noSession' | 'signingIn' | 'signedIn' | 'signedOut';
@@ -37,28 +37,43 @@ export const authFeature = createFeature({
     on(AuthActions.sessionLoaded, (_state, { user }): AuthState =>
       user ? { status: 'signedIn', user } : { status: 'noSession', user: null },
     ),
+    // The server couldn't confirm a session. Treated like none rather than
+    // left unknown, which would hold up route guards indefinitely.
+    on(AuthActions.loadSessionFailed, (): AuthState => ({
+      status: 'noSession',
+      user: null,
+    })),
     on(AuthActions.firebaseUserChanged, (state, { user }): AuthState => {
-      if (!user) {
+      if (user) {
+        // Already have a session for this user (cookie re-validated in the
+        // background), so stay signed in rather than flicker.
+        if (state.status === 'signedIn' && state.user.uid === user.uid) {
+          return state;
+        }
+
+        // We do NOT yet flag this user as signed in. We are going to wait
+        // for the app to send the user's idToken to the server and the
+        // server to respond. If the server created a cookie, it's attached
+        // to the response via headers. If it validated the existing cookie,
+        // it responds 200 with { status: 'valid' }. Only THEN will we
+        // consider them signed in.
+        return { status: 'signingIn', user: null };
+      } else {
         return signedOut;
       }
-
-      // Already have a session for this user (cookie re-validated in the
-      // background), so stay signed in rather than flicker.
-      if (state.status === 'signedIn' && state.user.uid === user.uid) {
-        return state;
-      }
-
-      return { status: 'signingIn', user: null };
     }),
     on(
       AuthActions.cookieCreated,
       AuthActions.cookieValidated,
       (_state, { user }): AuthState => ({ status: 'signedIn', user }),
     ),
+    // Firebase still has the user, but no session could be confirmed. An
+    // existing session cookie is still good, so keep it; otherwise there's
+    // no usable session and the API would reject calls.
     on(
       AuthActions.loadTokenFailed,
       AuthActions.validateCookieFailed,
-      (): AuthState => signedOut,
+      (state): AuthState => (state.status === 'signedIn' ? state : signedOut),
     ),
   ),
 });

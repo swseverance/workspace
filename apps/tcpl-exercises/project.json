@@ -19,6 +19,11 @@
           {
             "glob": "**/*",
             "input": "apps/tcpl-exercises/public"
+          },
+          {
+            "glob": "**/*",
+            "input": "node_modules/@ant-design/icons-angular/src/inline-svg/",
+            "output": "/assets/"
           }
         ],
         "styles": [
@@ -32,6 +37,9 @@
           },
           "apps/tcpl-exercises/src/styles.scss"
         ],
+        "stylePreprocessorOptions": {
+          "includePaths": ["apps/tcpl-exercises/src/styles"]
+        },
         "server": "apps/tcpl-exercises/src/main.server.ts",
         "ssr": {
           "entry": "apps/tcpl-exercises/src/server.ts"
@@ -103,7 +111,16 @@
       "executor": "@angular/build:unit-test",
       "options": {
         "watch": false,
-        "buildTarget": "tcpl-exercises:build:local"
+        "buildTarget": "tcpl-exercises:build:local",
+        "exclude": ["server/exercises/exercises.spec.ts"]
+      }
+    },
+    "test-exercises": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false,
+        "buildTarget": "tcpl-exercises:build:local",
+        "include": ["server/exercises/exercises.spec.ts"]
       }
     },
     "serve-static": {

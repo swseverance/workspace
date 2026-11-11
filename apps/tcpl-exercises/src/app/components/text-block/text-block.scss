@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.lines,
+.empty {
+  border: 1px solid var(--tc-code-border);
+  border-radius: 6px;
+  background: var(--tc-code-bg);
+  font-family: var(--tc-code-font);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.lines {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  max-height: 320px;
+  padding: 6px 0;
+  overflow: auto;
+}
+
+.number {
+  padding: 0 10px 0 12px;
+  text-align: right;
+  color: var(--tc-gutter);
+  user-select: none;
+}
+
+app-visible-text {
+  padding-right: 12px;
+}
+
+.hidden-lines {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  padding: 2px 12px;
+  border-top: 1px dashed var(--tc-code-border);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color: var(--tc-muted);
+}
+
+.empty {
+  padding: 6px 12px;
+  font-family: inherit;
+  font-style: italic;
+  color: var(--tc-muted);
+}
+
+.lines.error {
+  border-color: var(--tc-error-border);
+  background: var(--tc-error-bg);
+  color: var(--tc-error-text);
+}

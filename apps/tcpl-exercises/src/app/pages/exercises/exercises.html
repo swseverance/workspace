@@ -1,0 +1,42 @@
+<!-- No @let for the chapters: Angular's post-hydration cleanup mistakes a
+     @let array whose second element is an object for one of its own views,
+     and with seven or more chapters it writes to chapters[6], which NgRx has
+     frozen ("Cannot add property i18nNodes, object is not extensible"). -->
+@if (open() !== false) {
+  <nav class="sidebar" aria-label="Exercises">
+    <ul id="exercise-menu" nz-menu nzMode="inline">
+      @for (chapter of (chapters$ | async) ?? []; track chapter.number) {
+        <li nz-menu-group [nzTitle]="'Chapter ' + chapter.number">
+          <ul>
+            @for (exercise of chapter.exercises; track exercise.id) {
+              <li nz-menu-item nzMatchRouter>
+                <a
+                  [routerLink]="[exercise.id]"
+                  class="link"
+                  (click)="sidebar.closeOnMobile()"
+                >
+                  <span
+                    >Exercise {{ exercise.chapter }}-{{ exercise.number
+                    }}{{ exercise.suffix ?? '' }}</span
+                  >
+
+                  @if (exercise.status !== 'indeterminate') {
+                    <app-status
+                      size="small"
+                      [color]="statusColors[exercise.status]"
+                      >{{ statusLabels[exercise.status] }}</app-status
+                    >
+                  }
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+      }
+    </ul>
+  </nav>
+}
+
+<section class="detail" libScrollTopOnNavigation>
+  <router-outlet />
+</section>

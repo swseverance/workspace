@@ -1,7 +1,7 @@
+import { serializeError } from '@org/server';
 import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
 import { analytics } from '../analytics/analytics';
-import { serializeError } from '../serialize-error';
 
 export const analyticsHandler: RequestHandler = async (_req, res) => {
   try {

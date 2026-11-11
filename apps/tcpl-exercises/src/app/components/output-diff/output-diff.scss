@@ -1,0 +1,128 @@
+:host {
+  display: block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  max-height: 480px;
+  padding-bottom: 4px;
+  overflow: auto;
+  border: 1px solid var(--tc-code-border);
+  border-radius: 6px;
+  background: var(--tc-code-bg);
+  font-family: var(--tc-code-font);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  grid-column: span 2;
+  padding: 4px 12px;
+  border-bottom: 1px solid var(--tc-code-border);
+  background: var(--tc-code-bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tc-muted);
+
+  &.actual {
+    border-left: 1px solid var(--tc-code-border);
+  }
+}
+
+.row {
+  display: contents;
+}
+
+.number {
+  padding: 0 10px 0 12px;
+  text-align: right;
+  color: var(--tc-gutter);
+  user-select: none;
+}
+
+// The divider between the two sides.
+.row > :nth-child(3) {
+  border-left: 1px solid var(--tc-code-border);
+}
+
+.line {
+  min-width: 0;
+  padding-right: 12px;
+}
+
+.line.expected {
+  --changed-bg: var(--tc-expected-mark);
+}
+
+.line.actual {
+  --changed-bg: var(--tc-actual-mark);
+}
+
+// A side with no line here: hatched so the gap reads as "nothing printed".
+.blank {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 6px,
+    var(--tc-blank) 6px 12px
+  );
+}
+
+.changed,
+.missing {
+  > .expected {
+    background: var(--tc-expected-row);
+  }
+
+  > .number.expected {
+    box-shadow: inset 3px 0 var(--tc-expected-edge);
+  }
+}
+
+.changed,
+.extra {
+  > .actual {
+    background: var(--tc-actual-row);
+  }
+
+  > .number.actual {
+    box-shadow: inset 3px 0 var(--tc-actual-edge);
+  }
+}
+
+.fold {
+  grid-column: 1 / -1;
+  margin: 2px 0;
+  padding: 2px 12px;
+  border: none;
+  border-block: 1px dashed var(--tc-code-border);
+  background: var(--tc-blank);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: var(--tc-muted);
+}
+
+// Only folds small enough to show in full are buttons.
+button.fold {
+  cursor: pointer;
+
+  &:hover {
+    color: inherit;
+  }
+}
+
+.hidden-lines {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+  padding: 2px 12px;
+  border-top: 1px dashed var(--tc-code-border);
+  font-size: 13px;
+  color: var(--tc-muted);
+}

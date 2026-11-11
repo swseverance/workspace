@@ -27,4 +27,4 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
 
       - name: Test, build & typecheck affected projects
-        run: npx nx affected -t test build typecheck --parallel=3
+        run: npx nx affected -t test test-exercises build typecheck --parallel=3

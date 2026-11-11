@@ -1,3 +1,11 @@
+# Two instances, not apphosting.yaml's one: grading waits on the sandbox,
+# so a slow or restarting instance shouldn't hold up every submission.
+# The whole runConfig is repeated, since the docs don't say whether an
+# environment's runConfig merges with the base one or replaces it.
+runConfig:
+  minInstances: 0
+  maxInstances: 2
+
 scripts:
   buildCommand: npx nx build tcpl-exercises --configuration=production
   runCommand: node dist/apps/tcpl-exercises/server/server.mjs
@@ -21,5 +29,10 @@ env:
       - RUNTIME
   - variable: ENVIRONMENT_NAME
     value: prod
+    availability:
+      - RUNTIME
+  # Origin for canonical links and the sitemap.
+  - variable: SITE_URL
+    value: https://kandrexercises.com
     availability:
       - RUNTIME

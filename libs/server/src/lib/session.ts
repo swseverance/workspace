@@ -83,17 +83,6 @@ export const createSessionHandler: RequestHandler<
   CreateSessionResponseBody | ErrorResponseBody,
   Partial<CreateSessionRequestBody> | undefined
 > = async (req, res) => {
-  // The client POSTs here on every page load (it's Firebase's
-  // onAuthStateChanged reporting the restored user, not necessarily a fresh
-  // sign-in), but it can't tell whether the existing cookie is still good:
-  // __session is httpOnly, invisible to client JS. The server already knows,
-  // having just verified it for this same request, so skip re-minting
-  // entirely when it's already valid.
-  if (req.user) {
-    res.status(200).json({ status: 'valid' });
-    return;
-  }
-
   const idToken = req.body?.idToken;
 
   if (typeof idToken !== 'string' || !idToken) {
@@ -102,6 +91,23 @@ export const createSessionHandler: RequestHandler<
   }
 
   try {
+    // The client POSTs here on every page load (it's Firebase's
+    // onAuthStateChanged reporting the restored user, not necessarily a
+    // fresh sign-in), but it can't tell whether the existing cookie is still
+    // good: __session is httpOnly, invisible to client JS. The server
+    // already verified it for this same request, so skip re-minting when
+    // it's valid and belongs to the token's user. A cookie for another
+    // account (one whose clear failed before a different sign-in) is
+    // replaced, or the API would act as the old user.
+    if (req.user) {
+      const { uid } = await getAuth().verifyIdToken(idToken);
+
+      if (uid === req.user.uid) {
+        res.status(200).json({ status: 'valid' });
+        return;
+      }
+    }
+
     const sessionCookie = await getAuth().createSessionCookie(idToken, {
       expiresIn: SESSION_MAX_AGE_MS,
     });

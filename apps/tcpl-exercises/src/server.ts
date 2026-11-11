@@ -11,14 +11,33 @@ import {
   firebaseAuthProxy,
   getSessionHandler,
   logHandler,
+  requireUserMiddleware,
   ssrRequestContext,
   verifySessionCookieMiddleware,
+  type SsrRequestContext,
 } from '@org/server';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getAnalyticsHandler } from './server/api/analytics.handler';
+import { getChaptersHandler } from './server/api/chapters.handler';
+import {
+  getExerciseHandler,
+  saveExerciseCodeHandler,
+  submitExerciseHandler,
+} from './server/api/exercise.handler';
+import { exerciseExistsMiddleware } from './server/middleware/exercise-exists/exercise-exists';
+import { submitExerciseRateLimitMiddleware } from './server/middleware/rate-limit/rate-limit';
+import {
+  exercisesIndexRedirectHandler,
+  noindexOutsideProdMiddleware,
+  robotsHandler,
+  siteUrl,
+  sitemapHandler,
+} from './server/seo/seo';
+import type { SiteUrlRequestContext } from './shared/site-url';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -37,6 +56,8 @@ const angularApp = new AngularNodeAppEngine();
  * than `true` keeps a client-supplied X-Forwarded-For from setting req.ip.
  */
 app.set('trust proxy', 1);
+
+app.use(noindexOutsideProdMiddleware);
 
 /**
  * Firebase Auth's sign-in redirect helpers, served from this domain.
@@ -75,12 +96,39 @@ app.delete('/api/session', deleteSessionHandler);
 
 app.post('/api/logs', logHandler);
 
+app.get('/api/analytics', getAnalyticsHandler);
+app.get('/api/chapters', getChaptersHandler);
+app.get('/api/exercises/:id', exerciseExistsMiddleware, getExerciseHandler);
+app.put(
+  '/api/exercises/:id/code',
+  requireUserMiddleware,
+  exerciseExistsMiddleware,
+  saveExerciseCodeHandler,
+);
+// Submitting runs code in a paid Vercel Sandbox, hence the rate limit.
+app.post(
+  '/api/exercises/:id/submit',
+  requireUserMiddleware,
+  exerciseExistsMiddleware,
+  submitExerciseRateLimitMiddleware,
+  submitExerciseHandler,
+);
+
+app.get('/robots.txt', robotsHandler);
+app.get('/sitemap.xml', sitemapHandler);
+app.get('/exercises', exercisesIndexRedirectHandler);
+
 /**
  * Handle all other requests by rendering the Angular application.
  */
 app.use('/**', (req, res, next) => {
+  const context: SsrRequestContext & SiteUrlRequestContext = {
+    ...ssrRequestContext(req),
+    siteUrl: siteUrl(),
+  };
+
   angularApp
-    .handle(req, ssrRequestContext(req))
+    .handle(req, context)
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )

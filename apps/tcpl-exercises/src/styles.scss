@@ -1,1 +1,43 @@
 /* You can add global styles to this file, and also import other style files */
+
+// Colours for test case input/output blocks and diffs.
+:root {
+  --tc-code-font: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --tc-code-bg: #fafafa;
+  --tc-code-border: #f0f0f0;
+  --tc-muted: rgba(0, 0, 0, 0.45);
+  --tc-gutter: rgba(0, 0, 0, 0.28);
+  --tc-glyph: rgba(0, 0, 0, 0.22);
+  --tc-control: #c41d7f;
+  --tc-control-bg: rgba(196, 29, 127, 0.1);
+  --tc-expected-row: rgba(82, 196, 26, 0.08);
+  --tc-expected-mark: rgba(82, 196, 26, 0.32);
+  --tc-expected-edge: #52c41a;
+  --tc-actual-row: rgba(255, 77, 79, 0.07);
+  --tc-actual-mark: rgba(255, 77, 79, 0.3);
+  --tc-actual-edge: #ff4d4f;
+  --tc-blank: rgba(0, 0, 0, 0.035);
+  --tc-error-bg: #fff8f7;
+  --tc-error-border: #ffccc7;
+  --tc-error-text: #a8071a;
+}
+
+.tcpl-exercises-dark-theme {
+  --tc-code-bg: #1d1d1d;
+  --tc-code-border: #303030;
+  --tc-muted: rgba(255, 255, 255, 0.45);
+  --tc-gutter: rgba(255, 255, 255, 0.3);
+  --tc-glyph: rgba(255, 255, 255, 0.22);
+  --tc-control: #f759ab;
+  --tc-control-bg: rgba(247, 89, 171, 0.15);
+  --tc-expected-row: rgba(115, 209, 61, 0.09);
+  --tc-expected-mark: rgba(115, 209, 61, 0.32);
+  --tc-expected-edge: #73d13d;
+  --tc-actual-row: rgba(255, 120, 117, 0.09);
+  --tc-actual-mark: rgba(255, 120, 117, 0.32);
+  --tc-actual-edge: #ff7875;
+  --tc-blank: rgba(255, 255, 255, 0.03);
+  --tc-error-bg: rgba(207, 19, 34, 0.1);
+  --tc-error-border: rgba(255, 120, 117, 0.35);
+  --tc-error-text: #ff7875;
+}

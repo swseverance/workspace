@@ -30,6 +30,9 @@
   "references": [
     {
       "path": "../server/tsconfig.lib.json"
+    },
+    {
+      "path": "../environment/tsconfig.lib.json"
     }
   ]
 }

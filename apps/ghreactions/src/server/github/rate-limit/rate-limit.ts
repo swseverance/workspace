@@ -1,7 +1,7 @@
+import { redisKey, serializeError } from '@org/server';
 import * as logger from 'firebase-functions/logger';
 import { RateLimitError } from '../../../models/errors';
-import { redis, redisKey } from '../../redis/redis';
-import { serializeError } from '../../serialize-error';
+import { redisProvider } from '../../redis/redis';
 
 // Stop calling GitHub once fewer than this many points remain in the window,
 // leaving headroom for requests already in flight.
@@ -82,7 +82,7 @@ export function retryAt(
 export async function checkRateLimit(): Promise<void> {
   let blockedUntil: number | null;
   try {
-    blockedUntil = await redis.get<number>(blockedUntilKey());
+    blockedUntil = await redisProvider.get().get<number>(blockedUntilKey());
   } catch (err) {
     logger.error('[GitHub rate limit] read failed:', serializeError(err));
     return; // fail open
@@ -97,7 +97,7 @@ export async function checkRateLimit(): Promise<void> {
 export async function blockUntil(until: number): Promise<void> {
   if (until <= nowSeconds()) return;
   try {
-    await redis.set(blockedUntilKey(), until, { exat: until });
+    await redisProvider.get().set(blockedUntilKey(), until, { exat: until });
   } catch (err) {
     logger.error('[GitHub rate limit] write failed:', serializeError(err));
   }
