@@ -3,6 +3,7 @@ import {
   IssueSearchResponse,
   RawIssue,
   ReactionsFilter,
+  SearchSort,
 } from '../../../models/github';
 import { GHReactionsRow, TablePage } from '../../../models/table';
 import { issueQuerySchema } from '../../validators/validators';
@@ -13,6 +14,8 @@ import {
   totalReactions,
 } from '../client/client';
 import { fillPage } from '../client/fill-page';
+
+type SearchParams = z.infer<typeof issueQuerySchema> & { sort?: SearchSort };
 
 const query = `
   query($queryString: String!, $limit: Int!, $cursor: String) {
@@ -37,8 +40,9 @@ export const buildQueryString = ({
   username,
   state,
   reactions,
-}: z.infer<typeof issueQuerySchema>): string => {
-  const parts = [`author:${username}`, 'is:issue', 'sort:updated-desc'];
+  sort = 'updated',
+}: SearchParams): string => {
+  const parts = [`author:${username}`, 'is:issue', `sort:${sort}-desc`];
   if (state?.length === 1) parts.push(`state:${state[0].toLowerCase()}`);
   if (reactions?.length === 1) {
     if (reactions[0] === ReactionsFilter.WithReactions)
@@ -65,9 +69,7 @@ const fromNode = ({
   total: totalReactions(reactionGroups),
 });
 
-export const fetchIssues = async (
-  params: z.infer<typeof issueQuerySchema>,
-): Promise<TablePage> => {
+export const fetchIssues = async (params: SearchParams): Promise<TablePage> => {
   const queryString = buildQueryString(params);
   return fillPage(async (limit, cursor) => {
     const data = await githubClient.gql<IssueSearchResponse>(query, {

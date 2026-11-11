@@ -1,7 +1,11 @@
 import { TRACKED_USERS, userForMinute } from '@org/ghreactions-github';
-import * as logger from 'firebase-functions/logger';
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import { defineSecret } from 'firebase-functions/params';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { refreshUser } from './refresh';
+
+initializeApp({ projectId: process.env['PROJECT_ID'] });
 
 // The same Secret Manager entries the ghreactions App Hosting backend uses.
 const githubToken = defineSecret('GHREACTIONS_TOKEN');
@@ -22,6 +26,10 @@ export const refreshProfile = onSchedule(
       TRACKED_USERS,
       Date.parse(event.scheduleTime),
     );
-    logger.info('refreshProfile', { username });
+    await refreshUser(username, async (profile) => {
+      await getFirestore()
+        .doc(`profiles/${username.toLowerCase()}`)
+        .set(profile);
+    });
   },
 );

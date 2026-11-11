@@ -1,4 +1,4 @@
-import { createProvider } from '@org/server';
+import { createProvider } from '@org/server/core';
 import { Redis } from '@upstash/redis';
 
 /**

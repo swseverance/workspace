@@ -1,5 +1,5 @@
 import { redisKey, redisProvider } from '@org/redis';
-import { serializeError } from '@org/server';
+import { serializeError } from '@org/server/core';
 import * as logger from 'firebase-functions/logger';
 import { RateLimitError } from '../../../models/errors';
 

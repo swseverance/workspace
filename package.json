@@ -24,6 +24,7 @@
     "emulate:ghreactions-functions": "npm exec nx run ghreactions-functions:emulate",
     "emulate:tcpl-exercises": "cd apps/tcpl-exercises && npm exec firebase-tools -- emulators:start --project tcpl-exercises-dev",
     "emulate:weight-tracker": "cd apps/weight-tracker && npm exec firebase-tools -- emulators:start --project weight-tracker-2592f",
+    "shell:ghreactions-functions": "npm exec nx run ghreactions-functions:shell",
     "kill-ports": "lsof -ti:4200,8080,9099 | xargs kill -9",
     "prepare": "husky"
   },

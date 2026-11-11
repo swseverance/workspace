@@ -5,7 +5,10 @@ import {
   ReactionType,
 } from '../../../models/github';
 import { githubClient } from '../client/client';
-import { fetchCommitComments } from './fetch-commit-comments';
+import {
+  fetchCommitComments,
+  fetchNewestCommitComments,
+} from './fetch-commit-comments';
 
 beforeEach(() => {
   githubClient.gql = vi.fn();
@@ -117,5 +120,44 @@ describe('fetchCommitComments', () => {
       expect.any(String),
       expect.objectContaining({ cursor: 'start-cursor' }),
     );
+  });
+});
+
+describe('fetchNewestCommitComments', () => {
+  const comment = (id: string, url: string): RawCommitComment => ({
+    ...rawComment,
+    id,
+    url,
+  });
+
+  it('requests the last 100 comments for the user', async () => {
+    vi.mocked(githubClient.gql).mockResolvedValue(makeResponse([]));
+    await fetchNewestCommitComments('octocat');
+    const [query, variables] = vi.mocked(githubClient.gql).mock.calls[0];
+    expect(query).toContain('commitComments(last: $limit)');
+    expect(variables).toEqual({ login: 'octocat', limit: 100 });
+  });
+
+  it('takes the repository from the URL when the commit is gone', async () => {
+    vi.mocked(githubClient.gql).mockResolvedValue(
+      makeResponse([
+        {
+          ...rawComment,
+          url: 'https://github.com/expressjs/express/commit/0c85e9d#commitcomment-1',
+          commit: null,
+        },
+      ]),
+    );
+    const [row] = await fetchNewestCommitComments('octocat');
+    expect(row.repository).toBe('expressjs/express');
+  });
+
+  it('returns rows newest first', async () => {
+    vi.mocked(githubClient.gql).mockResolvedValue(
+      makeResponse([comment('old', 'u1'), comment('new', 'u2')]),
+    );
+    const rows = await fetchNewestCommitComments('octocat');
+    expect(rows.map((r) => r.id)).toEqual(['new', 'old']);
+    expect(rows[0]).toMatchObject({ type: 'Commit Comment', total: 3 });
   });
 });

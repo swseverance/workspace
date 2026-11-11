@@ -86,7 +86,8 @@ export type RawCommitComment = RawWithReactions & {
   url: string;
   body: string;
   updatedAt: string;
-  commit: { repository: { nameWithOwner: string } };
+  /** Null when the commit no longer exists, e.g. after a force-push. */
+  commit: { repository: { nameWithOwner: string } } | null;
 };
 
 export type CommitCommentsResponse = {
@@ -96,3 +97,6 @@ export type CommitCommentsResponse = {
 export type IssueCommentsResponse = {
   user: { issueComments: Connection<RawComment> };
 };
+
+/** GitHub search sort for issues and PRs, always descending. */
+export type SearchSort = 'updated' | 'reactions';

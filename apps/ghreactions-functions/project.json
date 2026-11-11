@@ -26,7 +26,6 @@
         }
       },
       "configurations": {
-        "development": {},
         "production": {
           "esbuildOptions": {
             "sourcemap": false,
@@ -34,13 +33,24 @@
               ".js": ".js"
             }
           }
+        },
+        "local": {
+          "deleteOutputPath": false
         }
       }
     },
     "emulate": {
-      "dependsOn": ["build"],
       "continuous": true,
-      "command": "cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- emulators:start --only functions --project ghreactionsdev"
+      "dependsOn": ["watch"],
+      "command": "n=0; while [ ! -f dist/apps/ghreactions-functions/main.js ] && [ $n -lt 120 ]; do sleep 1; n=$((n+1)); done; [ -f dist/apps/ghreactions-functions/main.js ] || { echo 'No build after 120s: check the watch output above'; exit 1; }; cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- emulators:start --only functions,firestore --project ghreactionsdev"
+    },
+    "watch": {
+      "continuous": true,
+      "command": "nx run ghreactions-functions:build:local --watch"
+    },
+    "shell": {
+      "continuous": true,
+      "command": "test -f dist/apps/ghreactions-functions/main.js || { echo 'No build found: run npm run emulate:ghreactions-functions first'; exit 1; }; cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- functions:shell --project ghreactionsdev"
     }
   }
 }

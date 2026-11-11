@@ -7,6 +7,7 @@ export { fillPage, type PageFetcher } from './lib/github/client/fill-page';
 export {
   api as commitCommentsApi,
   fetchCommitComments,
+  fetchNewestCommitComments,
 } from './lib/github/fetch-commit-comments/fetch-commit-comments';
 export {
   fetchIssueComments,
@@ -23,5 +24,6 @@ export {
 export { rateLimit } from './lib/github/rate-limit/rate-limit';
 export * from './lib/validators/validators';
 
+export { fetchProfile, profileApi } from './lib/profile/fetch-profile';
 export * from './lib/rotation';
 export * from './lib/tracked-users';
