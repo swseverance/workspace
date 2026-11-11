@@ -1,6 +1,5 @@
+import { GHReactionsRow, ReactionType } from '@org/ghreactions-github/models';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
-import { ReactionType } from '../../../models/github';
-import { GHReactionsRow } from '../../../models/table';
 import { MobileCard } from '../mobile-card/mobile-card';
 
 export const DEFAULT_COL_DEF: ColDef<GHReactionsRow> = {

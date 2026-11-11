@@ -25,7 +25,11 @@
       "@org/server": ["./libs/server/src/index.ts"],
       "@org/logger": ["./libs/logger/src/index.ts"],
       "@org/ui": ["./libs/ui/src/index.ts"],
-      "@org/ghreactions-github": ["./libs/ghreactions-github/src/index.ts"]
+      "@org/ghreactions-github": ["./libs/ghreactions-github/src/index.ts"],
+      "@org/ghreactions-github/models": [
+        "./libs/ghreactions-github/src/models/index.ts"
+      ],
+      "@org/redis": ["./libs/redis/src/index.ts"]
     }
   }
 }

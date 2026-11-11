@@ -4,7 +4,7 @@ import {
   RawCommitComment,
 } from '../../../models/github';
 import { GHReactionsRow, TablePage } from '../../../models/table';
-import { commitCommentQuerySchema } from '../../../validators/validators';
+import { commitCommentQuerySchema } from '../../validators/validators';
 import {
   githubClient,
   toReactions,

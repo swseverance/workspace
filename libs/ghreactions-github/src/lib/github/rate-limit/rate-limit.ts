@@ -1,7 +1,7 @@
-import { redisKey, serializeError } from '@org/server';
+import { redisKey, redisProvider } from '@org/redis';
+import { serializeError } from '@org/server';
 import * as logger from 'firebase-functions/logger';
 import { RateLimitError } from '../../../models/errors';
-import { redisProvider } from '../../redis/redis';
 
 // Stop calling GitHub once fewer than this many points remain in the window,
 // leaving headroom for requests already in flight.

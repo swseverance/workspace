@@ -11,6 +11,12 @@
       "path": "../../libs/server/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/redis/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libs/ghreactions-github/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/theme/tsconfig.lib.json"
     },
     {

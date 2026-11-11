@@ -1,8 +1,8 @@
-import { createProvider, redisKey, serializeError } from '@org/server';
+import { redisKey, redisProvider } from '@org/redis';
+import { createProvider, serializeError } from '@org/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
-import { redisProvider } from '../redis/redis';
 
 export const ratelimitProvider = createProvider(
   () =>

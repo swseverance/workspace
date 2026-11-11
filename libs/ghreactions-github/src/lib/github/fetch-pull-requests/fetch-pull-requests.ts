@@ -5,7 +5,7 @@ import {
   ReactionsFilter,
 } from '../../../models/github';
 import { GHReactionsRow, TablePage } from '../../../models/table';
-import { pullRequestQuerySchema } from '../../../validators/validators';
+import { pullRequestQuerySchema } from '../../validators/validators';
 import {
   formatState,
   githubClient,

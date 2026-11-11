@@ -1,6 +1,6 @@
+import { redisProvider } from '@org/redis';
 import { Redis } from '@upstash/redis';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { redisProvider } from '../redis';
 import { getStats, recordSubmission } from './analytics';
 
 vi.mock('firebase-functions/logger', () => ({ error: vi.fn() }));

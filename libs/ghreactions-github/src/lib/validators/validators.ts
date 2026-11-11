@@ -4,7 +4,7 @@ import {
   PullRequestState,
   ReactableType,
   ReactionsFilter,
-} from '../models/github';
+} from '../../models/github';
 
 export const usernameField = z
   .string({ error: 'username is required' })

@@ -1,7 +1,7 @@
-import { redisKey, serializeError } from '@org/server';
+import { redisKey, redisProvider } from '@org/redis';
+import { serializeError } from '@org/server';
 import * as logger from 'firebase-functions/logger';
 import { AnalyticsResponse } from '../../models/analytics';
-import { redisProvider } from '../redis/redis';
 
 const searchesKey = () => redisKey('analytics:searches');
 // A HyperLogLog: counts distinct usernames (~1% error) in a fixed ~12 KB

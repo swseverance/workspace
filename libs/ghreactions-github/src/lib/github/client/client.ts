@@ -48,7 +48,9 @@ export async function gql<T>(
   });
 
   // Not every response is JSON (e.g. an HTML 502 from a proxy).
-  const body: GraphQLResponse<T> | null = await res.json().catch(() => null);
+  const body = (await res
+    .json()
+    .catch(() => null)) as GraphQLResponse<T> | null;
 
   // Awaited rather than fire-and-forget: Cloud Run may throttle CPU once the
   // response is sent, so a background write could silently never land.

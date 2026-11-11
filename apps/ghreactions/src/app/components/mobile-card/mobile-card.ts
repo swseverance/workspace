@@ -1,11 +1,10 @@
 import { DatePipe } from '@angular/common';
 import { Component } from '@angular/core';
+import { GHReactionsRow, ReactionType } from '@org/ghreactions-github/models';
 import type { ICellRendererAngularComp } from 'ag-grid-angular';
 import type { ICellRendererParams } from 'ag-grid-community';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzTagModule } from 'ng-zorro-antd/tag';
-import { ReactionType } from '../../../models/github';
-import { GHReactionsRow } from '../../../models/table';
 
 const REACTIONS: { type: ReactionType; emoji: string }[] = [
   { type: ReactionType.ThumbsUp, emoji: '👍' },

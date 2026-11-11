@@ -1,15 +1,18 @@
+import {
+  commitCommentsApi,
+  issueCommentsApi,
+  issuesApi,
+  pullRequestsApi,
+  rateLimit,
+  RateLimitError,
+  ReactableType,
+  tableQuerySchema,
+  UserNotFoundError,
+} from '@org/ghreactions-github';
 import { serializeError } from '@org/server';
 import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
-import { RateLimitError, UserNotFoundError } from '../../models/errors';
-import { ReactableType } from '../../models/github';
-import { tableQuerySchema } from '../../validators/validators';
 import { analytics } from '../analytics/analytics';
-import { api as commitCommentsApi } from '../github/fetch-commit-comments/fetch-commit-comments';
-import { api as issueCommentsApi } from '../github/fetch-issue-comments/fetch-issue-comments';
-import { api as issuesApi } from '../github/fetch-issues/fetch-issues';
-import { api as pullRequestsApi } from '../github/fetch-pull-requests/fetch-pull-requests';
-import { rateLimit } from '../github/rate-limit/rate-limit';
 
 export const tableHandler: RequestHandler = async (req, res) => {
   const parsed = tableQuerySchema.safeParse(req.query);
