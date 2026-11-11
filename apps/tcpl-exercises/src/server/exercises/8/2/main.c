@@ -7,10 +7,10 @@
 #define OPEN_MAX 20 /* max #files open at once */
 
 typedef struct _iobuf {
-  int cnt;    /* characters left */
-  char *ptr;  /* next character position */
-  char *base; /* location of buffer */
-  struct {    /* mode of file access, as fields */
+  int cnt;                     /* characters left */
+  char *ptr;                   /* next character position */
+  char *base;                  /* location of buffer */
+  struct {                     /* mode of file access, as fields */
     unsigned int is_read : 1;  /* file open for reading */
     unsigned int is_write : 1; /* file open for writing */
     unsigned int is_unbuf : 1; /* file is unbuffered */
@@ -66,7 +66,7 @@ FILE *fopen(const char *name, const char *mode) {
     return NULL;
   for (fp = _iob; fp < _iob + OPEN_MAX; fp++)
     if (!fp->flag.is_read && !fp->flag.is_write)
-      break; /* found free slot */
+      break;                 /* found free slot */
   if (fp >= _iob + OPEN_MAX) /* no free slots */
     return NULL;
 

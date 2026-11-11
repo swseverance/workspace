@@ -2,9 +2,9 @@
 #include <stdlib.h> /* for atoi() */
 #include <string.h>
 
-#define DEFLINES 10    /* lines printed by default */
-#define MAXLINES 5000  /* max #lines kept */
-#define MAXLEN 1000    /* max length of any input line */
+#define DEFLINES 10     /* lines printed by default */
+#define MAXLINES 5000   /* max #lines kept */
+#define MAXLEN 1000     /* max length of any input line */
 #define ALLOCSIZE 55000 /* room for all the lines, each ended by '\0' */
 
 char *lineptr[MAXLINES]; /* pointers to text lines */
@@ -60,6 +60,6 @@ char *alloc(int n) {
   if (allocbuf + ALLOCSIZE - allocp >= n) { /* it fits */
     allocp += n;
     return allocp - n; /* old p */
-  } else /* not enough room */
+  } else               /* not enough room */
     return 0;
 }

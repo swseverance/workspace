@@ -89,7 +89,7 @@ struct nlist *install(char *name, char *defn) {
     hashval = hash(name);
     np->next = hashtab[hashval];
     hashtab[hashval] = np;
-  } else                     /* already there */
+  } else                    /* already there */
     free((void *)np->defn); /* free previous defn */
   if ((np->defn = strdup(defn)) == NULL)
     return NULL;

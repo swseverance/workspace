@@ -13,7 +13,7 @@ void quicksort(void *lineptr[], int left, int right,
 int numcmp(char *, char *);
 
 #define MAXLEN 1000 /* max length of any input line */
-#define MAXKEYS 10 /* max number of sort keys */
+#define MAXKEYS 10  /* max number of sort keys */
 
 /* Key k sorts on field keyfield[k], with its own options. */
 int nkeys = 0;
@@ -222,6 +222,6 @@ char *alloc(int n) {
   if (allocbuf + ALLOCSIZE - allocp >= n) { /* it fits */
     allocp += n;
     return allocp - n; /* old p */
-  } else /* not enough room */
+  } else               /* not enough room */
     return 0;
 }

@@ -6,9 +6,9 @@
 #define MAXWORD 100
 #define MAXDISTINCT 20000 /* most distinct words */
 
-struct tnode {  /* the tree node: */
-  char *word;   /* points to the text */
-  int count;    /* number of occurrences */
+struct tnode { /* the tree node: */
+  char *word;  /* points to the text */
+  int count;   /* number of occurrences */
   struct tnode *left;
   struct tnode *right;
 };

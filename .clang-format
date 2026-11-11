@@ -1,0 +1,8 @@
+# Formats the reference solutions (apps/tcpl-exercises/src/server/exercises).
+BasedOnStyle: LLVM
+# Keep #includes in the order written; the book doesn't sort them.
+SortIncludes: Never
+# Keep each function's body on its own lines, as in the book.
+AllowShortFunctionsOnASingleLine: None
+# Backslashes in multi-line macros sit just past the longest line.
+AlignEscapedNewlines: Left

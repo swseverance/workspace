@@ -19,8 +19,8 @@ void copycomment(void);
 int getname(char *s, int lim, int c);
 void directive(void);
 
-#define MAXWORD 100   /* longest name */
-#define MAXLINE 1000  /* longest replacement text */
+#define MAXWORD 100  /* longest name */
+#define MAXLINE 1000 /* longest replacement text */
 
 /* copy the input, processing #define lines and replacing the names they
    define */
@@ -162,7 +162,7 @@ struct nlist *install(char *name, char *defn) {
     hashval = hash(name);
     np->next = hashtab[hashval];
     hashtab[hashval] = np;
-  } else                     /* already there */
+  } else                    /* already there */
     free((void *)np->defn); /* free previous defn */
   if ((np->defn = strdup(defn)) == NULL)
     return NULL;
