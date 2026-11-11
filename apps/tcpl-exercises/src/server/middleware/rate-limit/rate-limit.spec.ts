@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Both limiters share this mock, so calls are told apart by their key.
 const { limit } = vi.hoisted(() => ({ limit: vi.fn() }));
 const { loggerWarn } = vi.hoisted(() => ({ loggerWarn: vi.fn() }));
 
@@ -18,7 +19,11 @@ vi.mock('firebase-functions/logger', () => ({
   warn: loggerWarn,
 }));
 
-const { submitExerciseRateLimitMiddleware } = await import('./rate-limit');
+const {
+  GLOBAL_LIMIT_MESSAGE,
+  USER_LIMIT_MESSAGE,
+  submitExerciseRateLimitMiddleware,
+} = await import('./rate-limit');
 
 function createRequest(uid: string): Request {
   return { user: { uid } } as Request;
@@ -31,62 +36,83 @@ function createResponse(): Response {
   } as unknown as Response;
 }
 
+/** Makes the per-user and global limiters allow or reject the request. */
+function allow({ user, global }: { user: boolean; global: boolean }) {
+  limit.mockImplementation(async (key: string) => ({
+    success: key === 'global' ? global : user,
+  }));
+}
+
+async function run() {
+  const req = createRequest('user-123');
+  const res = createResponse();
+  const next = vi.fn();
+
+  await submitExerciseRateLimitMiddleware(req, res, next);
+
+  return { res, next };
+}
+
 describe('submitExerciseRateLimitMiddleware', () => {
   beforeEach(() => {
     limit.mockReset();
     loggerWarn.mockReset();
   });
 
-  it('calls next() when the request is within the limit', async () => {
-    limit.mockResolvedValue({ success: true });
-    const req = createRequest('user-123');
-    const res = createResponse();
-    const next = vi.fn();
+  it('calls next() when the request is within both limits', async () => {
+    allow({ user: true, global: true });
 
-    await submitExerciseRateLimitMiddleware(req, res, next);
+    const { res, next } = await run();
 
     expect(limit).toHaveBeenCalledWith('user-123');
+    expect(limit).toHaveBeenCalledWith('global');
     expect(next).toHaveBeenCalledOnce();
     expect(res.status).not.toHaveBeenCalled();
     expect(loggerWarn).not.toHaveBeenCalled();
   });
 
-  it('responds 429 and does not call next() when the limit is exceeded', async () => {
-    limit.mockResolvedValue({ success: false });
-    const req = createRequest('user-123');
-    const res = createResponse();
-    const next = vi.fn();
+  it('responds 429 with the per-user message when the user limit is exceeded', async () => {
+    allow({ user: false, global: true });
 
-    await submitExerciseRateLimitMiddleware(req, res, next);
+    const { res, next } = await run();
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(429);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Too Many Requests' });
-  });
-
-  it('passes the error to next() when the limiter fails', async () => {
-    const error = new Error('redis down');
-    limit.mockRejectedValue(error);
-    const req = createRequest('user-123');
-    const res = createResponse();
-    const next = vi.fn();
-
-    await submitExerciseRateLimitMiddleware(req, res, next);
-
-    expect(next).toHaveBeenCalledWith(error);
-    expect(res.status).not.toHaveBeenCalled();
-  });
-
-  it('logs a warning with the uid when the limit is exceeded', async () => {
-    limit.mockResolvedValue({ success: false });
-    const req = createRequest('user-123');
-    const res = createResponse();
-    const next = vi.fn();
-
-    await submitExerciseRateLimitMiddleware(req, res, next);
-
+    expect(res.json).toHaveBeenCalledWith({ message: USER_LIMIT_MESSAGE });
     expect(loggerWarn).toHaveBeenCalledWith('[rate-limit] request rejected', {
       uid: 'user-123',
     });
+  });
+
+  it("doesn't use up the global limit for a user over their own limit", async () => {
+    allow({ user: false, global: true });
+
+    await run();
+
+    expect(limit).not.toHaveBeenCalledWith('global');
+  });
+
+  it('responds 429 with the global message when the global limit is exceeded', async () => {
+    allow({ user: true, global: false });
+
+    const { res, next } = await run();
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(res.json).toHaveBeenCalledWith({ message: GLOBAL_LIMIT_MESSAGE });
+    expect(loggerWarn).toHaveBeenCalledWith(
+      '[rate-limit] request rejected by global limit',
+      { uid: 'user-123' },
+    );
+  });
+
+  it('passes the error to next() when a limiter fails', async () => {
+    const error = new Error('redis down');
+    limit.mockRejectedValue(error);
+
+    const { res, next } = await run();
+
+    expect(next).toHaveBeenCalledWith(error);
+    expect(res.status).not.toHaveBeenCalled();
   });
 });
