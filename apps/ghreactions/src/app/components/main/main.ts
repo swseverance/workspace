@@ -10,6 +10,13 @@ import {
 } from '@angular/forms';
 import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import {
+  GHReactionsRow,
+  IssueState,
+  PullRequestState,
+  ReactableType,
+  ReactionsFilter,
+} from '@org/ghreactions-github/models';
 import { Theme } from '@org/theme';
 import { AgGridAngular } from 'ag-grid-angular';
 import type { GridApi, GridReadyEvent } from 'ag-grid-community';
@@ -22,13 +29,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Adapter } from '../../../models/adapter';
-import {
-  IssueState,
-  PullRequestState,
-  ReactableType,
-  ReactionsFilter,
-} from '../../../models/github';
-import { GHReactionsRow } from '../../../models/table';
 import { Data } from '../../services/data';
 import { IS_MOBILE } from '../../tokens';
 import { COLUMNS, DEFAULT_COL_DEF } from './columns';

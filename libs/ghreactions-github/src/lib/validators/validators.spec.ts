@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { IssueState } from '../models/github';
+import { IssueState } from '../../models/github';
 import { cursorField, makeStateField, usernameField } from './validators';
 
 describe('usernameField', () => {

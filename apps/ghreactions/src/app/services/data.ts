@@ -1,15 +1,16 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { IDatasource, IGetRowsParams } from 'ag-grid-community';
-import { Adapter } from '../../models/adapter';
-import { AnalyticsResponse } from '../../models/analytics';
 import {
+  GHReactionsRow,
   IssueState,
   PullRequestState,
   ReactableType,
   ReactionsFilter,
-} from '../../models/github';
-import { GHReactionsRow, TablePage } from '../../models/table';
+  TablePage,
+} from '@org/ghreactions-github/models';
+import { IDatasource, IGetRowsParams } from 'ag-grid-community';
+import { Adapter } from '../../models/adapter';
+import { AnalyticsResponse } from '../../models/analytics';
 
 const BLOCK_SIZE = 100;
 

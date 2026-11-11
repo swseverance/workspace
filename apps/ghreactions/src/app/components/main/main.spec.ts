@@ -2,14 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
-import { Theme } from '@org/theme';
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
-import { of } from 'rxjs';
 import {
   PullRequestState,
   ReactableType,
   ReactionsFilter,
-} from '../../../models/github';
+} from '@org/ghreactions-github/models';
+import { Theme } from '@org/theme';
+import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
+import { of } from 'rxjs';
 import { Data } from '../../services/data';
 import { IS_MOBILE } from '../../tokens';
 import { Main } from './main';

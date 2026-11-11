@@ -1,8 +1,8 @@
+import { redisProvider } from '@org/redis';
 import { createProvider } from '@org/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
-import { redisProvider } from '../../redis';
 
 // Submitting runs the code in a real Vercel Sandbox, which costs money, so
 // it's limited more tightly than the other authenticated exercise routes.

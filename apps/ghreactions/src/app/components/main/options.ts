@@ -3,7 +3,7 @@ import {
   PullRequestState,
   ReactableType,
   ReactionsFilter,
-} from '../../../models/github';
+} from '@org/ghreactions-github/models';
 
 type Option<T> = { label: string; value: T };
 

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { IssueCommentsResponse, RawComment } from '../../../models/github';
 import { GHReactionsRow, TablePage } from '../../../models/table';
-import { issueCommentQuerySchema } from '../../../validators/validators';
+import { issueCommentQuerySchema } from '../../validators/validators';
 import {
   formatState,
   githubClient,

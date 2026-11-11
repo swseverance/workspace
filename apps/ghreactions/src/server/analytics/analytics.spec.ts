@@ -1,6 +1,6 @@
+import { redisProvider } from '@org/redis';
 import { Redis } from '@upstash/redis';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { redisProvider } from '../redis/redis';
 import { getStats, recordSearch } from './analytics';
 
 // Provide a fake client so no real Upstash client is ever built.
