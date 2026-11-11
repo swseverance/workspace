@@ -29,14 +29,15 @@
   gap: 16px;
 }
 
-// On desktop the description and editor fill the visible height, each
-// scrolling on its own, so the editor, its tabs and Submit stay in view
-// however long the description is. The test cases and submissions are below.
-// 100cqh is the height of .detail (exercises.scss) inside its padding.
+// On desktop the description and editor take most of the visible height,
+// each scrolling on its own, so the editor, its tabs and Submit stay in view
+// however long the description is. The rest leaves the test cases peeking in
+// below as a hint to scroll. cqh is relative to .detail (exercises.scss)
+// inside its padding.
 .top-row {
   display: flex;
   gap: 16px;
-  height: 100cqh;
+  height: 70cqh;
   min-height: 480px; // a short window scrolls the page instead
 
   > app-panel {
