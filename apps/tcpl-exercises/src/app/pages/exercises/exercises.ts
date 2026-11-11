@@ -7,6 +7,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { ScrollTopOnNavigation } from '@org/ui';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { Chapter } from '../../../shared/models';
 import { Status, StatusColor } from '../../components/status/status';
@@ -17,7 +18,14 @@ type ExerciseStatus = Chapter['exercises'][number]['status'];
 
 @Component({
   selector: 'app-exercises',
-  imports: [RouterLink, RouterOutlet, NzMenuModule, AsyncPipe, Status],
+  imports: [
+    RouterLink,
+    RouterOutlet,
+    NzMenuModule,
+    AsyncPipe,
+    Status,
+    ScrollTopOnNavigation,
+  ],
   styleUrl: './exercises.scss',
   templateUrl: './exercises.html',
   host: {

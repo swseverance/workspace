@@ -12,6 +12,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthFacade } from '@org/auth';
 import { Theme } from '@org/theme';
+import { ScrollTopOnNavigation } from '@org/ui';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -43,6 +44,7 @@ import { NotFound } from '../not-found/not-found';
     ExerciseDescription,
     Submissions,
     NotFound,
+    ScrollTopOnNavigation,
   ],
   templateUrl: './exercise-detail.html',
   styleUrl: './exercise-detail.scss',

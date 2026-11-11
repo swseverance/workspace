@@ -3,6 +3,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { AuthFacade } from '@org/auth';
 import { Theme } from '@org/theme';
+import { ScrollTopOnNavigation } from '@org/ui';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
@@ -19,6 +20,7 @@ import { SidebarService } from './services/sidebar-service';
     NzTooltipModule,
     RouterLink,
     RouterOutlet,
+    ScrollTopOnNavigation,
   ],
   styleUrl: './app.scss',
   templateUrl: './app.html',
