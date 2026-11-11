@@ -202,6 +202,12 @@ describe('buildQueryString', () => {
     expect(result).not.toContain('is:merged');
   });
 
+  it('sorts by reactions when asked', () => {
+    const result = buildQueryString({ ...base, sort: 'reactions' });
+    expect(result).toContain('sort:reactions-desc');
+    expect(result).not.toContain('sort:updated-desc');
+  });
+
   it('includes sort:updated-desc', () => {
     const result = buildQueryString({
       ...base,
