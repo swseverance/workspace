@@ -49,6 +49,7 @@
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^4.0.0",
     "@vitest/ui": "^4.0.0",
+    "clang-format": "^1.8.0",
     "firebase-tools": "15.35.0",
     "husky": "^9.1.7",
     "jsdom": "^27.1.0",
@@ -68,7 +69,8 @@
   ],
   "packageManager": "npm@11.19.0",
   "lint-staged": {
-    "*.{ts,html,scss,css,json,md,yaml,yml}": "prettier --write"
+    "*.{ts,html,scss,css,json,md,yaml,yml}": "prettier --write",
+    "*.c": "clang-format -i"
   },
   "dependencies": {
     "@angular-devkit/build-angular": "~22.2.0",

@@ -84,8 +84,8 @@ void *kr_malloc(size_t nbytes) {
     base.s.size = 0;
   }
   for (p = prevp->s.ptr;; prevp = p, p = p->s.ptr) {
-    if (p->s.size >= nunits) {  /* big enough */
-      if (p->s.size == nunits)  /* exactly */
+    if (p->s.size >= nunits) { /* big enough */
+      if (p->s.size == nunits) /* exactly */
         prevp->s.ptr = p->s.ptr;
       else { /* allocate tail end */
         p->s.size -= nunits;

@@ -20,11 +20,11 @@ extern FILE _iob[OPEN_MAX];
 #define stderr (&_iob[2])
 
 enum _flags {
-  _READ = 01,   /* file open for reading */
-  _WRITE = 02,  /* file open for writing */
-  _UNBUF = 04,  /* file is unbuffered */
-  _EOF = 010,   /* EOF has occurred on this file */
-  _ERR = 020    /* error occurred on this file */
+  _READ = 01,  /* file open for reading */
+  _WRITE = 02, /* file open for writing */
+  _UNBUF = 04, /* file is unbuffered */
+  _EOF = 010,  /* EOF has occurred on this file */
+  _ERR = 020   /* error occurred on this file */
 };
 
 int _fillbuf(FILE *);
@@ -110,7 +110,7 @@ FILE *fopen(const char *name, const char *mode) {
     return NULL;
   for (fp = _iob; fp < _iob + OPEN_MAX; fp++)
     if ((fp->flag & (_READ | _WRITE)) == 0)
-      break; /* found free slot */
+      break;                 /* found free slot */
   if (fp >= _iob + OPEN_MAX) /* no free slots */
     return NULL;
 
