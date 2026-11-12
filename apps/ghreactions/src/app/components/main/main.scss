@@ -1,5 +1,6 @@
 :host {
   flex: 1 1 auto;
+  min-height: 0; // let the results section scroll instead of the page
   border-radius: 2px;
   display: flex;
   flex-direction: column;
@@ -26,13 +27,12 @@ button {
 section {
   flex: 1 1 auto;
   min-height: 0;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 
-  ag-grid-angular {
-    flex: 1 1 auto;
-    min-height: 0;
-    --ag-wrapper-border-radius: 0;
+  app-reactions-table {
+    flex: 1 0 auto;
   }
 }
 
@@ -43,21 +43,5 @@ section {
 
   .ant-form-item {
     margin-bottom: 0;
-  }
-
-  .centered-header .ag-header-cell-label {
-    justify-content: center;
-  }
-}
-
-::ng-deep .ghreactions-light-theme app-main {
-  .ghreactions-server-error {
-    color: #ff4d4f;
-  }
-}
-
-::ng-deep .ghreactions-dark-theme app-main {
-  .ghreactions-server-error {
-    color: #a61d24;
   }
 }
