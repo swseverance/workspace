@@ -23,10 +23,7 @@ export async function refreshUser(
     logger.info('refreshProfile', {
       username,
       status: profile.status,
-      issues: profile.issues.length,
-      pullRequests: profile.pullRequests.length,
-      issueComments: profile.issueComments.length,
-      commitComments: profile.commitComments.length,
+      ...profile.counts,
     });
   } catch (err) {
     if (!(err instanceof RateLimitError)) throw err;

@@ -21,9 +21,12 @@
   <nz-tabs nzLinkRouter [nzSelectedIndex]="tabs.indexOf(current())">
     @for (t of tabs; track t.key) {
       <nz-tab>
-        <a *nzTabLink nz-tab-link [routerLink]="['/u', username(), t.path]">{{
-          t.label
-        }}</a>
+        <a
+          *nzTabLink
+          nz-tab-link
+          [routerLink]="['/u', username().toLowerCase(), t.path]"
+          >{{ t.label }}</a
+        >
       </nz-tab>
     }
   </nz-tabs>

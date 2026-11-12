@@ -7,7 +7,6 @@ export { fillPage, type PageFetcher } from './lib/github/client/fill-page';
 export {
   api as commitCommentsApi,
   fetchCommitComments,
-  fetchNewestCommitComments,
 } from './lib/github/fetch-commit-comments/fetch-commit-comments';
 export {
   fetchIssueComments,

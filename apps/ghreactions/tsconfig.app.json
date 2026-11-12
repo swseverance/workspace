@@ -20,6 +20,9 @@
       "path": "../../libs/firebase/tsconfig.lib.json"
     },
     {
+      "path": "../../libs/ui/tsconfig.lib.json"
+    },
+    {
       "path": "../../libs/theme/tsconfig.lib.json"
     },
     {

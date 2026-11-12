@@ -1,27 +1,41 @@
 import {
   DOCUMENT,
+  EnvironmentProviders,
   inject,
+  InjectionToken,
+  makeEnvironmentProviders,
   makeStateKey,
   REQUEST_CONTEXT,
   Service,
   TransferState,
 } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
-import type { SiteUrlRequestContext } from '../../shared/site-url';
+import type { SiteUrlRequestContext } from '@org/server';
 
-export const SITE_NAME = 'K&R Exercises';
+export type SeoConfig = {
+  /** Ends every page title, and is the whole title when a page passes null. */
+  siteName: string;
+};
+
+export const SEO_CONFIG = new InjectionToken<SeoConfig>('SEO_CONFIG');
+
+export function provideSeo(config: SeoConfig): EnvironmentProviders {
+  return makeEnvironmentProviders([{ provide: SEO_CONFIG, useValue: config }]);
+}
 
 const SITE_URL_KEY = makeStateKey<string>('siteUrl');
 
 /**
  * Sets each page's title, description and canonical URL. Set during SSR, so
  * crawlers get them in the HTML; set again in the browser on navigation.
+ * Needs provideSeo() and, on the server, `siteUrl` in REQUEST_CONTEXT.
  */
 @Service()
 export class SeoService {
   private readonly title = inject(Title);
   private readonly meta = inject(Meta);
   private readonly document = inject(DOCUMENT);
+  private readonly siteName = inject(SEO_CONFIG).siteName;
   private readonly siteUrl = this.resolveSiteUrl();
 
   constructor() {
@@ -34,10 +48,10 @@ export class SeoService {
 
   /**
    * A page search engines should index. `title` goes before the site name;
-   * null for the home page, which is titled with the site name alone.
+   * null for a page titled with the site name alone.
    */
   setPage(title: string | null, description: string, path: string): void {
-    const fullTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
+    const fullTitle = title ? `${title} | ${this.siteName}` : this.siteName;
     const url = `${this.siteUrl}${path}`;
 
     this.title.setTitle(fullTitle);
@@ -49,9 +63,9 @@ export class SeoService {
     this.setCanonical(url);
   }
 
-  /** A page search engines should leave out, such as the 404 page. */
+  /** A page search engines should leave out, such as a 404 page. */
   setUnindexedPage(title: string): void {
-    const fullTitle = `${title} | ${SITE_NAME}`;
+    const fullTitle = `${title} | ${this.siteName}`;
 
     this.title.setTitle(fullTitle);
     this.meta.removeTag('name="description"');

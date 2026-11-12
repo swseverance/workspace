@@ -1,17 +1,27 @@
 import { GHReactionsRow } from './table';
 
-/** A tracked user's snapshot, stored at profiles/{lowercased username}. */
+/** How many rows each list holds. */
+export type ProfileCounts = {
+  issues: number;
+  pullRequests: number;
+  issueComments: number;
+};
+
+/**
+ * A tracked user's snapshot, stored at profiles/{lowercased username}. Lists
+ * hold only rows with at least one reaction, most reactions first.
+ */
 export type Profile = {
   username: string;
   /** ISO timestamp of the refresh that produced this snapshot. */
   refreshedAt: string;
   status: 'ok' | 'not_found';
-  /** Top 100 by total reactions. */
+  /** From the top 100 by total reactions. */
   issues: GHReactionsRow[];
-  /** Top 100 by total reactions. */
+  /** From the top 100 by total reactions. */
   pullRequests: GHReactionsRow[];
-  /** The 100 most recently updated, sorted by total reactions. */
+  /** From the 100 most recently updated. */
   issueComments: GHReactionsRow[];
-  /** The 100 newest, sorted by total reactions. */
-  commitComments: GHReactionsRow[];
+  /** The lists' lengths, so the sitemap can read them without the rows. */
+  counts: ProfileCounts;
 };

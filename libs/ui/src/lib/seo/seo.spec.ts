@@ -6,7 +6,9 @@ import {
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Title } from '@angular/platform-browser';
-import { SeoService, SITE_NAME } from './seo-service';
+import { provideSeo, SeoService } from './seo';
+
+const SITE_NAME = 'Example';
 
 const SITE_URL = 'https://example.test';
 
@@ -23,6 +25,7 @@ describe('SeoService', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: REQUEST_CONTEXT, useValue: { siteUrl: SITE_URL } },
+        provideSeo({ siteName: SITE_NAME }),
       ],
     });
     seo = TestBed.inject(SeoService);

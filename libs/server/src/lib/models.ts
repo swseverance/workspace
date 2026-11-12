@@ -46,3 +46,12 @@ export type SsrRequestContext = {
   /** The origin the browser sees, so both sides compute the same transfer cache key. */
   publicOrigin: string;
 };
+
+/**
+ * Added to the SSR render's REQUEST_CONTEXT by apps that set canonical links
+ * (see SeoService in @org/ui), alongside SsrRequestContext.
+ */
+export type SiteUrlRequestContext = {
+  /** Origin for canonical links, with no trailing slash. */
+  siteUrl: string;
+};

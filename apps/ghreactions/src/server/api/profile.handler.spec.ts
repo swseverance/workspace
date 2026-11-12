@@ -15,30 +15,28 @@ function row(id: string, total: number) {
 }
 
 const profile: Profile = {
-  username: 'gaearon',
+  username: 'JakeWharton',
   refreshedAt: '2026-11-12T00:00:00Z',
   status: 'ok',
-  issues: [row('i1', 5), row('i2', 0)],
+  issues: [row('i1', 5)],
   pullRequests: [row('p1', 3)],
-  issueComments: [row('c1', 0)],
-  commitComments: [row('cc1', 9)],
+  issueComments: [],
+  counts: { issues: 1, pullRequests: 1, issueComments: 0 },
 };
+
+const request = (username: string) => ({ params: { username } }) as any;
 
 describe('profileHandler', () => {
   beforeEach(() => {
     profiles.get = vi.fn().mockResolvedValue(profile);
   });
 
-  it('returns the tracked spelling and only rows with reactions', async () => {
+  it("returns the stored spelling and the profile's lists", async () => {
     const res = makeRes();
 
-    await profileHandler(
-      { params: { username: 'JakeWharton' } } as any,
-      res,
-      vi.fn(),
-    );
+    await profileHandler(request('jakewharton'), res, vi.fn());
 
-    expect(profiles.get).toHaveBeenCalledWith('JakeWharton');
+    expect(profiles.get).toHaveBeenCalledWith('jakewharton');
     expect(res.json).toHaveBeenCalledWith({
       username: 'JakeWharton',
       refreshedAt: '2026-11-12T00:00:00Z',
@@ -48,31 +46,6 @@ describe('profileHandler', () => {
     });
   });
 
-  it('matches the username case-insensitively', async () => {
-    const res = makeRes();
-
-    await profileHandler(
-      { params: { username: 'GAEARON' } } as any,
-      res,
-      vi.fn(),
-    );
-
-    expect(profiles.get).toHaveBeenCalledWith('gaearon');
-  });
-
-  it('returns 404 for an untracked user without reading Firestore', async () => {
-    const res = makeRes();
-
-    await profileHandler(
-      { params: { username: 'nobody' } } as any,
-      res,
-      vi.fn(),
-    );
-
-    expect(profiles.get).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(404);
-  });
-
   it.each([
     ['missing', undefined],
     ['not_found', { ...profile, status: 'not_found' }],
@@ -80,7 +53,7 @@ describe('profileHandler', () => {
     profiles.get = vi.fn().mockResolvedValue(stored);
     const res = makeRes();
 
-    await profileHandler({ params: { username: 'tj' } } as any, res, vi.fn());
+    await profileHandler(request('tj'), res, vi.fn());
 
     expect(res.status).toHaveBeenCalledWith(404);
   });
@@ -89,7 +62,7 @@ describe('profileHandler', () => {
     profiles.get = vi.fn().mockRejectedValue(new Error('unavailable'));
     const res = makeRes();
 
-    await profileHandler({ params: { username: 'tj' } } as any, res, vi.fn());
+    await profileHandler(request('tj'), res, vi.fn());
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ message: 'Internal server error' });

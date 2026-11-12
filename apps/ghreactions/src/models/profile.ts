@@ -1,8 +1,8 @@
 import { GHReactionsRow } from '@org/ghreactions-github/models';
 
-/** GET /api/profile/:username. Rows are only those with reactions. */
+/** GET /api/profile/:username. Lists hold only rows with reactions. */
 export type ProfileResponse = {
-  /** The tracked spelling, e.g. JakeWharton for /u/jakewharton. */
+  /** The stored spelling, e.g. JakeWharton for /u/jakewharton. */
   username: string;
   /** ISO timestamp of the refresh that produced this snapshot. */
   refreshedAt: string;
