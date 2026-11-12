@@ -14,7 +14,7 @@ import {
 import { provideNoAuth } from '@org/auth/http';
 import { provideEnvironment } from '@org/environment';
 import { provideTheme } from '@org/theme';
-import { provideSeo } from '@org/ui';
+import { providePlausible, provideSeo } from '@org/ui';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { environment } from '../environments/environment';
@@ -29,6 +29,7 @@ export const appConfig: ApplicationConfig = {
     provideNoAuth(),
     provideEnvironment(environment),
     provideSeo({ siteName: 'GitHub Reactions' }),
+    providePlausible({ domain: 'ghreactions.io' }),
     provideNzI18n(en_US),
     // Dates render on the server too; UTC keeps its text and the browser's
     // the same, whatever the viewer's timezone.

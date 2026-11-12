@@ -25,13 +25,6 @@ section {
   overflow: auto;
 }
 
-// Six short columns read better close together than spread across a wide
-// screen.
-nz-table,
-.pages {
-  max-width: 800px;
-}
-
 .rank {
   width: 56px;
 }
@@ -40,10 +33,46 @@ nz-table,
   text-align: right;
 }
 
+th,
+td {
+  white-space: nowrap;
+}
+
+// Fixed widths on desktop, so the columns have room and line up the same on
+// every page; the user column fits most GitHub usernames (up to 39
+// characters). The empty last column has no width, so it takes whatever is
+// left of a wide screen.
+@media (min-width: 600px) {
+  .rank {
+    width: 72px;
+  }
+
+  .user {
+    width: 320px;
+  }
+
+  .reactions {
+    width: 160px;
+  }
+
+  .issues {
+    width: 140px;
+  }
+
+  .prs {
+    width: 160px;
+  }
+
+  .comments {
+    width: 180px;
+  }
+}
+
 // Phones get rank, user and reactions; the per-type counts are on the
-// profile page.
+// profile page, and there's no spare width to fill.
 @media (max-width: 599.98px) {
-  .count {
+  .count,
+  .filler {
     display: none;
   }
 }

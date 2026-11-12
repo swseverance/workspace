@@ -43,7 +43,8 @@
 
   <p nz-typography>
     Everything shown is public GitHub data. We don't store your searches or the
-    usernames you search, only anonymous totals.
+    usernames you search. Visits are counted with Plausible, which uses no
+    cookies and collects no personal data.
   </p>
 
   <h2 nz-typography>Built with</h2>
@@ -54,17 +55,4 @@
     <li>Firebase App Hosting, Cloud Functions and Firestore</li>
     <li>GitHub GraphQL API</li>
   </ul>
-
-  @defer (on idle) {
-    @if (analytics$ | async; as analytics) {
-      <nz-card>
-        <p class="stats">
-          <span class="stat">{{ analytics.searches | number }}</span>
-          {{ analytics.searches === 1 ? 'search' : 'searches' }} across
-          <span class="stat">{{ analytics.profiles | number }}</span>
-          GitHub {{ analytics.profiles === 1 ? 'profile' : 'profiles' }}
-        </p>
-      </nz-card>
-    }
-  }
 </div>

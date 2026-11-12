@@ -12,7 +12,6 @@ import {
   ExerciseSubmission,
   ExerciseTestCase,
 } from '../../shared/models';
-import { recordSubmission } from '../analytics/analytics';
 import { computeExerciseStatus } from '../exercises/status';
 import {
   getExerciseRecord,
@@ -228,7 +227,6 @@ export const submitExerciseHandler: RequestHandler<
         total: exercise.tests.length,
       },
     );
-    await recordSubmission(uid);
     res.json(
       toExercise(
         exercise,
