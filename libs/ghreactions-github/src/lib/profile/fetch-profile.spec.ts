@@ -44,6 +44,11 @@ describe('fetchProfile', () => {
       pullRequests: 1,
       issueComments: 2,
     });
+    expect(profile.reactions).toEqual({
+      issues: 9,
+      pullRequests: 4,
+      issueComments: 6,
+    });
     // 9 + 4 + 5 + 1; the comment with no reactions adds nothing.
     expect(profile.totalReactions).toBe(19);
   });
@@ -70,6 +75,7 @@ describe('fetchProfile', () => {
       pullRequests: [],
       issueComments: [],
       counts: { issues: 0, pullRequests: 0, issueComments: 0 },
+      reactions: { issues: 0, pullRequests: 0, issueComments: 0 },
       totalReactions: 0,
     });
     expect(issuesApi.fetchIssues).not.toHaveBeenCalled();

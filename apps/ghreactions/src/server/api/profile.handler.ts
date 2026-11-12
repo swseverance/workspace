@@ -36,7 +36,7 @@ export const profiles = {
   async ranked(offset: number, limit: number): Promise<UserSummary[]> {
     const snapshot = await ranked()
       .orderBy('totalReactions', 'desc')
-      .select('username', 'counts', 'totalReactions')
+      .select('username', 'counts', 'reactions', 'totalReactions')
       .offset(offset)
       .limit(limit)
       .get();
