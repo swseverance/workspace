@@ -18,7 +18,6 @@ const row = (id: string, total: number): GHReactionsRow => ({
   repository: 'org/repo',
 });
 const page = (rows: GHReactionsRow[]) => ({ rows, nextCursor: null });
-const now = new Date('2026-11-11T12:00:00Z');
 
 beforeEach(() => {
   issueCommentsApi.fetchIssueComments = vi
@@ -32,10 +31,9 @@ beforeEach(() => {
 
 describe('fetchProfile', () => {
   it('keeps rows with reactions, most first, and counts them', async () => {
-    const profile = await fetchProfile('octocat', now);
+    const profile = await fetchProfile('octocat');
     expect(profile).toMatchObject({
       username: 'octocat',
-      refreshedAt: '2026-11-11T12:00:00.000Z',
       status: 'ok',
     });
     expect(profile.issueComments.map((r) => r.id)).toEqual(['ic2', 'ic1']);
@@ -49,7 +47,7 @@ describe('fetchProfile', () => {
   });
 
   it('asks GitHub to sort issues and PRs by reactions', async () => {
-    await fetchProfile('octocat', now);
+    await fetchProfile('octocat');
     expect(issuesApi.fetchIssues).toHaveBeenCalledWith(
       expect.objectContaining({ username: 'octocat', sort: 'reactions' }),
     );
@@ -62,10 +60,9 @@ describe('fetchProfile', () => {
     issueCommentsApi.fetchIssueComments = vi
       .fn()
       .mockRejectedValue(new UserNotFoundError());
-    const profile = await fetchProfile('ghost', now);
+    const profile = await fetchProfile('ghost');
     expect(profile).toEqual({
       username: 'ghost',
-      refreshedAt: '2026-11-11T12:00:00.000Z',
       status: 'not_found',
       issues: [],
       pullRequests: [],
@@ -77,6 +74,6 @@ describe('fetchProfile', () => {
 
   it('rethrows other errors', async () => {
     issuesApi.fetchIssues = vi.fn().mockRejectedValue(new Error('boom'));
-    await expect(fetchProfile('octocat', now)).rejects.toThrow('boom');
+    await expect(fetchProfile('octocat')).rejects.toThrow('boom');
   });
 });

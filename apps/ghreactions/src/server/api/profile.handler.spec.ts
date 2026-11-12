@@ -1,4 +1,5 @@
-import { Profile } from '@org/ghreactions-github';
+import { GHReactionsRow, ReadProfile } from '@org/ghreactions-github';
+import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { profileHandler, profiles } from './profile.handler';
 
@@ -11,17 +12,21 @@ function makeRes() {
 }
 
 function row(id: string, total: number) {
-  return { id, total } as Profile['issues'][number];
+  return { id, total } as GHReactionsRow;
 }
 
-const profile: Profile = {
+const at = (iso: string) => Timestamp.fromDate(new Date(iso));
+
+const profile: ReadProfile = {
   username: 'JakeWharton',
-  refreshedAt: '2026-11-12T00:00:00Z',
   status: 'ok',
   issues: [row('i1', 5)],
   pullRequests: [row('p1', 3)],
   issueComments: [],
   counts: { issues: 1, pullRequests: 1, issueComments: 0 },
+  created: at('2026-11-11T00:00:00Z'),
+  lastUpdated: at('2026-11-12T00:00:00Z'),
+  lastFetched: at('2026-11-12T00:00:00Z'),
 };
 
 const request = (username: string) => ({ params: { username } }) as any;
@@ -31,7 +36,7 @@ describe('profileHandler', () => {
     profiles.get = vi.fn().mockResolvedValue(profile);
   });
 
-  it("returns the stored spelling and the profile's lists", async () => {
+  it('returns the profile with ISO timestamps', async () => {
     const res = makeRes();
 
     await profileHandler(request('jakewharton'), res, vi.fn());
@@ -39,15 +44,20 @@ describe('profileHandler', () => {
     expect(profiles.get).toHaveBeenCalledWith('jakewharton');
     expect(res.json).toHaveBeenCalledWith({
       username: 'JakeWharton',
-      refreshedAt: '2026-11-12T00:00:00Z',
+      status: 'ok',
       issues: [row('i1', 5)],
       pullRequests: [row('p1', 3)],
       issueComments: [],
+      counts: { issues: 1, pullRequests: 1, issueComments: 0 },
+      created: '2026-11-11T00:00:00.000Z',
+      lastUpdated: '2026-11-12T00:00:00.000Z',
+      lastFetched: '2026-11-12T00:00:00.000Z',
     });
   });
 
   it.each([
     ['missing', undefined],
+    ['pending', { ...profile, status: 'pending', lastFetched: null }],
     ['not_found', { ...profile, status: 'not_found' }],
   ])('returns 404 when the profile is %s', async (_, stored) => {
     profiles.get = vi.fn().mockResolvedValue(stored);
