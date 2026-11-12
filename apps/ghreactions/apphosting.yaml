@@ -8,3 +8,10 @@ env:
     value: https://loyal-minnow-40926.upstash.io
     availability:
       - RUNTIME
+  # Trust App Hosting's proxy for the visitor's host. Its build preparer used
+  # to inject this; see NG_ALLOWED_HOSTS in the environment yamls for why it
+  # no longer does.
+  - variable: NG_TRUST_PROXY_HEADERS
+    value: X-Forwarded-Host
+    availability:
+      - RUNTIME

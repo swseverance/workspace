@@ -7,6 +7,15 @@ runConfig:
   # cpu: 1
   # memoryMiB: 512
 
+env:
+  # Trust App Hosting's proxy for the visitor's host. Its build preparer used
+  # to inject this; see NG_ALLOWED_HOSTS in the environment yamls for why it
+  # no longer does.
+  - variable: NG_TRUST_PROXY_HEADERS
+    value: X-Forwarded-Host
+    availability:
+      - RUNTIME
+
 # Environment variables and secrets.
 # env:
 # Configure environment variables.
