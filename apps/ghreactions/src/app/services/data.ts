@@ -8,6 +8,7 @@ import {
   TablePage,
 } from '@org/ghreactions-github/models';
 import { AnalyticsResponse } from '../../models/analytics';
+import { ProfileResponse } from '../../models/profile';
 
 export type SearchParams = {
   username: string;
@@ -24,6 +25,13 @@ export class Data {
 
   analytics() {
     return this.http.get<AnalyticsResponse>('/api/analytics');
+  }
+
+  /** A tracked user's precomputed profile; 404 for anyone else. */
+  profile(username: string) {
+    return this.http.get<ProfileResponse>(
+      `/api/profile/${encodeURIComponent(username)}`,
+    );
   }
 
   /** One page of search results; `cursor` comes from the previous page. */

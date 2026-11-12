@@ -16,6 +16,7 @@ import * as logger from 'firebase-functions/logger';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { analyticsHandler } from './server/api/analytics.handler';
+import { profileHandler } from './server/api/profile.handler';
 import { tableHandler } from './server/api/table.handler';
 import { rateLimitMiddleware } from './server/middleware/rate-limit';
 
@@ -44,6 +45,7 @@ app.use('/api/', rateLimitMiddleware);
 
 app.get('/api/table', tableHandler);
 app.get('/api/analytics', analyticsHandler);
+app.get('/api/profile/:username', profileHandler);
 
 /**
  * Serve static files from /browser
