@@ -3,8 +3,8 @@ import { Component, ElementRef, inject, input, model } from '@angular/core';
 import { GHReactionsRow } from '@org/ghreactions-github/models';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
-import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { ColumnCount } from './column-count';
 import { REACTIONS } from './reactions';
 
 /**
@@ -17,13 +17,7 @@ import { REACTIONS } from './reactions';
  */
 @Component({
   selector: 'app-reactions-table',
-  imports: [
-    DatePipe,
-    NzAlertModule,
-    NzEmptyModule,
-    NzSpinModule,
-    NzTableModule,
-  ],
+  imports: [ColumnCount, DatePipe, NzAlertModule, NzEmptyModule, NzTableModule],
   templateUrl: './reactions-table.html',
   styleUrl: './reactions-table.scss',
 })
@@ -42,6 +36,8 @@ export class ReactionsTable {
   emptyText = input('No results');
 
   protected readonly reactions = REACTIONS;
+  /** Repository, Content, Type, State, Updated, one per reaction, Total. */
+  protected readonly columnCount = 5 + REACTIONS.length + 1;
 
   protected onPageIndexChange(pageIndex: number): void {
     this.pageIndex.set(pageIndex);
