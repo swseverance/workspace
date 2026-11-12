@@ -1,1 +1,39 @@
 /* You can add global styles to this file, and also import other style files */
+
+:root {
+  --table-border: #f0f0f0; // nz-table's row border
+}
+
+.ghreactions-dark-theme {
+  --table-border: #303030;
+}
+
+// Table headers stick to whatever scrolls the page. nz-table's own fixed
+// header needs a set body height (nzScroll.y), and its nzScroll.x box would
+// trap sticky.
+.ant-table-wrapper .ant-table-thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+// Every page puts its table in a section that scrolls. On desktop, with no
+// rows (empty, loading or error), the empty state's bottom border moves to the
+// bottom of that section, so the table frame reaches the bottom of the
+// screen. Phones are left alone: reactions-table shows cards with no header
+// there, so there's no frame to close.
+@media (min-width: 600px) {
+  section:has(.ant-table-placeholder) {
+    border-bottom: 1px solid var(--table-border);
+  }
+
+  // Specific enough to beat nz-table's small-size cell padding.
+  .ant-table-wrapper
+    .ant-table
+    .ant-table-tbody
+    > tr.ant-table-placeholder
+    > td {
+    padding-top: 32px;
+    border-bottom-color: transparent;
+  }
+}
