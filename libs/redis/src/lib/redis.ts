@@ -6,7 +6,7 @@ import { Redis } from '@upstash/redis';
  * Built on first use, so unit tests that provide a fake never construct a
  * real one.
  *
- * No retries: everything using Redis (rate limits, analytics) fails open, so
+ * No retries: everything using Redis (rate limits) fails open, so
  * during an outage one quick failure beats ~4 s of default backoff on every
  * request. `retries: 0` is one attempt; note that `retry: false` would still
  * make two.

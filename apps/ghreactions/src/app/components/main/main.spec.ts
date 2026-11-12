@@ -13,7 +13,6 @@ import { Data } from '../../services/data';
 import { Main } from './main';
 
 const mockDataService = {
-  analytics: () => of(null),
   page: () => of({ rows: [], nextCursor: null }),
 };
 

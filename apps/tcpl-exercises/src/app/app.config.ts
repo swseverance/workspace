@@ -22,15 +22,13 @@ import { provideCookieAuth } from '@org/auth';
 import { provideEnvironment } from '@org/environment';
 import { provideLogMetaReducer } from '@org/logger';
 import { provideTheme } from '@org/theme';
-import { provideSeo } from '@org/ui';
+import { providePlausible, provideSeo } from '@org/ui';
 import { provideNzConfig } from 'ng-zorro-antd/core/config';
 import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { environment } from '../environments/environment';
 import { appRoutes } from './app.routes';
-import { AnalyticsEffects } from './store/analytics/analytics.effects';
-import { analyticsReducer } from './store/analytics/analytics.reducer';
 import { ChaptersEffects } from './store/exercise/chapters.effects';
 import { ExerciseEffects } from './store/exercise/exercise.effects';
 import { exerciseReducer } from './store/exercise/exercise.reducer';
@@ -44,6 +42,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(appRoutes),
     provideEnvironment(environment),
     provideSeo({ siteName: 'K&R Exercises' }),
+    providePlausible({ domain: 'kandrexercises.com' }),
     provideTheme({
       storageKey: 'tcpl-exercises-theme',
       classes: {
@@ -73,7 +72,5 @@ export const appConfig: ApplicationConfig = {
     provideCookieAuth(),
     provideState('exercise', exerciseReducer),
     provideEffects(ExerciseEffects, ChaptersEffects, SubmissionEffects),
-    provideState('analytics', analyticsReducer),
-    provideEffects(AnalyticsEffects),
   ],
 };

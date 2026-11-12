@@ -9,6 +9,6 @@ describe('redisKey', () => {
     vi.stubEnv('PROJECT_ID', 'proj');
     vi.stubEnv('ENVIRONMENT_NAME', 'dev');
 
-    expect(redisKey('analytics:searches')).toBe('proj:dev:analytics:searches');
+    expect(redisKey('ratelimit:github')).toBe('proj:dev:ratelimit:github');
   });
 });

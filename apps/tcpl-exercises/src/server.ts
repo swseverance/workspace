@@ -26,7 +26,6 @@ import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getAnalyticsHandler } from './server/api/analytics.handler';
 import { getChaptersHandler } from './server/api/chapters.handler';
 import {
   getExerciseHandler,
@@ -94,7 +93,6 @@ app.delete('/api/session', deleteSessionHandler);
 
 app.post('/api/logs', logHandler);
 
-app.get('/api/analytics', getAnalyticsHandler);
 app.get('/api/chapters', getChaptersHandler);
 app.get('/api/exercises/:id', exerciseExistsMiddleware, getExerciseHandler);
 app.put(

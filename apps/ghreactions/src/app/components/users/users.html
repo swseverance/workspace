@@ -17,14 +17,15 @@
     [nzNoResult]="noResult"
   >
     <!-- The class keeps nz-table's thead component off (see reactions-table). -->
-    <thead class="ant-table-thead" [appColumnCount]="6">
+    <thead class="ant-table-thead" [appColumnCount]="7">
       <tr>
         <th class="rank">#</th>
-        <th>User</th>
-        <th class="number">Reactions</th>
-        <th class="number count">Issues</th>
-        <th class="number count">Pull requests</th>
-        <th class="number count">Issue comments</th>
+        <th class="user">User</th>
+        <th class="number reactions">Reactions</th>
+        <th class="number count issues">Issues</th>
+        <th class="number count prs">Pull requests</th>
+        <th class="number count comments">Issue comments</th>
+        <th class="filler"></th>
       </tr>
     </thead>
     <tbody>
@@ -40,6 +41,7 @@
           <td class="number count">{{ user.counts.issues }}</td>
           <td class="number count">{{ user.counts.pullRequests }}</td>
           <td class="number count">{{ user.counts.issueComments }}</td>
+          <td class="filler"></td>
         </tr>
       }
     </tbody>

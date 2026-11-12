@@ -12,7 +12,6 @@ import {
 import { serializeError } from '@org/server';
 import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
-import { analytics } from '../analytics/analytics';
 
 export const tableHandler: RequestHandler = async (req, res) => {
   const parsed = tableQuerySchema.safeParse(req.query);
@@ -42,11 +41,6 @@ export const tableHandler: RequestHandler = async (req, res) => {
         page = await pullRequestsApi.fetchPullRequests(data);
         break;
     }
-
-    // A cursor means the user is scrolling an existing search, not starting
-    // one. Awaited before responding because Cloud Run may throttle CPU once
-    // the response is sent.
-    if (!data.cursor) await analytics.recordSearch(data.username);
 
     res.json(page);
   } catch (err) {

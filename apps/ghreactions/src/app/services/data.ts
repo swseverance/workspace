@@ -9,7 +9,6 @@ import {
   TablePage,
   UsersPage,
 } from '@org/ghreactions-github/models';
-import { AnalyticsResponse } from '../../models/analytics';
 
 export type SearchParams = {
   username: string;
@@ -23,10 +22,6 @@ export type SearchParams = {
 })
 export class Data {
   private http = inject(HttpClient);
-
-  analytics() {
-    return this.http.get<AnalyticsResponse>('/api/analytics');
-  }
 
   /** A tracked user's precomputed profile; 404 for anyone else. */
   profile(username: string) {

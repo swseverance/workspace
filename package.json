@@ -98,6 +98,7 @@
     "@ngrx/effects": "^22.0.1",
     "@ngrx/entity": "^22.0.1",
     "@ngrx/store": "^22.0.1",
+    "@plausible-analytics/tracker": "^0.4.7",
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.41.0",
     "@vercel/sandbox": "^3.9.1",
