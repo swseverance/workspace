@@ -1,0 +1,71 @@
+<nz-table
+  #table
+  nzSize="small"
+  [nzData]="error() ? [] : rows()"
+  [nzFrontPagination]="total() === null"
+  [nzTotal]="total() ?? rows().length"
+  [nzPageSize]="pageSize()"
+  [nzPageIndex]="pageIndex()"
+  (nzPageIndexChange)="onPageIndexChange($event)"
+  [nzLoading]="loading()"
+  [nzNoResult]="noResult"
+  [nzHideOnSinglePage]="true"
+  nzTableLayout="fixed"
+>
+  <!--
+  The class keeps nz-table's thead component (selector
+  thead:not(.ant-table-thead)) off this element. That component moves the
+  header row into its own <thead> and removes this one after render, which
+  breaks hydration (NG0500). We use none of its features (sort, filter,
+  fixed columns); the one we'd lose, nzWidth, is replaced by style widths.
+-->
+  <thead class="ant-table-thead" [appColumnCount]="columnCount">
+    <tr>
+      <th style="width: 240px">Repository</th>
+      <th style="width: 600px">Content</th>
+      <th style="width: 200px">Type</th>
+      <th style="width: 100px">State</th>
+      <th style="width: 100px">Updated</th>
+      @for (r of reactions; track r.type) {
+        <th style="width: 80px" nzAlign="center">{{ r.emoji }}</th>
+      }
+      <th style="width: 100px" nzAlign="center">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- data-label: the field name each cell shows in the mobile card. -->
+    @for (row of table.data; track row.id) {
+      <tr>
+        <td nzEllipsis data-label="Repository">{{ row.repository }}</td>
+        <td nzEllipsis data-label="Content">
+          <a [href]="row.url" target="_blank" rel="noopener noreferrer">{{
+            row.content
+          }}</a>
+        </td>
+        <td data-label="Type">{{ row.type }}</td>
+        <td data-label="State">{{ row.state }}</td>
+        <td data-label="Updated">{{ row.updatedAt | date: 'MM/dd/yy' }}</td>
+        @for (r of reactions; track r.type) {
+          <td
+            nzAlign="center"
+            class="count"
+            [class.zero]="!row.reactions[r.type]"
+            [attr.data-label]="r.emoji"
+          >
+            {{ row.reactions[r.type] || '' }}
+          </td>
+        }
+        <td nzAlign="center" class="total">{{ row.total || '' }}</td>
+      </tr>
+    }
+  </tbody>
+</nz-table>
+
+<ng-template #noResult>
+  @if (error(); as message) {
+    <nz-alert nzType="error" nzShowIcon [nzMessage]="message" />
+  } @else if (!loading()) {
+    <!-- Hidden while loading, so it can't flash before the first results. -->
+    <nz-empty nzNotFoundImage="simple" [nzNotFoundContent]="emptyText()" />
+  }
+</ng-template>

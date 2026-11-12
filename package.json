@@ -101,7 +101,6 @@
     "@upstash/ratelimit": "^2.2.0",
     "@upstash/redis": "^1.41.0",
     "@vercel/sandbox": "^3.9.1",
-    "ag-grid-angular": "^35.3.0",
     "codemirror": "^6.0.2",
     "cookie-parser": "^1.4.7",
     "express": "^4.21.2",

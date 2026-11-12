@@ -1,0 +1,134 @@
+:host {
+  display: block;
+  --card-border: #f0f0f0;
+
+  // Sticky to whatever scrolls the page. nz-table's own fixed header needs a
+  // set body height (nzScroll.y), and its nzScroll.x box would trap sticky.
+  ::ng-deep .ant-table-thead > tr > th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+}
+
+:host-context(.ghreactions-dark-theme) {
+  --card-border: #303030;
+}
+
+// The table's loading spinner: 50px lower (70px on desktop) and 50% larger.
+// Separate translate and scale properties, so ng-zorro's rotate animation
+// (transform) still runs.
+:host ::ng-deep .ant-spin-nested-loading > div > .ant-spin .ant-spin-dot {
+  translate: 0 50px;
+  scale: 1.5;
+}
+
+@media (min-width: 600px) {
+  :host ::ng-deep .ant-spin-nested-loading > div > .ant-spin .ant-spin-dot {
+    translate: 0 70px;
+  }
+
+  // Sum of the column widths; the page scrolls sideways below this.
+  :host ::ng-deep .ant-table-content > table {
+    min-width: 1980px;
+
+    // An empty table fits the screen, so its message centres in view.
+    &:has(.ant-table-placeholder) {
+      min-width: 0;
+    }
+  }
+}
+
+// Mobile: each row becomes a card of "label value" lines, ending in a
+// "Reactions" line of the non-zero counts (no Total). The row is a flex box so
+// its pseudo-elements can be lines too: ::after is the "Reactions" label and
+// ::before is "None" when there are no counts.
+@media (max-width: 599.98px) {
+  :host ::ng-deep {
+    .ant-table-content > table,
+    .ant-table-tbody {
+      display: block;
+    }
+
+    .ant-table-thead,
+    colgroup {
+      display: none;
+    }
+
+    // Full width, so the empty state and error stay centred.
+    .ant-table-placeholder,
+    .ant-table-placeholder > td {
+      display: block;
+    }
+
+    .ant-table-tbody > tr.ant-table-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 8px 0;
+      border: 1px solid var(--card-border);
+
+      &::after {
+        content: 'Reactions';
+        order: 1;
+        width: 103px; // the 8px cell padding + the 95px label of the lines above
+        padding: 8px 0 8px 8px;
+        font-weight: 500;
+      }
+
+      &::before {
+        content: 'None';
+        display: none;
+        order: 3;
+        padding: 8px 0;
+      }
+
+      &:not(:has(> td.count:not(.zero)))::before {
+        display: block;
+      }
+    }
+
+    .ant-table-tbody > tr > td[data-label] {
+      flex: 0 0 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      border-bottom: 1px solid var(--card-border);
+
+      &::before {
+        content: attr(data-label);
+        display: inline-block;
+        width: 95px;
+        font-weight: 500;
+      }
+    }
+
+    .ant-table-tbody > tr > td.count {
+      flex: 0 0 auto;
+      order: 2;
+      padding: 8px 8px 8px 0;
+      border-bottom: none;
+      text-align: left;
+
+      &::before {
+        width: auto;
+        margin-right: 4px;
+        font-weight: normal;
+      }
+
+      &.zero {
+        display: none;
+      }
+    }
+
+    .ant-table-tbody > tr > td.total {
+      display: none;
+    }
+  }
+}
+
+// The empty cell centres its content; shrink the alert to fit so it centres
+// too, instead of spanning the row with its text in the middle.
+nz-alert {
+  display: inline-block;
+  text-align: left;
+}

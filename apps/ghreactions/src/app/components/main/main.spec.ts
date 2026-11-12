@@ -7,18 +7,13 @@ import {
   ReactableType,
   ReactionsFilter,
 } from '@org/ghreactions-github/models';
-import { Theme } from '@org/theme';
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import { of } from 'rxjs';
 import { Data } from '../../services/data';
-import { IS_MOBILE } from '../../tokens';
 import { Main } from './main';
-
-ModuleRegistry.registerModules([AllCommunityModule]);
 
 const mockDataService = {
   analytics: () => of(null),
-  create: () => ({ getRows: () => {}, reset: () => {} }),
+  page: () => of({ rows: [], nextCursor: null }),
 };
 
 describe('Main', () => {
@@ -29,8 +24,6 @@ describe('Main', () => {
       providers: [
         provideRouter([{ path: '', component: Main }]),
         { provide: Data, useValue: mockDataService },
-        { provide: Theme, useValue: { mode$: of('light') } },
-        { provide: IS_MOBILE, useValue: false },
       ],
     }).compileComponents();
 
@@ -104,6 +97,19 @@ describe('Main', () => {
     expect(component.form.get('reactions')!.value).toEqual([
       ReactionsFilter.WithReactions,
     ]);
+  });
+
+  it('ignores an unknown type and its filters', async () => {
+    const component = await harness.navigateByUrl(
+      '/?username=swseverance&type=Bogus&state=OPEN',
+      Main,
+    );
+
+    expect(component.form.get('username')!.value).toBe('swseverance');
+    expect(component.form.get('type')!.value).toBe(component.defaultModel.type);
+    expect(component.form.get('state')!.value).toEqual(
+      component.defaultModel.state,
+    );
   });
 
   it('disables state & reactions dropdowns when appropriate', async () => {

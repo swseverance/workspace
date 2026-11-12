@@ -46,7 +46,7 @@
     },
     "watch": {
       "continuous": true,
-      "command": "nx run ghreactions-functions:build:local --watch"
+      "command": "nx run ghreactions-functions:build:local --watch --skipNxCache"
     },
     "shell": {
       "continuous": true,

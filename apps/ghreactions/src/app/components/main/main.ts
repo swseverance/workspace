@@ -1,6 +1,12 @@
-import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
@@ -17,10 +23,6 @@ import {
   ReactableType,
   ReactionsFilter,
 } from '@org/ghreactions-github/models';
-import { Theme } from '@org/theme';
-import { AgGridAngular } from 'ag-grid-angular';
-import type { GridApi, GridReadyEvent } from 'ag-grid-community';
-import { colorSchemeDark, themeQuartz } from 'ag-grid-community';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -28,16 +30,17 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { Adapter } from '../../../models/adapter';
-import { Data } from '../../services/data';
-import { IS_MOBILE } from '../../tokens';
-import { COLUMNS, DEFAULT_COL_DEF } from './columns';
+import { Subscription } from 'rxjs';
+import { Data, SearchParams } from '../../services/data';
+import { ReactionsTable } from '../reactions-table/reactions-table';
 import { TYPE_CONFIG, TYPE_OPTIONS } from './options';
+
+// Rows per page from /api/table; the server fills every page but the last.
+const PAGE_SIZE = 100;
 
 @Component({
   selector: 'app-main',
   imports: [
-    AsyncPipe,
     ReactiveFormsModule,
     NzFormModule,
     NzInputModule,
@@ -46,34 +49,37 @@ import { TYPE_CONFIG, TYPE_OPTIONS } from './options';
     NzCollapseModule,
     NzGridModule,
     NzIconModule,
-    AgGridAngular,
+    ReactionsTable,
   ],
   templateUrl: './main.html',
   styleUrl: './main.scss',
 })
-export class Main implements OnInit, Adapter {
+export class Main implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
   private meta = inject(Meta);
   private dataService = inject(Data);
-  protected theme = inject(Theme);
-  protected mobile = inject(IS_MOBILE);
 
-  private gridApi!: GridApi<GHReactionsRow>;
+  protected rows = signal<GHReactionsRow[]>([]);
+  protected total = signal(0);
+  protected pageIndex = signal(1);
+  protected loading = signal(false);
+  protected error = signal<string | null>(null);
+  protected searched = signal(false);
 
-  readonly lightTheme = themeQuartz;
-  readonly darkTheme = themeQuartz.withPart(colorSchemeDark);
-
-  readonly columns = COLUMNS;
+  private search: SearchParams | null = null;
+  /** Cursor for each page after the first, learned from the page before. */
+  private cursors = new Map<number, string>();
+  /** Set once the last page has been seen. */
+  private knownTotal: number | null = null;
+  private request?: Subscription;
 
   ReactableType = ReactableType;
 
   typeOptions = TYPE_OPTIONS;
 
   typeConfig = TYPE_CONFIG;
-
-  requestPending = false;
 
   defaultModel = {
     username: '',
@@ -101,27 +107,14 @@ export class Main implements OnInit, Adapter {
     }),
   });
 
-  defaultColDef = DEFAULT_COL_DEF;
-
-  filterFunction() {
-    return true;
-  }
-
-  onGridReady(event: GridReadyEvent<GHReactionsRow>): void {
-    this.gridApi = event.api;
-
-    this.gridApi.setGridOption(
-      'overlayNoRowsTemplate',
-      '<span>No results</span>',
-    );
-
-    if (this.form.valid) this.setDataSource();
-    else this.gridApi.showNoRowsOverlay();
+  constructor() {
+    // Browser only: a shared /search link shouldn't make SSR call GitHub.
+    afterNextRender(() => {
+      if (this.form.valid) this.startSearch();
+    });
   }
 
   onSearch(): void {
-    if (this.requestPending) return;
-
     const queryParams: Params = {};
 
     for (const [key, value] of Object.entries(this.form.getRawValue())) {
@@ -133,24 +126,48 @@ export class Main implements OnInit, Adapter {
       queryParamsHandling: 'replace',
     });
 
-    this.setDataSource();
+    this.startSearch();
   }
 
-  private setDataSource(): void {
-    this.requestPending = true;
-    this.gridApi.setGridOption(
-      'datasource',
-      this.dataService.create(this.form.getRawValue()),
-    );
+  private startSearch(): void {
+    this.search = this.form.getRawValue();
+    this.searched.set(true);
+    this.cursors.clear();
+    this.knownTotal = null;
+    this.total.set(0);
+    this.loadPage(1);
   }
 
-  onServerSuccess(): void {
-    this.requestPending = false;
+  loadPage(page: number): void {
+    if (!this.search) return;
+
+    this.pageIndex.set(page);
+    this.loading.set(true);
+    this.error.set(null);
+    this.request?.unsubscribe();
+    this.request = this.dataService
+      .page(this.search, this.cursors.get(page))
+      .subscribe({
+        next: ({ rows, nextCursor }) => {
+          if (nextCursor) this.cursors.set(page + 1, nextCursor);
+          else this.knownTotal = (page - 1) * PAGE_SIZE + rows.length;
+
+          // Page numbers reach one past the furthest page seen, until the end.
+          this.total.set(
+            this.knownTotal ?? Math.max(this.total(), (page + 1) * PAGE_SIZE),
+          );
+          this.rows.set(rows);
+          this.loading.set(false);
+        },
+        error: (error: HttpErrorResponse) => this.onServerError(error),
+      });
   }
 
-  onServerError({ status }: HttpErrorResponse): void {
-    this.requestPending = false;
-    if (status === 400) {
+  onServerError(error: HttpErrorResponse): void {
+    this.loading.set(false);
+    this.rows.set([]);
+    this.error.set(error.error?.message ?? 'Something went wrong');
+    if (error.status === 400) {
       const { username, type, state, reactions } = this.defaultModel;
       this.form.get('username')!.setValue(username);
       this.form.get('type')!.setValue(type);
@@ -197,7 +214,9 @@ export class Main implements OnInit, Adapter {
       this.form.patchValue({ username: username as string });
     }
 
-    if (type && typeof type === 'string') {
+    // Ignore an unknown type (e.g. a hand-edited link): the template looks up
+    // its options in TYPE_CONFIG and would throw.
+    if (typeof type === 'string' && Object.hasOwn(TYPE_CONFIG, type)) {
       this.form.patchValue({ type: type as ReactableType });
 
       const state = rawState ?? [];
@@ -212,5 +231,10 @@ export class Main implements OnInit, Adapter {
         reactions: Array.isArray(reactions) ? reactions : [reactions],
       });
     }
+
+    // A search from the URL starts after hydration (see the constructor). Show
+    // the spinner from the first render, the server's included, instead of
+    // "No results" until then.
+    if (this.form.valid) this.loading.set(true);
   }
 }
