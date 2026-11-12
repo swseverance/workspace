@@ -1,3 +1,9 @@
+# apps/ghreactions/angular.json is an empty placeholder: App Hosting's build preparer
+# only injects NG_ALLOWED_HOSTS and NG_TRUST_PROXY_HEADERS (which Angular SSR
+# needs, or it rejects every request with 400) when the backend's rootDir has
+# an angular.json, and Nx keeps the real config elsewhere. Don't delete it.
+# See https://github.com/GoogleCloudPlatform/buildpacks/commit/fb7a183f6203df0635c490b5c617028bcb6339b6
+
 # See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 runConfig:
   minInstances: 0
@@ -6,12 +12,5 @@ runConfig:
 env:
   - variable: UPSTASH_REDIS_REST_URL
     value: https://loyal-minnow-40926.upstash.io
-    availability:
-      - RUNTIME
-  # Trust App Hosting's proxy for the visitor's host. Its build preparer used
-  # to inject this; see NG_ALLOWED_HOSTS in the environment yamls for why it
-  # no longer does.
-  - variable: NG_TRUST_PROXY_HEADERS
-    value: X-Forwarded-Host
     availability:
       - RUNTIME
