@@ -1,5 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { Component, ElementRef, inject, input, model } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  input,
+  model,
+  TemplateRef,
+} from '@angular/core';
 import { GHReactionsRow } from '@org/ghreactions-github/models';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
@@ -20,6 +28,7 @@ import { REACTIONS } from './reactions';
   imports: [ColumnCount, DatePipe, NzAlertModule, NzEmptyModule, NzTableModule],
   templateUrl: './reactions-table.html',
   styleUrl: './reactions-table.scss',
+  host: { '[class.no-type]': '!showType()' },
 })
 export class ReactionsTable {
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -34,10 +43,16 @@ export class ReactionsTable {
   error = input<string | null>(null);
   /** Shown when there are no rows and nothing is loading. */
   emptyText = input('No results');
+  /** Hide the Type column when every row has the same type. */
+  showType = input(true);
+  /** Rendered in nz-table's title bar, above the header row. */
+  title = input<TemplateRef<void> | null>(null);
 
   protected readonly reactions = REACTIONS;
-  /** Repository, Content, Type, State, Updated, one per reaction, Total. */
-  protected readonly columnCount = 5 + REACTIONS.length + 1;
+  /** Repository, Content, (Type), State, Updated, one per reaction, Total. */
+  protected readonly columnCount = computed(
+    () => (this.showType() ? 5 : 4) + REACTIONS.length + 1,
+  );
 
   protected onPageIndexChange(pageIndex: number): void {
     this.pageIndex.set(pageIndex);

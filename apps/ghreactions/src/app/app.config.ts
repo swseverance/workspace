@@ -1,4 +1,4 @@
-import { registerLocaleData } from '@angular/common';
+import { DATE_PIPE_DEFAULT_OPTIONS, registerLocaleData } from '@angular/common';
 import en from '@angular/common/locales/en';
 import {
   ApplicationConfig,
@@ -28,6 +28,9 @@ export const appConfig: ApplicationConfig = {
     provideNoAuth(),
     provideEnvironment(environment),
     provideNzI18n(en_US),
+    // Dates render on the server too; UTC keeps its text and the browser's
+    // the same, whatever the viewer's timezone.
+    { provide: DATE_PIPE_DEFAULT_OPTIONS, useValue: { timezone: 'UTC' } },
     provideNzIcons([CloseCircleFill, GithubOutline, MoonOutline, SunOutline]),
     provideTheme({
       storageKey: 'ghreactions-theme',

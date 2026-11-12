@@ -9,6 +9,7 @@
   (nzPageIndexChange)="onPageIndexChange($event)"
   [nzLoading]="loading()"
   [nzNoResult]="noResult"
+  [nzTitle]="title()"
   [nzHideOnSinglePage]="true"
   nzTableLayout="fixed"
 >
@@ -19,11 +20,13 @@
   breaks hydration (NG0500). We use none of its features (sort, filter,
   fixed columns); the one we'd lose, nzWidth, is replaced by style widths.
 -->
-  <thead class="ant-table-thead" [appColumnCount]="columnCount">
+  <thead class="ant-table-thead" [appColumnCount]="columnCount()">
     <tr>
       <th style="width: 240px">Repository</th>
       <th style="width: 600px">Content</th>
-      <th style="width: 200px">Type</th>
+      @if (showType()) {
+        <th style="width: 200px">Type</th>
+      }
       <th style="width: 100px">State</th>
       <th style="width: 100px">Updated</th>
       @for (r of reactions; track r.type) {
@@ -42,7 +45,9 @@
             row.content
           }}</a>
         </td>
-        <td data-label="Type">{{ row.type }}</td>
+        @if (showType()) {
+          <td data-label="Type">{{ row.type }}</td>
+        }
         <td data-label="State">{{ row.state }}</td>
         <td data-label="Updated">{{ row.updatedAt | date: 'MM/dd/yy' }}</td>
         @for (r of reactions; track r.type) {
