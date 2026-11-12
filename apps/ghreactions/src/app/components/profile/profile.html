@@ -11,7 +11,7 @@
   </div>
   @if (profile.hasValue()) {
     <p class="refreshed">
-      Refreshed {{ profile.value().refreshedAt | date: 'MMM d, y, HH:mm' }} UTC
+      Refreshed {{ profile.value().lastFetched | date: 'MMM d, y, HH:mm' }} UTC
     </p>
   }
 

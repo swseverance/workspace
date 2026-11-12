@@ -2,13 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import {
   IssueState,
+  Profile,
   PullRequestState,
   ReactableType,
   ReactionsFilter,
   TablePage,
 } from '@org/ghreactions-github/models';
 import { AnalyticsResponse } from '../../models/analytics';
-import { ProfileResponse } from '../../models/profile';
 
 export type SearchParams = {
   username: string;
@@ -29,7 +29,7 @@ export class Data {
 
   /** A tracked user's precomputed profile; 404 for anyone else. */
   profile(username: string) {
-    return this.http.get<ProfileResponse>(
+    return this.http.get<Profile>(
       `/api/profile/${encodeURIComponent(username)}`,
     );
   }

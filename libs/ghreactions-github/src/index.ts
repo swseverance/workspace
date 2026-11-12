@@ -23,6 +23,11 @@ export {
 export { rateLimit } from './lib/github/rate-limit/rate-limit';
 export * from './lib/validators/validators';
 
+export * from './lib/firestore/profile-document';
+export {
+  SEARCH_RESULT_LIMIT,
+  TOP_USERS_QUERY,
+  fetchTopUsers,
+  api as topUsersApi,
+} from './lib/github/fetch-top-users/fetch-top-users';
 export { fetchProfile, profileApi } from './lib/profile/fetch-profile';
-export * from './lib/rotation';
-export * from './lib/tracked-users';

@@ -1,6 +1,6 @@
 import { UserNotFoundError } from '../../models/errors';
 import { ReactableType } from '../../models/github';
-import { Profile } from '../../models/profile';
+import { ProfileFields } from '../../models/profile';
 import { GHReactionsRow } from '../../models/table';
 import { api as issueCommentsApi } from '../github/fetch-issue-comments/fetch-issue-comments';
 import { api as issuesApi } from '../github/fetch-issues/fetch-issues';
@@ -15,11 +15,7 @@ const reacted = (rows: GHReactionsRow[]) =>
  * returns short pages). Issues and PRs come back sorted by reactions; GitHub
  * can't sort comments that way, so the newest are sorted here instead.
  */
-export async function fetchProfile(
-  username: string,
-  now = new Date(),
-): Promise<Profile> {
-  const base = { username, refreshedAt: now.toISOString() };
+export async function fetchProfile(username: string): Promise<ProfileFields> {
   try {
     // Calls run one at a time to stay clear of GitHub's secondary rate
     // limits. The user-scoped call goes first, so a missing user fails fast.
@@ -48,7 +44,7 @@ export async function fetchProfile(
     };
 
     return {
-      ...base,
+      username,
       status: 'ok',
       ...lists,
       counts: {
@@ -60,7 +56,7 @@ export async function fetchProfile(
   } catch (err) {
     if (!(err instanceof UserNotFoundError)) throw err;
     return {
-      ...base,
+      username,
       status: 'not_found',
       issues: [],
       pullRequests: [],

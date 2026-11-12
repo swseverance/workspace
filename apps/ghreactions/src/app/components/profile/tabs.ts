@@ -1,5 +1,4 @@
-import { ReactableType } from '@org/ghreactions-github/models';
-import { ProfileResponse } from '../../../models/profile';
+import { Profile, ReactableType } from '@org/ghreactions-github/models';
 
 // Separate from the component so the routes can check paths without loading it.
 export const PROFILE_TABS = [
@@ -22,7 +21,7 @@ export const PROFILE_TABS = [
     type: ReactableType.IssueComment,
   },
 ] as const satisfies readonly {
-  key: keyof ProfileResponse;
+  key: keyof Profile;
   label: string;
   path: string;
   type: ReactableType;
