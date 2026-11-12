@@ -1,6 +1,6 @@
 import { GHReactionsRow } from './table';
 
-/** How many rows each list holds. */
+/** A number for each of a profile's lists. */
 export type ProfileCounts = {
   issues: number;
   pullRequests: number;
@@ -30,6 +30,8 @@ export type ProfileFields = {
   issueComments: GHReactionsRow[];
   /** The lists' lengths, so the sitemap can read them without the rows. */
   counts: ProfileCounts;
+  /** Reactions summed over each list's rows. */
+  reactions: ProfileCounts;
   /**
    * Reactions across every row in the lists, which ranks users on /users.
    * Covers top items only, not everything the user has posted.
@@ -60,7 +62,7 @@ export const MIN_INDEXED_REACTIONS = 50;
 /** One row of /users. */
 export type UserSummary = Pick<
   ProfileFields,
-  'username' | 'counts' | 'totalReactions'
+  'username' | 'counts' | 'reactions' | 'totalReactions'
 >;
 
 /** GET /api/users?page=N */

@@ -17,6 +17,7 @@ const request = (page?: string) =>
 const user: UserSummary = {
   username: 'gaearon',
   counts: { issues: 3, pullRequests: 2, issueComments: 1 },
+  reactions: { issues: 600, pullRequests: 250, issueComments: 50 },
   totalReactions: 900,
 };
 
