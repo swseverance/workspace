@@ -1,14 +1,6 @@
 :host {
   display: block;
   --card-border: #f0f0f0;
-
-  // Sticky to whatever scrolls the page. nz-table's own fixed header needs a
-  // set body height (nzScroll.y), and its nzScroll.x box would trap sticky.
-  ::ng-deep .ant-table-thead > tr > th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-  }
 }
 
 :host-context(.ghreactions-dark-theme) {
