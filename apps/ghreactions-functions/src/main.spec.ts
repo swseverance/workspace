@@ -19,6 +19,7 @@ const profile: ProfileFields = {
   pullRequests: [],
   issueComments: [],
   counts: { issues: 0, pullRequests: 0, issueComments: 0 },
+  reactions: { issues: 0, pullRequests: 0, issueComments: 0 },
   totalReactions: 0,
 };
 

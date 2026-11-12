@@ -2,7 +2,8 @@
   <h1>{{ title }}</h1>
   <p class="subtitle">
     Ranked by the reactions on each user's top issues, pull requests and recent
-    issue comments. Users with fewer than {{ minReactions }} aren't listed.
+    issue comments, with each kind's share in its own column. Users with fewer
+    than {{ minReactions }} aren't listed.
   </p>
 </header>
 
@@ -38,9 +39,15 @@
             }}</a>
           </td>
           <td class="number">{{ user.totalReactions | number }}</td>
-          <td class="number count">{{ user.counts.issues }}</td>
-          <td class="number count">{{ user.counts.pullRequests }}</td>
-          <td class="number count">{{ user.counts.issueComments }}</td>
+          <td class="number count">
+            {{ user.reactions.issues | number }}
+          </td>
+          <td class="number count">
+            {{ user.reactions.pullRequests | number }}
+          </td>
+          <td class="number count">
+            {{ user.reactions.issueComments | number }}
+          </td>
           <td class="filler"></td>
         </tr>
       }

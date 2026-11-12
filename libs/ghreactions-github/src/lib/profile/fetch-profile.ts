@@ -10,6 +10,9 @@ import { api as pullRequestsApi } from '../github/fetch-pull-requests/fetch-pull
 const reacted = (rows: GHReactionsRow[]) =>
   rows.filter((r) => r.total > 0).sort((a, b) => b.total - a.total);
 
+const sumReactions = (rows: GHReactionsRow[]) =>
+  rows.reduce((sum, row) => sum + row.total, 0);
+
 /**
  * Builds a user's profile from three GitHub calls (a few more if GitHub
  * returns short pages). Issues and PRs come back sorted by reactions; GitHub
@@ -42,6 +45,11 @@ export async function fetchProfile(username: string): Promise<ProfileFields> {
       pullRequests: reacted(pullRequests.rows),
       issueComments: reacted(issueComments.rows),
     };
+    const reactions = {
+      issues: sumReactions(lists.issues),
+      pullRequests: sumReactions(lists.pullRequests),
+      issueComments: sumReactions(lists.issueComments),
+    };
 
     return {
       username,
@@ -52,9 +60,9 @@ export async function fetchProfile(username: string): Promise<ProfileFields> {
         pullRequests: lists.pullRequests.length,
         issueComments: lists.issueComments.length,
       },
-      totalReactions: Object.values(lists)
-        .flat()
-        .reduce((sum, row) => sum + row.total, 0),
+      reactions,
+      totalReactions:
+        reactions.issues + reactions.pullRequests + reactions.issueComments,
     };
   } catch (err) {
     if (!(err instanceof UserNotFoundError)) throw err;
@@ -65,6 +73,7 @@ export async function fetchProfile(username: string): Promise<ProfileFields> {
       pullRequests: [],
       issueComments: [],
       counts: { issues: 0, pullRequests: 0, issueComments: 0 },
+      reactions: { issues: 0, pullRequests: 0, issueComments: 0 },
       totalReactions: 0,
     };
   }
