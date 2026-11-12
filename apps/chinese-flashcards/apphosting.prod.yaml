@@ -7,6 +7,17 @@ env:
     value: prod
     availability:
       - RUNTIME
+  # App Hosting stopped injecting these on 2026-11-12 (its new build
+  # preparer drops them), so Angular's SSR host check rejected every request.
+  # Values copied from the last revision that had them.
+  - variable: NG_TRUST_PROXY_HEADERS
+    value: X-Forwarded-Host
+    availability:
+      - RUNTIME
+  - variable: NG_ALLOWED_HOSTS
+    value: chinese-flashcards-321324490138.us-east4.run.app,chinese-flashcards-2rllqzh5lq-uk.a.run.app,t-416441569---chinese-flashcards-2rllqzh5lq-uk.a.run.app,chinese-flashcards--chineseflashcards-4aea7.us-east4.hosted.app
+    availability:
+      - RUNTIME
 
 scripts:
   buildCommand: npx nx build chinese-flashcards --configuration=production

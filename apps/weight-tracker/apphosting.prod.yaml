@@ -7,6 +7,17 @@ env:
     value: prod
     availability:
       - RUNTIME
+  # App Hosting stopped injecting these on 2026-11-12 (its new build
+  # preparer drops them), so Angular's SSR host check rejected every request.
+  # Values copied from the last revision that had them.
+  - variable: NG_TRUST_PROXY_HEADERS
+    value: X-Forwarded-Host
+    availability:
+      - RUNTIME
+  - variable: NG_ALLOWED_HOSTS
+    value: weight-tracker-149641198503.us-east4.run.app,weight-tracker-klbxkx53cq-uk.a.run.app,t-416441569---weight-tracker-klbxkx53cq-uk.a.run.app,weight-tracker--weight-tracker-2592f.us-east4.hosted.app
+    availability:
+      - RUNTIME
 
 scripts:
   buildCommand: npx nx build weight-tracker --configuration=production

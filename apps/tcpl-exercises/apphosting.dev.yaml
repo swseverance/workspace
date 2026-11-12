@@ -31,3 +31,14 @@ env:
     value: https://tcpl-exercises--tcpl-exercises-dev.us-east4.hosted.app
     availability:
       - RUNTIME
+  # App Hosting stopped injecting these on 2026-11-12 (its new build
+  # preparer drops them), so Angular's SSR host check rejected every request.
+  # Values copied from the last revision that had them.
+  - variable: NG_TRUST_PROXY_HEADERS
+    value: X-Forwarded-Host
+    availability:
+      - RUNTIME
+  - variable: NG_ALLOWED_HOSTS
+    value: tcpl-exercises-452141031571.us-east4.run.app,tcpl-exercises-psyi7jmtna-uk.a.run.app,t-2641246353---tcpl-exercises-psyi7jmtna-uk.a.run.app,tcpl-exercises--tcpl-exercises-dev.us-east4.hosted.app
+    availability:
+      - RUNTIME
