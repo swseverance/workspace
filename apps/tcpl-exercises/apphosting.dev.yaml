@@ -31,13 +31,3 @@ env:
     value: https://tcpl-exercises--tcpl-exercises-dev.us-east4.hosted.app
     availability:
       - RUNTIME
-  # App Hosting's build preparer used to inject this (and
-  # NG_TRUST_PROXY_HEADERS, now in apphosting.yaml). Since
-  # GoogleCloudPlatform/buildpacks fb7a183f6 it only does so when the backend's
-  # rootDir has an angular.json or a package.json with @angular/core, which
-  # this Nx app folder doesn't, so Angular SSR rejected every request (400).
-  # Value copied from the last revision that had it injected.
-  - variable: NG_ALLOWED_HOSTS
-    value: tcpl-exercises-452141031571.us-east4.run.app,tcpl-exercises-psyi7jmtna-uk.a.run.app,t-2641246353---tcpl-exercises-psyi7jmtna-uk.a.run.app,tcpl-exercises--tcpl-exercises-dev.us-east4.hosted.app
-    availability:
-      - RUNTIME

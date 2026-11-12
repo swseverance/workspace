@@ -7,16 +7,6 @@ env:
     value: prod
     availability:
       - RUNTIME
-  # App Hosting's build preparer used to inject this (and
-  # NG_TRUST_PROXY_HEADERS, now in apphosting.yaml). Since
-  # GoogleCloudPlatform/buildpacks fb7a183f6 it only does so when the backend's
-  # rootDir has an angular.json or a package.json with @angular/core, which
-  # this Nx app folder doesn't, so Angular SSR rejected every request (400).
-  # Value copied from the last revision that had it injected.
-  - variable: NG_ALLOWED_HOSTS
-    value: weight-tracker-149641198503.us-east4.run.app,weight-tracker-klbxkx53cq-uk.a.run.app,t-416441569---weight-tracker-klbxkx53cq-uk.a.run.app,weight-tracker--weight-tracker-2592f.us-east4.hosted.app
-    availability:
-      - RUNTIME
 
 scripts:
   buildCommand: npx nx build weight-tracker --configuration=production
