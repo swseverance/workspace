@@ -1,3 +1,9 @@
+# apps/weight-tracker/angular.json is an empty placeholder: App Hosting's build preparer
+# only injects NG_ALLOWED_HOSTS and NG_TRUST_PROXY_HEADERS (which Angular SSR
+# needs, or it rejects every request with 400) when the backend's rootDir has
+# an angular.json, and Nx keeps the real config elsewhere. Don't delete it.
+# See https://github.com/GoogleCloudPlatform/buildpacks/commit/fb7a183f6203df0635c490b5c617028bcb6339b6
+
 # Base settings for Backend (on Cloud Run), shared across environments.
 # See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 runConfig:

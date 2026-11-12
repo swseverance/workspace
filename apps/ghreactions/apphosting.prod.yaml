@@ -1,6 +1,10 @@
 env:
-  - variable: FIREBASE_PROJECT_ID
+  - variable: PROJECT_ID
     value: ghreactionsprod
+    availability:
+      - RUNTIME
+  - variable: SITE_URL
+    value: https://ghreactions.io
     availability:
       - RUNTIME
   - variable: ENVIRONMENT_NAME

@@ -12,7 +12,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthFacade } from '@org/auth';
 import { Theme } from '@org/theme';
-import { ScrollTopOnNavigation } from '@org/ui';
+import { ScrollTopOnNavigation, SeoService } from '@org/ui';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -25,7 +25,6 @@ import { Panel } from '../../components/panel/panel';
 import { Submissions } from '../../components/submissions/submissions';
 import { TestCases } from '../../components/test-cases/test-cases';
 import { VisibleText } from '../../components/visible-text/visible-text';
-import { SeoService } from '../../services/seo-service';
 import { ExerciseFacade } from '../../store/exercise/exercise.facade';
 import { NotFound } from '../not-found/not-found';
 

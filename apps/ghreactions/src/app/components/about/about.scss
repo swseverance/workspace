@@ -16,27 +16,15 @@ a {
   max-width: min-content;
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 h1,
 h2,
 p,
 ul {
   margin: 0 !important;
-}
-
-.stats {
-  font-size: 16px;
-}
-
-.stat {
-  font-size: 24px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-::ng-deep .ghreactions-light-theme app-about .stat {
-  color: #1890ff;
-}
-
-::ng-deep .ghreactions-dark-theme app-about .stat {
-  color: #177ddc;
 }

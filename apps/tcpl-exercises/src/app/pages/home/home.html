@@ -54,23 +54,10 @@
     session cookie so pages render already signed in
   </li>
   <li>Firestore for your code, test results and submission history</li>
-  <li>Upstash Redis for rate limiting and anonymous totals</li>
+  <li>Upstash Redis for rate limiting</li>
+  <li>Plausible for cookieless visit counts</li>
   <li>Firebase App Check with reCAPTCHA to protect the API</li>
   <li>
     NgRx for state, CodeMirror for the editor and NG-Zorro for UI components
   </li>
 </ul>
-
-@if (analytics$ | async; as analytics) {
-  @if (analytics.submissions > 0) {
-    <nz-card>
-      <p class="stats">
-        <span class="stat">{{ analytics.submissions | number }}</span>
-        {{ analytics.submissions === 1 ? 'submission' : 'submissions' }}
-        across
-        <span class="stat">{{ analytics.users | number }}</span>
-        {{ analytics.users === 1 ? 'user' : 'users' }}
-      </p>
-    </nz-card>
-  }
-}

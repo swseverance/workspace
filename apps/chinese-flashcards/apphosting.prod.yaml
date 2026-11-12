@@ -1,5 +1,5 @@
 env:
-  - variable: FIREBASE_PROJECT_ID
+  - variable: PROJECT_ID
     value: chineseflashcards-4aea7
     availability:
       - RUNTIME

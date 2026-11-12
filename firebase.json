@@ -46,5 +46,25 @@
       ],
       "alwaysDeployFromSource": true
     }
-  ]
+  ],
+  "functions": [
+    {
+      "source": "dist/apps/ghreactions-functions",
+      "codebase": "ghreactions",
+      "runtime": "nodejs24",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "configDir": "apps/ghreactions-functions"
+    }
+  ],
+  "emulators": {
+    "firestore": {
+      "port": 8080
+    }
+  }
 }

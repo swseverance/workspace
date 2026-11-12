@@ -1,12 +1,14 @@
+import {
+  commitCommentsApi,
+  issueCommentsApi,
+  issuesApi,
+  pullRequestsApi,
+  rateLimit,
+  RateLimitError,
+  ReactableType,
+  UserNotFoundError,
+} from '@org/ghreactions-github';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RateLimitError, UserNotFoundError } from '../../models/errors';
-import { ReactableType } from '../../models/github';
-import { analytics } from '../analytics/analytics';
-import { api as commitCommentsApi } from '../github/fetch-commit-comments/fetch-commit-comments';
-import { api as issueCommentsApi } from '../github/fetch-issue-comments/fetch-issue-comments';
-import { api as issuesApi } from '../github/fetch-issues/fetch-issues';
-import { api as pullRequestsApi } from '../github/fetch-pull-requests/fetch-pull-requests';
-import { rateLimit } from '../github/rate-limit/rate-limit';
 import { tableHandler } from './table.handler';
 
 function makeReq(query: Record<string, unknown>) {
@@ -23,8 +25,6 @@ function makeRes() {
 const page = { rows: [], nextCursor: null };
 
 beforeEach(() => {
-  analytics.recordSearch = vi.fn().mockResolvedValue(undefined);
-
   rateLimit.checkRateLimit = vi.fn().mockResolvedValue(undefined);
   commitCommentsApi.fetchCommitComments = vi.fn().mockResolvedValue(page);
   issuesApi.fetchIssues = vi.fn().mockResolvedValue(page);
@@ -258,33 +258,6 @@ describe('tableHandler', () => {
       expect(res.status).toHaveBeenCalledWith(400);
     });
 
-    it('records a new search with the trimmed username', async () => {
-      await tableHandler(
-        makeReq({
-          username: '  Swseverance  ',
-          type: ReactableType.Issue,
-          state: 'OPEN',
-        }),
-        makeRes(),
-        vi.fn(),
-      );
-      expect(analytics.recordSearch).toHaveBeenCalledWith('Swseverance');
-    });
-
-    it('does not record a search when scrolling to a later page', async () => {
-      await tableHandler(
-        makeReq({
-          username: 'Swseverance',
-          type: ReactableType.Issue,
-          state: 'OPEN',
-          cursor: 'abc123',
-        }),
-        makeRes(),
-        vi.fn(),
-      );
-      expect(analytics.recordSearch).not.toHaveBeenCalled();
-    });
-
     it('returns the page from the fetch function', async () => {
       const result = { rows: [{ id: '1' }], nextCursor: 'next' };
       issuesApi.fetchIssues = vi.fn().mockResolvedValue(result as any);
@@ -331,7 +304,6 @@ describe('tableHandler', () => {
         message:
           "GitHub's rate limit has been reached. Please try again in 10 minutes.",
       });
-      expect(analytics.recordSearch).not.toHaveBeenCalled();
     });
 
     it('returns empty page when user is not found', async () => {
@@ -351,7 +323,6 @@ describe('tableHandler', () => {
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({ message: error.message });
-      expect(analytics.recordSearch).not.toHaveBeenCalled();
     });
 
     it('returns 500 for unexpected errors', async () => {
@@ -374,7 +345,6 @@ describe('tableHandler', () => {
       expect(res.json).toHaveBeenCalledWith({
         message: 'Internal server error',
       });
-      expect(analytics.recordSearch).not.toHaveBeenCalled();
     });
   });
 });

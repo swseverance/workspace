@@ -1,0 +1,71 @@
+<header>
+  <h1>{{ title }}</h1>
+  <p class="subtitle">
+    Ranked by the reactions on each user's top issues, pull requests and recent
+    issue comments. Users with fewer than {{ minReactions }} aren't listed.
+  </p>
+</header>
+
+<section>
+  <nz-table
+    #table
+    nzSize="small"
+    [nzData]="users()"
+    [nzFrontPagination]="false"
+    [nzShowPagination]="false"
+    [nzLoading]="result.isLoading()"
+    [nzNoResult]="noResult"
+  >
+    <!-- The class keeps nz-table's thead component off (see reactions-table). -->
+    <thead class="ant-table-thead" [appColumnCount]="7">
+      <tr>
+        <th class="rank">#</th>
+        <th class="user">User</th>
+        <th class="number reactions">Reactions</th>
+        <th class="number count issues">Issues</th>
+        <th class="number count prs">Pull requests</th>
+        <th class="number count comments">Issue comments</th>
+        <th class="filler"></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (user of table.data; track user.username; let i = $index) {
+        <tr>
+          <td class="rank">{{ firstRank() + i }}</td>
+          <td>
+            <a [routerLink]="['/u', user.username.toLowerCase(), 'issues']">{{
+              user.username
+            }}</a>
+          </td>
+          <td class="number">{{ user.totalReactions | number }}</td>
+          <td class="number count">{{ user.counts.issues }}</td>
+          <td class="number count">{{ user.counts.pullRequests }}</td>
+          <td class="number count">{{ user.counts.issueComments }}</td>
+          <td class="filler"></td>
+        </tr>
+      }
+    </tbody>
+  </nz-table>
+
+  <!-- Plain links, so crawlers can follow them to every page. -->
+  @if (pages().length > 1) {
+    <nav class="pages" aria-label="Pages">
+      @for (p of pages(); track p) {
+        <a
+          [routerLink]="p === 1 ? ['/users'] : ['/users', p]"
+          [class.current]="p === page()"
+          [attr.aria-current]="p === page() ? 'page' : null"
+          >{{ p }}</a
+        >
+      }
+    </nav>
+  }
+</section>
+
+<ng-template #noResult>
+  @if (error(); as message) {
+    <nz-alert nzType="error" nzShowIcon [nzMessage]="message" />
+  } @else if (!result.isLoading()) {
+    No users yet.
+  }
+</ng-template>

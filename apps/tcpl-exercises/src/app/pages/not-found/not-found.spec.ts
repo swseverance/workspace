@@ -2,6 +2,7 @@ import { RESPONSE_INIT } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Meta } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
+import { provideSeo } from '@org/ui';
 import { NotFound } from './not-found';
 
 describe('NotFound', () => {
@@ -9,6 +10,7 @@ describe('NotFound', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
+        provideSeo({ siteName: 'Example' }),
         ...(responseInit
           ? [{ provide: RESPONSE_INIT, useValue: responseInit }]
           : []),

@@ -6,46 +6,53 @@
   <h1 nz-typography>GitHub Reactions</h1>
 
   <p nz-typography>
-    GitHub Reactions is a search tool that lets you explore GitHub activity
-    across any public account. Enter a username to browse their issues, pull
-    requests, and comments — along with the reactions each one has received.
+    GitHub Reactions shows which issues, pull requests and comments get the most
+    reactions on GitHub: for the most-followed developers, and for any public
+    account you search.
   </p>
 
-  <a nz-button nzType="primary" routerLink="/search">Begin your search</a>
+  <div class="actions">
+    <a nz-button nzType="primary" routerLink="/users">Most reacted users</a>
+    <a nz-button routerLink="/search">Search for a user</a>
+  </div>
 
-  <h2 nz-typography>What you can search</h2>
-
-  <ul nz-typography>
-    <li>Issues opened or by a user</li>
-    <li>Pull requests opened by a user</li>
-    <li>Comments made by a user</li>
-  </ul>
-
-  <h2 nz-typography>How it works</h2>
+  <h2 nz-typography>Most reacted users</h2>
 
   <p nz-typography>
-    Results are fetched live from the GitHub GraphQL API, and all of it is
-    public. We don't store results or the usernames you search — only anonymous
-    totals.
+    We follow GitHub's 1,000 most-followed users and refresh each one about once
+    a day. Every profile lists their most reacted issues and pull requests, plus
+    their most reacted recent issue comments. Reaction totals cover those top
+    items, not everything a user has posted.
+  </p>
+
+  <h2 nz-typography>Search</h2>
+
+  <p nz-typography>
+    Search any public account to fetch its activity live from the GitHub GraphQL
+    API, and filter by state and reactions:
+  </p>
+
+  <ul nz-typography>
+    <li>Issues opened by a user</li>
+    <li>Pull requests opened by a user</li>
+    <li>Issue comments by a user</li>
+    <li>Commit comments by a user</li>
+  </ul>
+
+  <h2 nz-typography>Privacy</h2>
+
+  <p nz-typography>
+    Everything shown is public GitHub data. We don't store your searches or the
+    usernames you search. Visits are counted with Plausible, which uses no
+    cookies and collects no personal data.
   </p>
 
   <h2 nz-typography>Built with</h2>
 
   <ul nz-typography>
     <li>Angular with server-side rendering</li>
-    <li>AG Grid for virtualized result tables</li>
     <li>NG-Zorro for UI components</li>
+    <li>Firebase App Hosting, Cloud Functions and Firestore</li>
     <li>GitHub GraphQL API</li>
   </ul>
-
-  @defer (on idle) { @if (analytics$ | async; as analytics) {
-  <nz-card>
-    <p class="stats">
-      <span class="stat">{{ analytics.searches | number }}</span>
-      {{ analytics.searches === 1 ? 'search' : 'searches' }} across
-      <span class="stat">{{ analytics.profiles | number }}</span>
-      GitHub {{ analytics.profiles === 1 ? 'profile' : 'profiles' }}
-    </p>
-  </nz-card>
-  } }
 </div>

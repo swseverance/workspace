@@ -11,7 +11,7 @@ scripts:
   runCommand: node dist/apps/tcpl-exercises/server/server.mjs
 
 env:
-  - variable: FIREBASE_PROJECT_ID
+  - variable: PROJECT_ID
     value: tcpl-exercises-prod
     availability:
       - RUNTIME

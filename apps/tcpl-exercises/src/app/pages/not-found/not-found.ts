@@ -1,7 +1,7 @@
 import { Component, inject, RESPONSE_INIT } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SeoService } from '@org/ui';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { SeoService } from '../../services/seo-service';
 
 /**
  * Shown for unknown URLs and for exercises that don't exist. The URL stays

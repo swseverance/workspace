@@ -11,9 +11,14 @@ import {
   firebaseAuthProxy,
   getSessionHandler,
   logHandler,
+  noindexOutsideProdMiddleware,
   requireUserMiddleware,
+  robotsHandler,
+  sitemapHandler,
+  siteUrl,
   ssrRequestContext,
   verifySessionCookieMiddleware,
+  type SiteUrlRequestContext,
   type SsrRequestContext,
 } from '@org/server';
 import cookieParser from 'cookie-parser';
@@ -21,7 +26,6 @@ import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getAnalyticsHandler } from './server/api/analytics.handler';
 import { getChaptersHandler } from './server/api/chapters.handler';
 import {
   getExerciseHandler,
@@ -30,18 +34,11 @@ import {
 } from './server/api/exercise.handler';
 import { exerciseExistsMiddleware } from './server/middleware/exercise-exists/exercise-exists';
 import { submitExerciseRateLimitMiddleware } from './server/middleware/rate-limit/rate-limit';
-import {
-  exercisesIndexRedirectHandler,
-  noindexOutsideProdMiddleware,
-  robotsHandler,
-  siteUrl,
-  sitemapHandler,
-} from './server/seo/seo';
-import type { SiteUrlRequestContext } from './shared/site-url';
+import { exercisesIndexRedirectHandler, SITEMAP_PATHS } from './server/seo/seo';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
-const projectId = process.env['FIREBASE_PROJECT_ID'] as string;
+const projectId = process.env['PROJECT_ID'] as string;
 
 initializeApp({ projectId });
 
@@ -96,7 +93,6 @@ app.delete('/api/session', deleteSessionHandler);
 
 app.post('/api/logs', logHandler);
 
-app.get('/api/analytics', getAnalyticsHandler);
 app.get('/api/chapters', getChaptersHandler);
 app.get('/api/exercises/:id', exerciseExistsMiddleware, getExerciseHandler);
 app.put(
@@ -115,7 +111,10 @@ app.post(
 );
 
 app.get('/robots.txt', robotsHandler);
-app.get('/sitemap.xml', sitemapHandler);
+app.get(
+  '/sitemap.xml',
+  sitemapHandler(() => SITEMAP_PATHS),
+);
 app.get('/exercises', exercisesIndexRedirectHandler);
 
 /**

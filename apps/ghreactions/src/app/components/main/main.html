@@ -25,7 +25,10 @@
             <nz-form-control>
               <nz-select formControlName="type" nzId="type">
                 @for (option of typeOptions; track option.value) {
-                <nz-option [nzLabel]="option.label" [nzValue]="option.value" />
+                  <nz-option
+                    [nzLabel]="option.label"
+                    [nzValue]="option.value"
+                  />
                 }
               </nz-select>
             </nz-form-control>
@@ -37,9 +40,14 @@
             <nz-form-label nzFor="state">State</nz-form-label>
             <nz-form-control>
               <nz-select formControlName="state" nzMode="multiple" nzId="state">
-                @for (option of typeConfig[form.value.type!].stateOptions; track
-                option.value) {
-                <nz-option [nzLabel]="option.label" [nzValue]="option.value" />
+                @for (
+                  option of typeConfig[form.value.type!].stateOptions;
+                  track option.value
+                ) {
+                  <nz-option
+                    [nzLabel]="option.label"
+                    [nzValue]="option.value"
+                  />
                 }
               </nz-select>
             </nz-form-control>
@@ -55,9 +63,14 @@
                 nzMode="multiple"
                 nzId="reactions"
               >
-                @for (option of typeConfig[form.value.type!].reactionsOptions;
-                track option.value) {
-                <nz-option [nzLabel]="option.label" [nzValue]="option.value" />
+                @for (
+                  option of typeConfig[form.value.type!].reactionsOptions;
+                  track option.value
+                ) {
+                  <nz-option
+                    [nzLabel]="option.label"
+                    [nzValue]="option.value"
+                  />
                 }
               </nz-select>
             </nz-form-control>
@@ -83,29 +96,14 @@
   </nz-collapse-panel>
 </nz-collapse>
 
-@defer (on idle) {
 <section>
-  @if (mobile) {
-  <ag-grid-angular
-    [theme]="(theme.mode$ | async) === 'dark' ? darkTheme : lightTheme"
-    [columnDefs]="columns.mobile"
-    [defaultColDef]="defaultColDef"
-    [rowHeight]="266"
-    rowModelType="infinite"
-    [context]="this"
-    [suppressCellFocus]="true"
-    (gridReady)="onGridReady($event)"
+  <app-reactions-table
+    [rows]="rows()"
+    [total]="total()"
+    [pageIndex]="pageIndex()"
+    (pageIndexChange)="loadPage($event)"
+    [loading]="loading()"
+    [error]="error()"
+    [emptyText]="searched() ? 'No results' : 'Enter a GitHub username'"
   />
-  } @else {
-  <ag-grid-angular
-    [theme]="(theme.mode$ | async) === 'dark' ? darkTheme : lightTheme"
-    [columnDefs]="columns.desktop"
-    [defaultColDef]="defaultColDef"
-    rowModelType="infinite"
-    [context]="this"
-    [suppressCellFocus]="true"
-    (gridReady)="onGridReady($event)"
-  />
-  }
 </section>
-}

@@ -5,23 +5,44 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import { EnvironmentName, RequestContext } from '@org/environment';
+import {
+  appCheckMiddleware,
+  noindexOutsideProdMiddleware,
+  robotsHandler,
+  sitemapHandler,
+  siteUrl,
+  SiteUrlRequestContext,
+  SsrRequestContext,
+  ssrRequestContext,
+} from '@org/server';
 import express from 'express';
 import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyticsHandler } from './server/api/analytics.handler';
+import { profileHandler } from './server/api/profile.handler';
 import { tableHandler } from './server/api/table.handler';
-import { appCheckMiddleware } from './server/middleware/appcheck';
+import { usersHandler } from './server/api/users.handler';
 import { rateLimitMiddleware } from './server/middleware/rate-limit';
+import { sitemapPaths } from './server/seo/sitemap-paths';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 
-initializeApp({ projectId: process.env['FIREBASE_PROJECT_ID'] });
+initializeApp({ projectId: process.env['PROJECT_ID'] });
 
 const app = express();
+
+/**
+ * TLS ends at App Hosting's proxy, so trust the one hop in front of it for
+ * X-Forwarded-Proto. ssrRequestContext needs that to report the browser's
+ * https origin. A hop count rather than `true` keeps a client-supplied
+ * X-Forwarded-For from setting req.ip.
+ */
+app.set('trust proxy', 1);
 const angularApp = new AngularNodeAppEngine();
+
+app.use(noindexOutsideProdMiddleware);
 
 app.use('/api/', (_req, res, next) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -31,7 +52,15 @@ app.use('/api/', appCheckMiddleware);
 app.use('/api/', rateLimitMiddleware);
 
 app.get('/api/table', tableHandler);
-app.get('/api/analytics', analyticsHandler);
+app.get('/api/profile/:username', profileHandler);
+app.get('/api/users', usersHandler);
+
+app.get('/robots.txt', robotsHandler);
+app.get('/sitemap.xml', sitemapHandler(sitemapPaths));
+
+// The about page moved to /. A 301 tells crawlers the move is permanent;
+// otherwise Angular's catch-all would send it to /search with a 302.
+app.get('/about', (_req, res) => res.redirect(301, '/'));
 
 /**
  * Serve static files from /browser
@@ -48,8 +77,12 @@ app.use(
  * Handle all other requests by rendering the Angular application.
  */
 app.use('/**', (req, res, next) => {
-  const requestContext: RequestContext = {
+  const requestContext: RequestContext &
+    SsrRequestContext &
+    SiteUrlRequestContext = {
+    ...ssrRequestContext(req),
     environmentName: process.env['ENVIRONMENT_NAME'] as EnvironmentName,
+    siteUrl: siteUrl(),
   };
 
   angularApp

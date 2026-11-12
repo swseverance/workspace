@@ -1,0 +1,44 @@
+<header>
+  <div class="title">
+    <h1>{{ heading() }}</h1>
+    <a
+      nz-button
+      nzType="primary"
+      routerLink="/search"
+      [queryParams]="{ username: username(), type: current().type }"
+      >Search all</a
+    >
+  </div>
+  @if (profile.hasValue()) {
+    <p class="refreshed">
+      Refreshed {{ profile.value().lastFetched | date: 'MMM d, y, HH:mm' }} UTC
+      · <a routerLink="/users">More users</a>
+    </p>
+  }
+
+  <!-- Real links, so crawlers can follow them to each type's page. -->
+  <!-- Selected index set directly: nzLinkRouter only updates on router
+  events, so the server render would always mark the first tab. -->
+  <nz-tabs nzLinkRouter [nzSelectedIndex]="tabs.indexOf(current())">
+    @for (t of tabs; track t.key) {
+      <nz-tab>
+        <a
+          *nzTabLink
+          nz-tab-link
+          [routerLink]="['/u', username().toLowerCase(), t.path]"
+          >{{ t.label }}</a
+        >
+      </nz-tab>
+    }
+  </nz-tabs>
+</header>
+
+<section>
+  <app-reactions-table
+    [rows]="rows()"
+    [showType]="false"
+    [loading]="profile.isLoading()"
+    [error]="error()"
+    [emptyText]="'No ' + current().label.toLowerCase() + ' with reactions'"
+  />
+</section>

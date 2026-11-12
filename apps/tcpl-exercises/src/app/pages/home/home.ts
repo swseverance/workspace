@@ -1,41 +1,21 @@
-import { AsyncPipe, DecimalPipe } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SeoService } from '@org/ui';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { SeoService } from '../../services/seo-service';
-import { AnalyticsFacade } from '../../store/analytics/analytics.facade';
 
 @Component({
   selector: 'app-home',
-  imports: [
-    AsyncPipe,
-    DecimalPipe,
-    RouterLink,
-    NzButtonModule,
-    NzCardModule,
-    NzTypographyModule,
-  ],
+  imports: [RouterLink, NzButtonModule, NzTypographyModule],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
-export class Home implements OnInit {
-  private readonly facade = inject(AnalyticsFacade);
-
-  protected readonly analytics$ = this.facade.analytics$;
-
+export class Home {
   constructor() {
     inject(SeoService).setPage(
       'The C Programming Language exercises',
       'Work through the exercises from Kernighan and Ritchie’s The C Programming Language (K&R) in your browser. Write C, run it against tests, and compare with a reference solution.',
       '/',
     );
-  }
-
-  // During hydration this is answered synchronously from the transfer
-  // cache, so the stats in the server-rendered page don't flicker.
-  ngOnInit(): void {
-    this.facade.loadAnalytics();
   }
 }
