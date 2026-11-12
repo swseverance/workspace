@@ -7,6 +7,11 @@ import {
 import { EnvironmentName, RequestContext } from '@org/environment';
 import {
   appCheckMiddleware,
+  noindexOutsideProdMiddleware,
+  robotsHandler,
+  sitemapHandler,
+  siteUrl,
+  SiteUrlRequestContext,
   SsrRequestContext,
   ssrRequestContext,
 } from '@org/server';
@@ -19,6 +24,7 @@ import { analyticsHandler } from './server/api/analytics.handler';
 import { profileHandler } from './server/api/profile.handler';
 import { tableHandler } from './server/api/table.handler';
 import { rateLimitMiddleware } from './server/middleware/rate-limit';
+import { sitemapPaths } from './server/seo/sitemap-paths';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -36,6 +42,8 @@ const app = express();
 app.set('trust proxy', 1);
 const angularApp = new AngularNodeAppEngine();
 
+app.use(noindexOutsideProdMiddleware);
+
 app.use('/api/', (_req, res, next) => {
   res.setHeader('Cache-Control', 'no-store');
   next();
@@ -46,6 +54,9 @@ app.use('/api/', rateLimitMiddleware);
 app.get('/api/table', tableHandler);
 app.get('/api/analytics', analyticsHandler);
 app.get('/api/profile/:username', profileHandler);
+
+app.get('/robots.txt', robotsHandler);
+app.get('/sitemap.xml', sitemapHandler(sitemapPaths));
 
 /**
  * Serve static files from /browser
@@ -62,9 +73,12 @@ app.use(
  * Handle all other requests by rendering the Angular application.
  */
 app.use('/**', (req, res, next) => {
-  const requestContext: RequestContext & SsrRequestContext = {
+  const requestContext: RequestContext &
+    SsrRequestContext &
+    SiteUrlRequestContext = {
     ...ssrRequestContext(req),
     environmentName: process.env['ENVIRONMENT_NAME'] as EnvironmentName,
+    siteUrl: siteUrl(),
   };
 
   angularApp

@@ -14,7 +14,6 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Meta } from '@angular/platform-browser';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import {
   GHReactionsRow,
@@ -23,6 +22,7 @@ import {
   ReactableType,
   ReactionsFilter,
 } from '@org/ghreactions-github/models';
+import { SeoService } from '@org/ui';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -58,7 +58,7 @@ export class Main implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private destroyRef = inject(DestroyRef);
-  private meta = inject(Meta);
+  private seo = inject(SeoService);
   private dataService = inject(Data);
 
   protected rows = signal<GHReactionsRow[]>([]);
@@ -177,11 +177,12 @@ export class Main implements OnInit {
   }
 
   ngOnInit(): void {
-    this.meta.updateTag({
-      name: 'description',
-      content:
-        'Search GitHub for reactions to issues, pull requests, and comments. Filter by state, type, and reactions.',
-    });
+    // Canonical without the query, so every search's URL counts as this page.
+    this.seo.setPage(
+      'Search',
+      'Search GitHub for reactions to issues, pull requests, and comments. Filter by state, type, and reactions.',
+      '/search',
+    );
 
     this.form
       .get('type')!

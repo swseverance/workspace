@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UserNotFoundError } from '../../models/errors';
 import { GHReactionsRow } from '../../models/table';
-import { api as commitCommentsApi } from '../github/fetch-commit-comments/fetch-commit-comments';
 import { api as issueCommentsApi } from '../github/fetch-issue-comments/fetch-issue-comments';
 import { api as issuesApi } from '../github/fetch-issues/fetch-issues';
 import { api as pullRequestsApi } from '../github/fetch-pull-requests/fetch-pull-requests';
@@ -24,10 +23,7 @@ const now = new Date('2026-11-11T12:00:00Z');
 beforeEach(() => {
   issueCommentsApi.fetchIssueComments = vi
     .fn()
-    .mockResolvedValue(page([row('ic1', 1), row('ic2', 5)]));
-  commitCommentsApi.fetchNewestCommitComments = vi
-    .fn()
-    .mockResolvedValue([row('cc1', 0), row('cc2', 2)]);
+    .mockResolvedValue(page([row('ic1', 1), row('ic0', 0), row('ic2', 5)]));
   issuesApi.fetchIssues = vi.fn().mockResolvedValue(page([row('i1', 9)]));
   pullRequestsApi.fetchPullRequests = vi
     .fn()
@@ -35,7 +31,7 @@ beforeEach(() => {
 });
 
 describe('fetchProfile', () => {
-  it('sorts every list by total reactions', async () => {
+  it('keeps rows with reactions, most first, and counts them', async () => {
     const profile = await fetchProfile('octocat', now);
     expect(profile).toMatchObject({
       username: 'octocat',
@@ -43,9 +39,13 @@ describe('fetchProfile', () => {
       status: 'ok',
     });
     expect(profile.issueComments.map((r) => r.id)).toEqual(['ic2', 'ic1']);
-    expect(profile.commitComments.map((r) => r.id)).toEqual(['cc2', 'cc1']);
     expect(profile.issues.map((r) => r.id)).toEqual(['i1']);
     expect(profile.pullRequests.map((r) => r.id)).toEqual(['p1']);
+    expect(profile.counts).toEqual({
+      issues: 1,
+      pullRequests: 1,
+      issueComments: 2,
+    });
   });
 
   it('asks GitHub to sort issues and PRs by reactions', async () => {
@@ -70,7 +70,7 @@ describe('fetchProfile', () => {
       issues: [],
       pullRequests: [],
       issueComments: [],
-      commitComments: [],
+      counts: { issues: 0, pullRequests: 0, issueComments: 0 },
     });
     expect(issuesApi.fetchIssues).not.toHaveBeenCalled();
   });

@@ -8,8 +8,8 @@ import {
   RESPONSE_INIT,
 } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
-import { Meta, Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { SeoService } from '@org/ui';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { Data } from '../../services/data';
@@ -64,28 +64,32 @@ export class Profile {
   );
 
   constructor() {
-    const title = inject(Title);
-    const meta = inject(Meta);
+    const seo = inject(SeoService);
     const responseInit = inject(RESPONSE_INIT, { optional: true });
 
     effect(() => {
-      title.setTitle(`${this.heading()} – GitHub Reactions`);
-      meta.updateTag({
-        name: 'description',
-        content: `The GitHub ${this.current().label.toLowerCase()} by ${this.username()} with the most reactions.`,
-      });
-
-      // Only pages with rows belong in search results.
-      const empty =
-        this.notFound() || (this.profile.hasValue() && !this.rows().length);
-      if (empty) {
-        meta.updateTag({ name: 'robots', content: 'noindex' });
-      } else {
-        meta.removeTag('name="robots"');
+      if (this.notFound()) {
+        seo.setUnindexedPage('Profile not found');
+        // Server render only: a real 404 for users without a profile.
+        if (responseInit) responseInit.status = 404;
+        return;
       }
 
-      // Server render only: a real 404 for users we don't track.
-      if (responseInit && this.notFound()) responseInit.status = 404;
+      // Nothing to describe until the profile loads.
+      if (!this.profile.hasValue()) return;
+
+      // Only tabs with rows belong in search results.
+      if (!this.rows().length) {
+        seo.setUnindexedPage(this.heading());
+        return;
+      }
+
+      const label = this.current().label.toLowerCase();
+      seo.setPage(
+        this.heading(),
+        `The GitHub ${label} by ${this.username()} with the most reactions.`,
+        `/u/${this.username().toLowerCase()}/${this.current().path}`,
+      );
     });
   }
 }

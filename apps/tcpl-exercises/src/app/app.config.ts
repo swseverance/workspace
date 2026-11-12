@@ -22,6 +22,7 @@ import { provideCookieAuth } from '@org/auth';
 import { provideEnvironment } from '@org/environment';
 import { provideLogMetaReducer } from '@org/logger';
 import { provideTheme } from '@org/theme';
+import { provideSeo } from '@org/ui';
 import { provideNzConfig } from 'ng-zorro-antd/core/config';
 import { provideNzDateFnsAdapter } from 'ng-zorro-antd/core/time';
 import { en_US, provideNzI18n } from 'ng-zorro-antd/i18n';
@@ -42,6 +43,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(appRoutes),
     provideEnvironment(environment),
+    provideSeo({ siteName: 'K&R Exercises' }),
     provideTheme({
       storageKey: 'tcpl-exercises-theme',
       classes: {

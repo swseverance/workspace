@@ -13,7 +13,7 @@ const profile: Profile = {
   issues: [],
   pullRequests: [],
   issueComments: [],
-  commitComments: [],
+  counts: { issues: 0, pullRequests: 0, issueComments: 0 },
 };
 
 beforeEach(() => {

@@ -7,7 +7,6 @@ import { GHReactionsRow, TablePage } from '../../../models/table';
 import { commitCommentQuerySchema } from '../../validators/validators';
 import {
   githubClient,
-  PAGE_SIZE,
   toReactions,
   totalReactions,
   truncate,
@@ -72,38 +71,4 @@ export const fetchCommitComments = async ({
   }, cursor);
 };
 
-// GitHub returns commit comments oldest first, with no way to reorder them.
-const newestQuery = `
-  query($login: String!, $limit: Int!) {
-    user(login: $login) {
-      commitComments(last: $limit) {
-        nodes {
-          id
-          url
-          body
-          updatedAt
-          reactionGroups { content reactors { totalCount } }
-          commit {
-            repository { nameWithOwner }
-          }
-        }
-      }
-    }
-  }
-`;
-
-/** The user's newest `limit` commit comments, newest first. */
-export const fetchNewestCommitComments = async (
-  username: string,
-  limit = PAGE_SIZE,
-): Promise<GHReactionsRow[]> => {
-  const data = await githubClient.gql<{
-    user: { commitComments: { nodes: RawCommitComment[] } };
-  }>(newestQuery, {
-    login: username,
-    limit,
-  });
-  return data.user.commitComments.nodes.map(fromCommitComment).reverse();
-};
-
-export const api = { fetchCommitComments, fetchNewestCommitComments };
+export const api = { fetchCommitComments };

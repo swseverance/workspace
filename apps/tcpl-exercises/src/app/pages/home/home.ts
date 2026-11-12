@@ -1,10 +1,10 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { SeoService } from '@org/ui';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { SeoService } from '../../services/seo-service';
 import { AnalyticsFacade } from '../../store/analytics/analytics.facade';
 
 @Component({

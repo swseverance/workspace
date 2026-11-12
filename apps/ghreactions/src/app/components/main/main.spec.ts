@@ -7,6 +7,7 @@ import {
   ReactableType,
   ReactionsFilter,
 } from '@org/ghreactions-github/models';
+import { provideSeo } from '@org/ui';
 import { of } from 'rxjs';
 import { Data } from '../../services/data';
 import { Main } from './main';
@@ -24,6 +25,7 @@ describe('Main', () => {
       providers: [
         provideRouter([{ path: '', component: Main }]),
         { provide: Data, useValue: mockDataService },
+        provideSeo({ siteName: 'Example' }),
       ],
     }).compileComponents();
 
