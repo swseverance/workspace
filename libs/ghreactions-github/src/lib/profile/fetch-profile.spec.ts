@@ -44,6 +44,8 @@ describe('fetchProfile', () => {
       pullRequests: 1,
       issueComments: 2,
     });
+    // 9 + 4 + 5 + 1; the comment with no reactions adds nothing.
+    expect(profile.totalReactions).toBe(19);
   });
 
   it('asks GitHub to sort issues and PRs by reactions', async () => {
@@ -68,6 +70,7 @@ describe('fetchProfile', () => {
       pullRequests: [],
       issueComments: [],
       counts: { issues: 0, pullRequests: 0, issueComments: 0 },
+      totalReactions: 0,
     });
     expect(issuesApi.fetchIssues).not.toHaveBeenCalled();
   });

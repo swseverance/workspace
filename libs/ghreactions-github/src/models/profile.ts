@@ -30,6 +30,11 @@ export type ProfileFields = {
   issueComments: GHReactionsRow[];
   /** The lists' lengths, so the sitemap can read them without the rows. */
   counts: ProfileCounts;
+  /**
+   * Reactions across every row in the lists, which ranks users on /users.
+   * Covers top items only, not everything the user has posted.
+   */
+  totalReactions: number;
 };
 
 /**
@@ -43,4 +48,25 @@ export type Profile = ProfileFields & {
   lastUpdated: string;
   /** The last successful fetch from GitHub; null until the first. */
   lastFetched: string | null;
+};
+
+/**
+ * Users below this many reactions are left out of /users and the sitemap,
+ * and their pages are noindex: too thin to be worth a search result. Many of
+ * the most-followed users file few issues or PRs.
+ */
+export const MIN_INDEXED_REACTIONS = 50;
+
+/** One row of /users. */
+export type UserSummary = Pick<
+  ProfileFields,
+  'username' | 'counts' | 'totalReactions'
+>;
+
+/** GET /api/users?page=N */
+export type UsersPage = {
+  users: UserSummary[];
+  /** 1-based. */
+  page: number;
+  pageCount: number;
 };

@@ -23,5 +23,21 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./components/profile/profile').then((c) => c.Profile),
   },
+  // Page 1 is /users; later pages /users/2, /users/3, ...
+  { path: 'users/1', redirectTo: 'users', pathMatch: 'full' },
+  {
+    path: 'users',
+    loadComponent: () =>
+      import('./components/users/users').then((c) => c.Users),
+  },
+  {
+    path: 'users/:page',
+    canMatch: [
+      (_route: Route, segments: UrlSegment[]) =>
+        /^[1-9]\d*$/.test(segments[1]?.path ?? ''),
+    ],
+    loadComponent: () =>
+      import('./components/users/users').then((c) => c.Users),
+  },
   { path: '**', redirectTo: 'search' },
 ];

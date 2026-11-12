@@ -16,6 +16,12 @@ a {
   max-width: min-content;
 }
 
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 h1,
 h2,
 p,

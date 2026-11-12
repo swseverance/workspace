@@ -1,0 +1,75 @@
+// Same frame as the profile and search pages.
+:host {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 8px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+section {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+// Six short columns read better close together than spread across a wide
+// screen.
+nz-table,
+.pages {
+  max-width: 800px;
+}
+
+.rank {
+  width: 56px;
+}
+
+.number {
+  text-align: right;
+}
+
+// Phones get rank, user and reactions; the per-type counts are on the
+// profile page.
+@media (max-width: 599.98px) {
+  .count {
+    display: none;
+  }
+}
+
+.pages {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px 0;
+
+  a {
+    min-width: 32px;
+    padding: 4px 8px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    text-align: center;
+
+    &.current {
+      border-color: currentColor;
+      pointer-events: none;
+    }
+  }
+}
+
+nz-alert {
+  display: inline-block;
+  text-align: left;
+}

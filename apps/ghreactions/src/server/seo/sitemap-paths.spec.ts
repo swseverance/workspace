@@ -3,7 +3,9 @@ import { profiles } from '../api/profile.handler';
 import { sitemapPaths } from './sitemap-paths';
 
 describe('sitemapPaths', () => {
-  it('lists each profile tab with rows, lowercased and sorted', async () => {
+  // summaries() returns only indexed users (the query applies the minimum).
+  it('lists the users pages and each profile tab with rows, lowercased and sorted', async () => {
+    profiles.rankedCount = vi.fn().mockResolvedValue(250);
     profiles.summaries = vi.fn().mockResolvedValue([
       {
         username: 'tj',
@@ -20,6 +22,9 @@ describe('sitemapPaths', () => {
     expect(await sitemapPaths()).toEqual([
       '/',
       '/search',
+      '/users',
+      '/users/2',
+      '/users/3',
       '/u/jakewharton/pull-requests',
       '/u/tj/issues',
       '/u/tj/issue-comments',
