@@ -28,7 +28,7 @@ export class About {
   constructor() {
     inject(SeoService).setPage(
       'Search Issues, PRs & Comments by User',
-      'Search GitHub for reactions to issues, PRs, and comments. View activity across any public GitHub account.',
+      "See the most reacted GitHub issues, pull requests and comments of top developers, or search any public account's activity.",
       '/',
     );
   }

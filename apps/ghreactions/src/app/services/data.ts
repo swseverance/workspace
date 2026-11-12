@@ -7,6 +7,7 @@ import {
   ReactableType,
   ReactionsFilter,
   TablePage,
+  UsersPage,
 } from '@org/ghreactions-github/models';
 import { AnalyticsResponse } from '../../models/analytics';
 
@@ -32,6 +33,13 @@ export class Data {
     return this.http.get<Profile>(
       `/api/profile/${encodeURIComponent(username)}`,
     );
+  }
+
+  /** One page of users ranked by total reactions (1-based). */
+  users(page: number) {
+    return this.http.get<UsersPage>('/api/users', {
+      params: page > 1 ? { page } : {},
+    });
   }
 
   /** One page of search results; `cursor` comes from the previous page. */

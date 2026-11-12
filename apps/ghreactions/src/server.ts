@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { analyticsHandler } from './server/api/analytics.handler';
 import { profileHandler } from './server/api/profile.handler';
 import { tableHandler } from './server/api/table.handler';
+import { usersHandler } from './server/api/users.handler';
 import { rateLimitMiddleware } from './server/middleware/rate-limit';
 import { sitemapPaths } from './server/seo/sitemap-paths';
 
@@ -54,9 +55,14 @@ app.use('/api/', rateLimitMiddleware);
 app.get('/api/table', tableHandler);
 app.get('/api/analytics', analyticsHandler);
 app.get('/api/profile/:username', profileHandler);
+app.get('/api/users', usersHandler);
 
 app.get('/robots.txt', robotsHandler);
 app.get('/sitemap.xml', sitemapHandler(sitemapPaths));
+
+// The about page moved to /. A 301 tells crawlers the move is permanent;
+// otherwise Angular's catch-all would send it to /search with a 302.
+app.get('/about', (_req, res) => res.redirect(301, '/'));
 
 /**
  * Serve static files from /browser

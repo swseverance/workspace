@@ -52,6 +52,9 @@ export async function fetchProfile(username: string): Promise<ProfileFields> {
         pullRequests: lists.pullRequests.length,
         issueComments: lists.issueComments.length,
       },
+      totalReactions: Object.values(lists)
+        .flat()
+        .reduce((sum, row) => sum + row.total, 0),
     };
   } catch (err) {
     if (!(err instanceof UserNotFoundError)) throw err;
@@ -62,6 +65,7 @@ export async function fetchProfile(username: string): Promise<ProfileFields> {
       pullRequests: [],
       issueComments: [],
       counts: { issues: 0, pullRequests: 0, issueComments: 0 },
+      totalReactions: 0,
     };
   }
 }

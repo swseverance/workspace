@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { MIN_INDEXED_REACTIONS } from '@org/ghreactions-github/models';
 import { SeoService } from '@org/ui';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -78,8 +79,12 @@ export class Profile {
       // Nothing to describe until the profile loads.
       if (!this.profile.hasValue()) return;
 
-      // Only tabs with rows belong in search results.
-      if (!this.rows().length) {
+      // Only tabs with rows, of users with enough reactions, belong in
+      // search results.
+      if (
+        !this.rows().length ||
+        this.profile.value().totalReactions < MIN_INDEXED_REACTIONS
+      ) {
         seo.setUnindexedPage(this.heading());
         return;
       }

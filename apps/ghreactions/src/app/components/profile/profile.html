@@ -12,6 +12,7 @@
   @if (profile.hasValue()) {
     <p class="refreshed">
       Refreshed {{ profile.value().lastFetched | date: 'MMM d, y, HH:mm' }} UTC
+      · <a routerLink="/users">More users</a>
     </p>
   }
 
