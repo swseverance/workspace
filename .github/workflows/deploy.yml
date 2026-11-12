@@ -76,6 +76,7 @@ jobs:
 
       # develop -> dev releases (only apps with a dev environment)
       - name: Deploy ghreactions (dev)
+        id: deploy-ghreactions-dev
         if: github.ref == 'refs/heads/develop' && steps.affected.outputs['ghreactions'] == 'true'
         run: npm run deploy:ghreactions:dev
 
@@ -84,11 +85,13 @@ jobs:
         run: npm run deploy:ghreactions-functions:dev
 
       - name: Deploy tcpl-exercises (dev)
+        id: deploy-tcpl-exercises-dev
         if: github.ref == 'refs/heads/develop' && steps.affected.outputs['tcpl-exercises'] == 'true'
         run: npm run deploy:tcpl-exercises:dev
 
       # main -> prod releases for every app with changes
       - name: Deploy ghreactions (prod)
+        id: deploy-ghreactions-prod
         if: github.ref == 'refs/heads/main' && steps.affected.outputs['ghreactions'] == 'true'
         run: npm run deploy:ghreactions:prod
 
@@ -97,13 +100,43 @@ jobs:
         run: npm run deploy:ghreactions-functions:prod
 
       - name: Deploy tcpl-exercises (prod)
+        id: deploy-tcpl-exercises-prod
         if: github.ref == 'refs/heads/main' && steps.affected.outputs['tcpl-exercises'] == 'true'
         run: npm run deploy:tcpl-exercises:prod
 
       - name: Deploy weight-tracker (prod)
+        id: deploy-weight-tracker-prod
         if: github.ref == 'refs/heads/main' && steps.affected.outputs['weight-tracker'] == 'true'
         run: npm run deploy:weight-tracker:prod
 
       - name: Deploy chinese-flashcards (prod)
+        id: deploy-chinese-flashcards-prod
         if: github.ref == 'refs/heads/main' && steps.affected.outputs['chinese-flashcards'] == 'true'
         run: npm run deploy:chinese-flashcards:prod
+
+      # Load each site that was just deployed. After all deploys, so one
+      # failing check doesn't skip the other apps' deploys; !cancelled() so
+      # every check runs even if an earlier one fails.
+      - name: Smoke check ghreactions (dev)
+        if: ${{ !cancelled() && steps.deploy-ghreactions-dev.outcome == 'success' }}
+        run: .github/scripts/smoke-check.sh https://ghreactions--ghreactionsdev.us-east4.hosted.app/
+
+      - name: Smoke check tcpl-exercises (dev)
+        if: ${{ !cancelled() && steps.deploy-tcpl-exercises-dev.outcome == 'success' }}
+        run: .github/scripts/smoke-check.sh https://tcpl-exercises--tcpl-exercises-dev.us-east4.hosted.app/
+
+      - name: Smoke check ghreactions (prod)
+        if: ${{ !cancelled() && steps.deploy-ghreactions-prod.outcome == 'success' }}
+        run: .github/scripts/smoke-check.sh https://ghreactions.io/
+
+      - name: Smoke check tcpl-exercises (prod)
+        if: ${{ !cancelled() && steps.deploy-tcpl-exercises-prod.outcome == 'success' }}
+        run: .github/scripts/smoke-check.sh https://kandrexercises.com/
+
+      - name: Smoke check weight-tracker (prod)
+        if: ${{ !cancelled() && steps.deploy-weight-tracker-prod.outcome == 'success' }}
+        run: .github/scripts/smoke-check.sh https://weight-tracker--weight-tracker-2592f.us-east4.hosted.app/
+
+      - name: Smoke check chinese-flashcards (prod)
+        if: ${{ !cancelled() && steps.deploy-chinese-flashcards-prod.outcome == 'success' }}
+        run: .github/scripts/smoke-check.sh https://chinese-flashcards--chineseflashcards-4aea7.us-east4.hosted.app/
