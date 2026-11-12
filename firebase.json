@@ -63,8 +63,20 @@
     }
   ],
   "emulators": {
+    "apphosting": {
+      "rootDirectory": "apps/ghreactions",
+      "startCommand": "npx nx serve ghreactions",
+      "port": 4200
+    },
+    "auth": {
+      "port": 9099
+    },
     "firestore": {
       "port": 8080
-    }
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
   }
 }
