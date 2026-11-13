@@ -1,6 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { profiles } from '../api/profile.handler';
 import { sitemapPaths } from './sitemap-paths';
+
+// Spec files share modules here, so put back whatever the tests replace:
+// other files test the real thing.
+const realRanked = profiles.ranked;
+
+afterEach(() => {
+  profiles.ranked = realRanked;
+});
 
 describe('sitemapPaths', () => {
   // ranked() returns only ranked users with enough reactions to be indexed.

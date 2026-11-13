@@ -7,7 +7,7 @@ import {
   ReadProfile,
 } from '@org/ghreactions-github';
 import { Timestamp } from 'firebase-admin/firestore';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   buildProfileHandler,
   profileHandler,
@@ -17,6 +17,24 @@ import {
 import { snapshotQuota } from './snapshot-quota';
 
 vi.mock('firebase-functions/logger', () => ({ error: vi.fn() }));
+
+// Spec files share modules here, so put back whatever the tests replace:
+// other files test the real thing.
+const real = {
+  get: profiles.get,
+  store: profiles.store,
+  take: snapshotQuota.take,
+  checkRateLimit: rateLimit.checkRateLimit,
+  fetchProfile: profileApi.fetchProfile,
+};
+
+afterEach(() => {
+  profiles.get = real.get;
+  profiles.store = real.store;
+  snapshotQuota.take = real.take;
+  rateLimit.checkRateLimit = real.checkRateLimit;
+  profileApi.fetchProfile = real.fetchProfile;
+});
 
 function makeRes() {
   const res = { status: vi.fn(), json: vi.fn() } as any;

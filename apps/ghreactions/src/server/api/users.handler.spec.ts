@@ -1,9 +1,17 @@
 import { UserSummary } from '@org/ghreactions-github';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { profiles } from './profile.handler';
 import { usersHandler } from './users.handler';
 
 vi.mock('firebase-functions/logger', () => ({ error: vi.fn() }));
+
+// Spec files share modules here, so put back whatever the tests replace:
+// other files test the real thing.
+const realRanked = profiles.ranked;
+
+afterEach(() => {
+  profiles.ranked = realRanked;
+});
 
 function makeRes() {
   const res = { status: vi.fn(), json: vi.fn() } as any;
