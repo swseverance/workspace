@@ -20,7 +20,10 @@ import { initializeApp } from 'firebase-admin/app';
 import * as logger from 'firebase-functions/logger';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { profileHandler } from './server/api/profile.handler';
+import {
+  buildProfileHandler,
+  profileHandler,
+} from './server/api/profile.handler';
 import { tableHandler } from './server/api/table.handler';
 import { usersHandler } from './server/api/users.handler';
 import { rateLimitMiddleware } from './server/middleware/rate-limit';
@@ -53,6 +56,7 @@ app.use('/api/', rateLimitMiddleware);
 
 app.get('/api/table', tableHandler);
 app.get('/api/profile/:username', profileHandler);
+app.post('/api/profile/:username', buildProfileHandler);
 app.get('/api/users', usersHandler);
 
 app.get('/robots.txt', robotsHandler);

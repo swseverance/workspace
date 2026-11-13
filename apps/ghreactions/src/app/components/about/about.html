@@ -7,43 +7,55 @@
 
   <p nz-typography>
     GitHub Reactions shows which issues, pull requests and comments get the most
-    reactions on GitHub. There are two ways to look at a user:
+    reactions on GitHub. See your own, or anyone's:
   </p>
 
-  <ul nz-typography>
-    <li>
-      <strong>Snapshot.</strong> A saved profile of the user's most reacted
-      items, refreshed about once a day. It loads instantly and puts the user in
-      a ranking, but only exists for GitHub's most-followed users.
-    </li>
-    <li>
-      <strong>Live search.</strong> Everything a user has posted, fetched from
-      GitHub when you ask. It works for any public account and can be filtered,
-      but takes a moment and isn't ranked against anyone.
-    </li>
-  </ul>
+  <!-- Sends the visitor to their snapshot, which is built if it's new. -->
+  <form class="snapshot" (submit)="seeSnapshot($event)">
+    <input
+      nz-input
+      type="text"
+      placeholder="GitHub username"
+      aria-label="GitHub username"
+      autocapitalize="none"
+      autocorrect="off"
+      spellcheck="false"
+      [value]="username()"
+      (input)="username.set($any($event.target).value)"
+    />
+    <button nz-button nzType="primary" type="submit">See snapshot</button>
+  </form>
 
   <div class="actions">
-    <a nz-button nzType="primary" routerLink="/users">Most reacted users</a>
-    <a nz-button routerLink="/search">Search for a user</a>
+    <a nz-button routerLink="/users">Most reacted users</a>
   </div>
 
-  <h2 nz-typography>Snapshots: the most reacted users</h2>
+  <h2 nz-typography>Snapshots</h2>
 
   <p nz-typography>
-    We follow GitHub's 1,000 most-followed users and refresh each one about once
-    a day. Every profile lists their most reacted issues and pull requests, plus
-    their most reacted recent issue comments. Reaction totals cover those top
-    items, not everything a user has posted. Users are ranked by those totals,
-    and the ranking can be filtered by username. Each snapshot links to the live
-    search for the same user.
+    A snapshot is one user's most reacted issues and pull requests, plus their
+    most reacted recent issue comments, saved so the page loads instantly. Enter
+    any public GitHub username to get one. A new snapshot takes a few seconds to
+    build, is refreshed from time to time, and is kept for
+    {{ snapshotDays }} days. Reaction totals cover those top items, not
+    everything a user has posted.
   </p>
 
-  <h2 nz-typography>Live search: any public account</h2>
+  <h2 nz-typography>Most reacted users</h2>
 
   <p nz-typography>
-    Search any public account to fetch its activity live from the GitHub GraphQL
-    API, and filter by state and reactions:
+    We keep snapshots of GitHub's 1,000 most-followed users permanently, refresh
+    each about once a day, and rank them by their reaction totals. The ranking
+    can be filtered by username. Snapshots you ask for aren't part of it.
+  </p>
+
+  <h2 nz-typography>Live search</h2>
+
+  <p nz-typography>
+    Every snapshot links to a <a routerLink="/search">live search</a> of the
+    same account, which fetches straight from the GitHub GraphQL API. It's
+    slower and unranked, but covers everything, with filters by state and
+    reactions:
   </p>
 
   <ul nz-typography>
