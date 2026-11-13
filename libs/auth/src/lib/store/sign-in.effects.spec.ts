@@ -7,6 +7,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import type { ModalOptions } from 'ng-zorro-antd/modal';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { firstValueFrom, Observable, of, Subject } from 'rxjs';
+import { COOKIE_AUTH_OPTIONS } from '../auth-options';
 import { AuthActions } from './auth.actions';
 import { SignInEffects } from './sign-in.effects';
 
@@ -22,12 +23,14 @@ describe('SignInEffects', () => {
   const auth = {};
   const message = { error: vi.fn() };
   const logger = { error: vi.fn() };
-  const modal = { confirm: vi.fn() };
+  let afterClose: Subject<unknown>;
+  const modal = { confirm: vi.fn(), create: vi.fn(() => ({ afterClose })) };
 
-  function setup() {
+  function setup(options = {}) {
     TestBed.configureTestingModule({
       providers: [
         SignInEffects,
+        { provide: COOKIE_AUTH_OPTIONS, useValue: options },
         provideMockActions(() => actions$),
         { provide: AUTH, useValue: auth },
         { provide: NzMessageService, useValue: message },
@@ -45,6 +48,7 @@ describe('SignInEffects', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    afterClose = new Subject();
   });
 
   describe('openSignInModal$', () => {
@@ -105,6 +109,38 @@ describe('SignInEffects', () => {
         AuthActions.closeSignInModal(),
         AuthActions.signIn({ provider: 'google' }),
       ]);
+    });
+  });
+
+  describe('openSignInModal$ with emailLink', () => {
+    it('opens the sign-in dialog instead of the confirm', () => {
+      actions$ = of(AuthActions.openSignInModal());
+      setup({ emailLink: true }).openSignInModal$.subscribe();
+
+      expect(modal.create).toHaveBeenCalledOnce();
+      expect(modal.confirm).not.toHaveBeenCalled();
+    });
+
+    it('signs in with Google when the dialog closes with it', async () => {
+      actions$ = of(AuthActions.openSignInModal());
+      const action = firstValueFrom(
+        setup({ emailLink: true }).openSignInModal$,
+      );
+
+      afterClose.next({ provider: 'google' });
+
+      expect(await action).toEqual(AuthActions.signIn({ provider: 'google' }));
+    });
+
+    it('reports a close when the dialog is dismissed', async () => {
+      actions$ = of(AuthActions.openSignInModal());
+      const action = firstValueFrom(
+        setup({ emailLink: true }).openSignInModal$,
+      );
+
+      afterClose.next(undefined);
+
+      expect(await action).toEqual(AuthActions.closeSignInModal());
     });
   });
 

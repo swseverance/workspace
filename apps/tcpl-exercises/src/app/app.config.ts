@@ -70,7 +70,7 @@ export const appConfig: ApplicationConfig = {
     provideStore(),
     provideLogMetaReducer(),
     provideEffects(),
-    provideCookieAuth(),
+    provideCookieAuth({ emailLink: true }),
     provideState('exercise', exerciseReducer),
     provideEffects(
       ExerciseEffects,

@@ -14,6 +14,15 @@ export const AuthActions = createActionGroup({
     'Open Sign In Modal': emptyProps(),
     'Close Sign In Modal': emptyProps(),
 
+    // Email link (passwordless) sign-in, for apps with emailLink set. Firebase
+    // emails a link; opening it signs in on the device that asked for it.
+    'Send Sign In Link': props<{ email: string }>(),
+    'Sign In Link Sent': props<{ email: string }>(),
+    'Send Sign In Link Failed': props<{ error: unknown }>(),
+    // Back from the emailed link: signing in with it failed (e.g. expired
+    // or already used).
+    'Email Link Sign In Failed': props<{ error: unknown }>(),
+
     'Sign In': props<{ provider: 'google' }>(),
     'Sign In Success': emptyProps(),
     'Sign In Failed': props<{ error: unknown }>(),
