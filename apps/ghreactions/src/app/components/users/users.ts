@@ -12,6 +12,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MIN_INDEXED_REACTIONS } from '@org/ghreactions-github/models';
 import { SeoService } from '@org/ui';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { Data } from '../../services/data';
 import { ColumnCount } from '../reactions-table/column-count';
@@ -20,7 +21,14 @@ const TITLE = 'Most reacted GitHub users';
 
 @Component({
   selector: 'app-users',
-  imports: [DecimalPipe, RouterLink, NzAlertModule, NzTableModule, ColumnCount],
+  imports: [
+    DecimalPipe,
+    RouterLink,
+    NzAlertModule,
+    NzEmptyModule,
+    NzTableModule,
+    ColumnCount,
+  ],
   templateUrl: './users.html',
   styleUrl: './users.scss',
 })

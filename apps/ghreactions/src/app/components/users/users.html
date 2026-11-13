@@ -73,6 +73,7 @@
   @if (error(); as message) {
     <nz-alert nzType="error" nzShowIcon [nzMessage]="message" />
   } @else if (!result.isLoading()) {
-    No users yet.
+    <!-- Hidden while loading, so it can't flash before the first results. -->
+    <nz-empty nzNotFoundImage="simple" nzNotFoundContent="No users yet." />
   }
 </ng-template>
