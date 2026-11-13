@@ -30,6 +30,7 @@ import { provideNzIcons } from 'ng-zorro-antd/icon';
 import { environment } from '../environments/environment';
 import { appRoutes } from './app.routes';
 import { ChaptersEffects } from './store/exercise/chapters.effects';
+import { DraftEffects } from './store/exercise/draft.effects';
 import { ExerciseEffects } from './store/exercise/exercise.effects';
 import { exerciseReducer } from './store/exercise/exercise.reducer';
 import { SubmissionEffects } from './store/exercise/submission.effects';
@@ -71,6 +72,11 @@ export const appConfig: ApplicationConfig = {
     provideEffects(),
     provideCookieAuth(),
     provideState('exercise', exerciseReducer),
-    provideEffects(ExerciseEffects, ChaptersEffects, SubmissionEffects),
+    provideEffects(
+      ExerciseEffects,
+      ChaptersEffects,
+      SubmissionEffects,
+      DraftEffects,
+    ),
   ],
 };

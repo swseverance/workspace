@@ -6,19 +6,13 @@ export const codeEdited = createAction(
   props<{ code: string }>(),
 );
 
-export const savePendingChanges = createAction(
-  'Save Pending Changes',
+/**
+ * The draft this browser kept for an exercise (see DraftStore), put back in
+ * the editor after the exercise loads.
+ */
+export const draftRestored = createAction(
+  'Draft Restored',
   props<{ id: string; code: string }>(),
-);
-
-export const pendingChangesSaved = createAction(
-  'Pending Changes Saved',
-  props<{ id: string; code: string }>(),
-);
-
-export const savePendingChangesFailure = createAction(
-  'Save Pending Changes Failure',
-  props<{ id: string; error: unknown }>(),
 );
 
 export const attemptToSubmitExercise = createAction(
@@ -80,6 +74,6 @@ export const applyHistoricalSubmission = createAction(
 
 /**
  * The signed-in user went away (signed out here or in another tab). Drops
- * their code, unsaved edits and results.
+ * their code and results.
  */
 export const exercisesReset = createAction('Exercises Reset');

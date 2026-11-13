@@ -16,7 +16,6 @@ import { computeExerciseStatus } from '../exercises/status';
 import {
   getExerciseRecord,
   getExerciseSubmissions,
-  saveExerciseRecordCode,
   saveExerciseRecordSubmission,
   SUBMISSION_HISTORY_LIMIT,
 } from '../firestore/exercise-records';
@@ -105,34 +104,6 @@ function toExercise(
 }
 
 const MAX_CODE_LENGTH = 20_000;
-
-export const saveExerciseCodeHandler: RequestHandler<
-  { id: string },
-  unknown,
-  ExerciseCodeRequestBody
-> = async (req, res) => {
-  const code = req.body.code === null ? '' : req.body.code;
-
-  if (typeof code !== 'string') {
-    res.status(400).json({ message: 'code is required' });
-    return;
-  }
-
-  if (code.length > MAX_CODE_LENGTH) {
-    res
-      .status(400)
-      .json({ message: `code must be at most ${MAX_CODE_LENGTH} characters` });
-    return;
-  }
-
-  try {
-    await saveExerciseRecordCode(req.user!.uid, req.params.id, code);
-    res.status(204).end();
-  } catch (err) {
-    logger.error('[exercise] save code failed', err);
-    res.status(500).json({ message: 'Failed to save code' });
-  }
-};
 
 export async function getExerciseForUser(
   exercise: ExerciseSource,
