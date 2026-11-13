@@ -23,10 +23,22 @@ export type SearchParams = {
 export class Data {
   private http = inject(HttpClient);
 
-  /** A tracked user's precomputed profile; 404 for anyone else. */
+  /** A user's stored snapshot; 404 if there isn't one. Never builds one. */
   profile(username: string) {
     return this.http.get<Profile>(
       `/api/profile/${encodeURIComponent(username)}`,
+    );
+  }
+
+  /**
+   * A user's snapshot, built from GitHub now if there isn't one (which takes
+   * a few seconds). 404 if GitHub has no such user; 429 when no more can be
+   * built for now.
+   */
+  buildProfile(username: string) {
+    return this.http.post<Profile>(
+      `/api/profile/${encodeURIComponent(username)}`,
+      null,
     );
   }
 

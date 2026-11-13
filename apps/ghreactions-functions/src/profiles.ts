@@ -41,19 +41,40 @@ export const profileStore = {
   },
 
   /**
-   * Starts tracking users not stored yet; never removes anyone, so a user who
-   * drops out of the top list keeps their page. Returns how many were added.
+   * Starts tracking users not stored yet, as ranked; never removes anyone, so
+   * a user who drops out of the top list keeps their page. A user who only
+   * had a snapshot someone asked for becomes ranked, and stops expiring.
+   * Returns how many were added.
+   *
+   * Also gives the ranked flag to documents written before it existed, so
+   * every document carries one. They are all ranked: unranked documents have
+   * had the flag from the start. After the first run there are none left.
    */
   async addUsers(usernames: readonly string[]): Promise<number> {
-    // select() with no fields fetches only the document ids.
-    const snapshot = await collection().select().get();
-    const stored = new Set(snapshot.docs.map((doc) => doc.id));
+    const snapshot = await collection().select('ranked').get();
+    const stored = new Map(
+      snapshot.docs.map((doc) => [doc.id, doc.get('ranked') as unknown]),
+    );
     const create = usernames.filter((u) => !stored.has(docId(u)));
+    const promote = usernames.filter((u) => stored.get(docId(u)) === false);
+    const unflagged = [...stored]
+      .filter(([, ranked]) => ranked === undefined)
+      .map(([id]) => id);
 
     const writer = getFirestore().bulkWriter();
+    for (const id of unflagged) {
+      writer.update(collection().doc(id), { ranked: true });
+    }
+    for (const username of promote) {
+      writer.update(collection().doc(docId(username)), {
+        ranked: true,
+        expireAt: FieldValue.delete(),
+      });
+    }
     for (const username of create) {
       writer.create(collection().doc(docId(username)), {
         username,
+        ranked: true,
         status: 'pending',
         issues: [],
         pullRequests: [],
