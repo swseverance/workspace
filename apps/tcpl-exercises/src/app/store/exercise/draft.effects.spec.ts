@@ -15,7 +15,7 @@ import {
   exerciseRefreshed,
   exerciseSubmitted,
 } from './exercise.actions';
-import { selectId } from './exercise.selectors';
+import { initialExerciseState } from './exercise.state';
 
 const SUBMISSION: ExerciseSubmission = {
   id: 's1',
@@ -48,7 +48,11 @@ describe('DraftEffects', () => {
     TestBed.configureTestingModule({
       providers: [
         DraftEffects,
-        provideMockStore({ selectors: [{ selector: selectId, value: id }] }),
+        // State, not overrideSelector: an overridden selector stays
+        // overridden for later spec files in the same worker.
+        provideMockStore({
+          initialState: { exercise: { ...initialExerciseState, id } },
+        }),
         provideMockActions(() => of(action)),
         { provide: DraftStore, useValue: drafts },
       ],
