@@ -39,13 +39,9 @@
         }
       }
     },
-    "watch": {
+    "emulate": {
       "continuous": true,
-      "command": "nx run ghreactions-functions:build:local --watch --skipNxCache"
-    },
-    "shell": {
-      "continuous": true,
-      "command": "test -f dist/apps/ghreactions-functions/main.js || { echo 'No build found: run npm run emulate:ghreactions first'; exit 1; }; cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- functions:shell --project ghreactionsdev"
+      "command": "nx run ghreactions-functions:build:local && cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- functions:shell --config apps/ghreactions/firebase.json --project ghreactionsdev"
     }
   }
 }
