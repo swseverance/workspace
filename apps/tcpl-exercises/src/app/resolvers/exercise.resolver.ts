@@ -27,12 +27,13 @@ export const exerciseResolver: ResolveFn<boolean> = (route) => {
     ofType(AuthActions.cookieCreated),
   );
 
-  // Always fetched fresh, even when revisiting: the reducer keeps any
-  // unsaved pendingChanges and the submitting flag across the reload.
+  // Always fetched fresh, even when revisiting: the reducer keeps the
+  // submitting flag across the reload, and restoreDraft$ puts back any
+  // unsubmitted code.
   //
   // A sign-in finishing mid-request makes the response stale (signed out, so
-  // no saved code, which autosave would then write over), so start the
-  // request again, as loadChapters$ does. refreshExercise$ can't cover this:
+  // without the user's submitted code and results), so start the request
+  // again, as loadChapters$ does. refreshExercise$ can't cover this:
   // it refetches the exercise in the store, which is still the previous one.
   return cookieCreated$.pipe(
     startWith(null),

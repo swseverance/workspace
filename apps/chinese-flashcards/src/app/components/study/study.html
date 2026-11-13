@@ -9,24 +9,24 @@
 
   <main>
     @if (loading()) {
-    <nz-spin />
+      <nz-spin />
     } @else if (groups().length === 0) {
-    <nz-empty nzNotFoundContent="No flashcards found" />
+      <nz-empty nzNotFoundContent="No flashcards found" />
     } @else {
-    <nz-list nzBordered>
-      @for (group of groups(); track group.confidence) {
-      <nz-list-item
-        class="group-row"
-        [routerLink]="['/dashboard/study', type, group.confidence]"
-      >
-        <span>Level {{ group.confidence }}</span>
-        <nz-badge
-          [nzCount]="group.count"
-          [nzStyle]="{ backgroundColor: '#1890ff' }"
-        />
-      </nz-list-item>
-      }
-    </nz-list>
+      <nz-list nzBordered>
+        @for (group of groups(); track group.confidence) {
+          <nz-list-item
+            class="group-row"
+            [routerLink]="['/dashboard/study', type, group.confidence]"
+          >
+            <span>Level {{ group.confidence }}</span>
+            <nz-badge
+              [nzCount]="group.count"
+              [nzStyle]="{ backgroundColor: '#1890ff' }"
+            />
+          </nz-list-item>
+        }
+      </nz-list>
     }
   </main>
 </app-page>

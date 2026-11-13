@@ -15,12 +15,6 @@ export class ExerciseService {
     return this.http.get<Exercise>(`/api/exercises/${exerciseId}`);
   }
 
-  saveCode(exerciseId: string, code: string): Observable<void> {
-    return this.http.put<void>(`/api/exercises/${exerciseId}/code`, {
-      code,
-    });
-  }
-
   submitExercise(exerciseId: string, code: string): Observable<Exercise> {
     return this.http.post<Exercise>(`/api/exercises/${exerciseId}/submit`, {
       code,

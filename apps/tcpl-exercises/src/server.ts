@@ -29,7 +29,6 @@ import { fileURLToPath } from 'node:url';
 import { getChaptersHandler } from './server/api/chapters.handler';
 import {
   getExerciseHandler,
-  saveExerciseCodeHandler,
   submitExerciseHandler,
 } from './server/api/exercise.handler';
 import { exerciseExistsMiddleware } from './server/middleware/exercise-exists/exercise-exists';
@@ -95,12 +94,6 @@ app.post('/api/logs', logHandler);
 
 app.get('/api/chapters', getChaptersHandler);
 app.get('/api/exercises/:id', exerciseExistsMiddleware, getExerciseHandler);
-app.put(
-  '/api/exercises/:id/code',
-  requireUserMiddleware,
-  exerciseExistsMiddleware,
-  saveExerciseCodeHandler,
-);
 // Submitting runs code in a paid Vercel Sandbox, hence the rate limit.
 app.post(
   '/api/exercises/:id/submit',

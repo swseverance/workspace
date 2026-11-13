@@ -4,16 +4,20 @@
   <main>
     <!-- The sign-in button waits for Firebase's answer (signedOut), not just
     the server's (noSession), which can't see a sign-in still in progress. -->
-    @switch (status()) { @case ('signedOut') {
-    <button nz-button nzType="primary" (click)="login()">
-      <span>Sign in with Google</span>
-    </button>
-    } @case ('signedIn') {
-    <a nz-button nzType="primary" routerLink="/dashboard"
-      ><span>Go to Dashboard</span></a
-    >
-    } @default {
-    <nz-spin />
-    } }
+    @switch (status()) {
+      @case ('signedOut') {
+        <button nz-button nzType="primary" (click)="login()">
+          <span>Sign in with Google</span>
+        </button>
+      }
+      @case ('signedIn') {
+        <a nz-button nzType="primary" routerLink="/dashboard"
+          ><span>Go to Dashboard</span></a
+        >
+      }
+      @default {
+        <nz-spin />
+      }
+    }
   </main>
 </app-page>

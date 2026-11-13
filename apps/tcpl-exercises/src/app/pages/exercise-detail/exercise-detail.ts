@@ -54,8 +54,7 @@ export class ExerciseDetail {
   protected readonly facade = inject(ExerciseFacade);
   protected readonly theme$ = inject(Theme).mode$;
   protected readonly auth = inject(AuthFacade);
-  // Only signed-in users can edit, so there are never edits that can't be
-  // saved.
+  // Only signed-in users can edit.
   protected readonly user$ = this.auth.user$;
   protected readonly authStatus$ = this.auth.status$;
   protected readonly exercise$ = this.facade.exercise$;

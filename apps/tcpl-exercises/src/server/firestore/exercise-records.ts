@@ -14,11 +14,6 @@ type WriteExerciseRecord = {
   lastUpdated: FieldValue;
 };
 
-type UpdateExerciseRecord = {
-  code: string;
-  lastUpdated: FieldValue;
-};
-
 type UpdateExerciseRecordWithTests = {
   code: string;
   tests: Record<string, ExerciseRecordTestResult>;
@@ -127,34 +122,6 @@ function toSubmission(id: string, doc: SubmissionDoc): ExerciseSubmission {
 
 function exerciseRecordsCollectionRef(uid: string) {
   return getFirestore().collection(`users/${uid}/exercises`);
-}
-
-export async function saveExerciseRecordCode(
-  uid: string,
-  exerciseId: string,
-  code: string,
-): Promise<void> {
-  const ref = exerciseRecordRef(uid, exerciseId);
-  const snapshot = await ref.get();
-
-  if (!snapshot.exists) {
-    const write: WriteExerciseRecord = {
-      code,
-      tests: {},
-      compilationError: '',
-      compilerWarnings: '',
-      created: FieldValue.serverTimestamp(),
-      lastUpdated: FieldValue.serverTimestamp(),
-    };
-    await ref.set(write);
-    return;
-  }
-
-  const update: UpdateExerciseRecord = {
-    code,
-    lastUpdated: FieldValue.serverTimestamp(),
-  };
-  await ref.update(update);
 }
 
 /** What grading a submission produced, before it's truncated for saving. */

@@ -14,38 +14,40 @@
 
   <main>
     @if (loading()) {
-    <nz-spin />
+      <nz-spin />
     } @else if (entries().length === 0) {
-    <nz-list-empty />
+      <nz-list-empty />
     } @else {
-    <cdk-virtual-scroll-viewport itemSize="56" class="viewport">
-      <div
-        *cdkVirtualFor="let entry of displayEntries(); trackBy: trackById"
-        class="row"
-      >
-        @if (entry.rangeStart) {
-        <span class="date">
-          {{ entry.rangeStart | date: 'MMM d' }} – {{ entry.date | date: 'MMM d'
-          }}
-        </span>
-        } @else {
-        <span class="date">{{ entry.date | date: 'mediumDate' }}</span>
-        } @if (entry.rangeStart) {
-        <span class="weight">{{ entry.weight | number: '1.0-0' }} lbs</span>
-        } @else {
-        <span class="weight">{{ entry.weight | number: '1.1-1' }} lbs</span>
-        } @if (!entry.rangeStart) {
-        <button
-          nz-button
-          nzType="text"
-          nzShape="circle"
-          (click)="editEntry(entry)"
+      <cdk-virtual-scroll-viewport itemSize="56" class="viewport">
+        <div
+          *cdkVirtualFor="let entry of displayEntries(); trackBy: trackById"
+          class="row"
         >
-          <nz-icon nzType="edit" [style.color]="'#1890ff'" />
-        </button>
-        }
-      </div>
-    </cdk-virtual-scroll-viewport>
+          @if (entry.rangeStart) {
+            <span class="date">
+              {{ entry.rangeStart | date: 'MMM d' }} –
+              {{ entry.date | date: 'MMM d' }}
+            </span>
+          } @else {
+            <span class="date">{{ entry.date | date: 'mediumDate' }}</span>
+          }
+          @if (entry.rangeStart) {
+            <span class="weight">{{ entry.weight | number: '1.0-0' }} lbs</span>
+          } @else {
+            <span class="weight">{{ entry.weight | number: '1.1-1' }} lbs</span>
+          }
+          @if (!entry.rangeStart) {
+            <button
+              nz-button
+              nzType="text"
+              nzShape="circle"
+              (click)="editEntry(entry)"
+            >
+              <nz-icon nzType="edit" [style.color]="'#1890ff'" />
+            </button>
+          }
+        </div>
+      </cdk-virtual-scroll-viewport>
     }
   </main>
 </app-page>

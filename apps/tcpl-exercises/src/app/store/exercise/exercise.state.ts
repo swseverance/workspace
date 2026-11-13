@@ -2,8 +2,6 @@ import { createEntityAdapter, EntityState } from '@ngrx/entity';
 import { Chapter, Exercise } from '../../../shared/models';
 
 export type ExerciseEntity = Exercise & {
-  pendingChanges: string;
-
   submitting: boolean;
 };
 
