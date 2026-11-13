@@ -27,7 +27,21 @@ const globalSubmitExerciseRatelimit = createProvider(
     }),
 );
 
+// Signed-out submissions can't be told apart (per-IP limits would lump a
+// whole classroom together), so they share one smaller allowance of their
+// own. A flood of them can't use up signed-in users' global limit, and
+// signing in gets around it.
+const signedOutSubmitExerciseRatelimit = createProvider(
+  () =>
+    new Ratelimit({
+      redis: redisProvider.get(),
+      limiter: Ratelimit.slidingWindow(10, '60 s'),
+      prefix: 'ratelimit:submit-exercise-signed-out',
+    }),
+);
+
 const GLOBAL_KEY = 'global';
+const SIGNED_OUT_KEY = 'signed-out';
 
 export const USER_LIMIT_MESSAGE =
   'Too many submissions. Please wait a moment and try again.';
@@ -35,15 +49,33 @@ export const USER_LIMIT_MESSAGE =
 export const GLOBAL_LIMIT_MESSAGE =
   'The site is receiving a lot of submissions right now. Please try again in a minute.';
 
+export const SIGNED_OUT_LIMIT_MESSAGE =
+  'Too many people are submitting without signing in right now. Sign in to keep submitting, or try again in a minute.';
+
 export const submitExerciseRateLimitMiddleware: RequestHandler = async (
   req,
   res,
   next,
 ) => {
-  const uid = req.user!.uid;
+  const uid = req.user?.uid;
 
   // Express 4 doesn't catch rejected promises from async middleware.
   try {
+    if (!uid) {
+      const signedOut = await signedOutSubmitExerciseRatelimit
+        .get()
+        .limit(SIGNED_OUT_KEY);
+
+      if (!signedOut.success) {
+        logger.warn('[rate-limit] request rejected by signed-out limit');
+        res.status(429).json({ message: SIGNED_OUT_LIMIT_MESSAGE });
+        return;
+      }
+
+      next();
+      return;
+    }
+
     // Checked first, so one user hammering the API is stopped by their own
     // limit without using up everyone else's shared allowance.
     const user = await submitExerciseRatelimit.get().limit(uid);

@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { AuthActions, authFeature } from '@org/auth';
+import { AuthActions } from '@org/auth';
 import { Logger } from '@org/logger';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import {
@@ -17,7 +17,6 @@ import {
 } from 'rxjs';
 import { ExerciseService } from '../../services/exercise-service';
 import {
-  attemptToSubmitExercise,
   exerciseNavigationFailed,
   exerciseRefreshed,
   exercisesReset,
@@ -79,16 +78,6 @@ export class ExerciseEffects {
         }),
       ),
     { dispatch: false },
-  );
-
-  attemptToSubmitExercise$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(attemptToSubmitExercise),
-      withLatestFrom(this.store.select(authFeature.selectUser)),
-      map(([{ code }, user]) =>
-        user ? submitExercise({ code }) : AuthActions.openSignInModal(),
-      ),
-    ),
   );
 
   submitExercise$ = createEffect(() =>

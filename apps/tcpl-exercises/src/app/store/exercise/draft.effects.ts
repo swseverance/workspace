@@ -64,13 +64,18 @@ export class DraftEffects {
     ),
   );
 
-  /** The server has the submitted code now, unless the user typed since. */
+  /**
+   * The server saved the submitted code, unless the user typed since. A
+   * signed-out submission isn't saved (no submissions come back), so its
+   * draft is all that keeps the code.
+   */
   deleteSubmittedDraft$ = createEffect(
     () =>
       this.actions$.pipe(
         ofType(exerciseSubmitted),
         filter(
           ({ exercise }) =>
+            exercise.submissions.length > 0 &&
             this.drafts.get(exercise.id)?.code === exercise.code,
         ),
         tap(({ exercise }) => this.drafts.delete(exercise.id)),

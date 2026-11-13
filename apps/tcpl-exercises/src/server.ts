@@ -6,13 +6,13 @@ import {
 } from '@angular/ssr/node';
 import {
   appCheckMiddleware,
+  consumeAppCheckTokenMiddleware,
   createSessionHandler,
   deleteSessionHandler,
   firebaseAuthProxy,
   getSessionHandler,
   logHandler,
   noindexOutsideProdMiddleware,
-  requireUserMiddleware,
   robotsHandler,
   sitemapHandler,
   siteUrl,
@@ -94,10 +94,12 @@ app.post('/api/logs', logHandler);
 
 app.get('/api/chapters', getChaptersHandler);
 app.get('/api/exercises/:id', exerciseExistsMiddleware, getExerciseHandler);
-// Submitting runs code in a paid Vercel Sandbox, hence the rate limit.
+// Submitting runs code in a paid Vercel Sandbox, hence the one-time App
+// Check token and the rate limit. Signed-out visitors can submit too; their
+// submissions are graded but not saved.
 app.post(
   '/api/exercises/:id/submit',
-  requireUserMiddleware,
+  consumeAppCheckTokenMiddleware,
   exerciseExistsMiddleware,
   submitExerciseRateLimitMiddleware,
   submitExerciseHandler,

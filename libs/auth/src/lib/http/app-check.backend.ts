@@ -1,6 +1,7 @@
 import {
   FetchBackend,
   HttpBackend,
+  HttpContextToken,
   HttpEvent,
   HttpRequest,
 } from '@angular/common/http';
@@ -12,8 +13,16 @@ import {
 } from '@angular/core';
 import { FIREBASE_APP_CHECK } from '@org/firebase';
 import { WINDOW } from '@org/window';
-import { getToken } from 'firebase/app-check';
+import { getLimitedUseToken, getToken } from 'firebase/app-check';
 import { from, Observable, switchMap } from 'rxjs';
+
+/**
+ * Set on a request to send a limited-use App Check token instead of the
+ * usual one: each takes a fresh attestation and the server can consume it,
+ * so it can't be replayed. For expensive endpoints; the server must verify
+ * it with `consume: true` (consumeAppCheckTokenMiddleware) for that to hold.
+ */
+export const LIMITED_USE_APP_CHECK_TOKEN = new HttpContextToken(() => false);
 
 /**
  * Attaches the App Check token at the backend, not in an interceptor:
@@ -41,7 +50,11 @@ export class AppCheckBackend extends FetchBackend {
       return super.handle(req);
     }
 
-    return from(getToken(appCheck)).pipe(
+    const token = req.context.get(LIMITED_USE_APP_CHECK_TOKEN)
+      ? getLimitedUseToken(appCheck)
+      : getToken(appCheck);
+
+    return from(token).pipe(
       switchMap(({ token }) =>
         super.handle(
           req.clone({ setHeaders: { 'X-Firebase-AppCheck': token } }),

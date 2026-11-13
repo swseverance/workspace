@@ -18,6 +18,7 @@ import {
   getExerciseSubmissions,
   saveExerciseRecordSubmission,
   SUBMISSION_HISTORY_LIMIT,
+  truncateGraded,
 } from '../firestore/exercise-records';
 import { gradeSubmission } from '../sandbox/run-c';
 
@@ -161,7 +162,7 @@ export const submitExerciseHandler: RequestHandler<
   }
 
   try {
-    const uid = req.user!.uid;
+    const uid = req.user?.uid;
     const exercise = req.exercise!;
 
     // Load the earlier submissions while the code is being graded.
@@ -170,7 +171,7 @@ export const submitExerciseHandler: RequestHandler<
       previousSubmissions,
     ] = await Promise.all([
       gradeSubmission(code, exercise.tests),
-      getExerciseSubmissions(uid, exercise.id),
+      uid ? getExerciseSubmissions(uid, exercise.id) : [],
     ]);
 
     const tests: Record<string, ExerciseRecordTestResult> = Object.fromEntries(
@@ -185,6 +186,21 @@ export const submitExerciseHandler: RequestHandler<
         },
       ]),
     );
+
+    // Signed out: graded, but nothing is saved, so there's no history.
+    if (!uid) {
+      res.json(
+        toExercise(
+          exercise,
+          {
+            code,
+            ...truncateGraded({ tests, compilationError, compilerWarnings }),
+          },
+          [],
+        ),
+      );
+      return;
+    }
 
     const { record, submission } = await saveExerciseRecordSubmission(
       uid,

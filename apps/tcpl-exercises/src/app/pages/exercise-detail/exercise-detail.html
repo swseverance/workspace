@@ -1,7 +1,6 @@
 @let exercise = exercise$ | async;
 @let theme = theme$ | async;
 @let submissionPending = submissionPending$ | async;
-@let user = user$ | async;
 @let authStatus = authStatus$ | async;
 
 <!-- The resolver puts the exercise in the store before this page renders. -->
@@ -74,7 +73,7 @@
                 class="sign-in-alert"
                 nzType="info"
                 nzShowIcon
-                nzMessage="Sign in to edit and submit your solution."
+                nzMessage="Sign in to save your submissions."
                 [nzAction]="signInAction"
               />
             }
@@ -84,7 +83,6 @@
                 [docId]="exercise.id"
                 [code]="exercise.code"
                 [theme]="theme!"
-                [readonly]="!user"
                 (codeChange)="onCodeChange($event)"
                 [loading]="exerciseLoading()"
               />

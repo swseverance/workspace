@@ -21,12 +21,13 @@ vi.mock('firebase-functions/logger', () => ({
 
 const {
   GLOBAL_LIMIT_MESSAGE,
+  SIGNED_OUT_LIMIT_MESSAGE,
   USER_LIMIT_MESSAGE,
   submitExerciseRateLimitMiddleware,
 } = await import('./rate-limit');
 
-function createRequest(uid: string): Request {
-  return { user: { uid } } as Request;
+function createRequest(uid?: string): Request {
+  return (uid ? { user: { uid } } : {}) as Request;
 }
 
 function createResponse(): Response {
@@ -43,8 +44,9 @@ function allow({ user, global }: { user: boolean; global: boolean }) {
   }));
 }
 
-async function run() {
-  const req = createRequest('user-123');
+// null: signed out.
+async function run(uid: string | null = 'user-123') {
+  const req = createRequest(uid ?? undefined);
   const res = createResponse();
   const next = vi.fn();
 
@@ -114,5 +116,29 @@ describe('submitExerciseRateLimitMiddleware', () => {
 
     expect(next).toHaveBeenCalledWith(error);
     expect(res.status).not.toHaveBeenCalled();
+  });
+
+  describe('signed out', () => {
+    it('calls next() within the signed-out limit, without touching the others', async () => {
+      limit.mockResolvedValue({ success: true });
+
+      const { res, next } = await run(null);
+
+      expect(limit).toHaveBeenCalledExactlyOnceWith('signed-out');
+      expect(next).toHaveBeenCalledOnce();
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('responds 429 suggesting sign-in when the signed-out limit is exceeded', async () => {
+      limit.mockResolvedValue({ success: false });
+
+      const { res, next } = await run(null);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        message: SIGNED_OUT_LIMIT_MESSAGE,
+      });
+    });
   });
 });
