@@ -15,11 +15,6 @@ export const draftRestored = createAction(
   props<{ id: string; code: string }>(),
 );
 
-export const attemptToSubmitExercise = createAction(
-  'Attempt To Submit Exercise',
-  props<{ code: string }>(),
-);
-
 export const submitExercise = createAction(
   'Submit Exercise',
   props<{ code: string }>(),

@@ -1,9 +1,15 @@
 import type { Request, Response } from 'express';
-import { appCheckMiddleware } from './app-check';
+import {
+  appCheckMiddleware,
+  consumeAppCheckTokenMiddleware,
+} from './app-check';
 import { SSR_LOOPBACK_HEADER, SSR_LOOPBACK_TOKEN } from './ssr-loopback';
 
 const { verifyToken } = vi.hoisted(() => ({ verifyToken: vi.fn() }));
-const { loggerError } = vi.hoisted(() => ({ loggerError: vi.fn() }));
+const { loggerError, loggerWarn } = vi.hoisted(() => ({
+  loggerError: vi.fn(),
+  loggerWarn: vi.fn(),
+}));
 
 vi.mock('firebase-admin/app-check', () => ({
   getAppCheck: () => ({ verifyToken }),
@@ -11,6 +17,7 @@ vi.mock('firebase-admin/app-check', () => ({
 
 vi.mock('firebase-functions/logger', () => ({
   error: loggerError,
+  warn: loggerWarn,
 }));
 
 function createRequest(
@@ -171,5 +178,60 @@ describe('appCheckMiddleware', () => {
         expect(res.status).toHaveBeenCalledWith(401);
       },
     );
+  });
+});
+
+describe('consumeAppCheckTokenMiddleware', () => {
+  beforeEach(() => {
+    verifyToken.mockReset();
+    vi.unstubAllEnvs();
+  });
+
+  it('skips consuming locally', async () => {
+    vi.stubEnv('ENVIRONMENT_NAME', 'local');
+    const next = vi.fn();
+
+    await consumeAppCheckTokenMiddleware(
+      createRequest('t'),
+      createResponse(),
+      next,
+    );
+
+    expect(verifyToken).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledOnce();
+  });
+
+  it('consumes the token and calls next() on first use', async () => {
+    verifyToken.mockResolvedValue({ alreadyConsumed: false });
+    const res = createResponse();
+    const next = vi.fn();
+
+    await consumeAppCheckTokenMiddleware(createRequest('t'), res, next);
+
+    expect(verifyToken).toHaveBeenCalledWith('t', { consume: true });
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('401s a replayed token', async () => {
+    verifyToken.mockResolvedValue({ alreadyConsumed: true });
+    const res = createResponse();
+    const next = vi.fn();
+
+    await consumeAppCheckTokenMiddleware(createRequest('t'), res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+
+  it('401s a token that fails verification', async () => {
+    verifyToken.mockRejectedValue(new Error('bad'));
+    const res = createResponse();
+    const next = vi.fn();
+
+    await consumeAppCheckTokenMiddleware(createRequest('t'), res, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(401);
   });
 });

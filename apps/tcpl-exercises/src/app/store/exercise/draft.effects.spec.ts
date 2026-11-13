@@ -142,11 +142,26 @@ describe('DraftEffects', () => {
       stored = { code: 'saved', savedAt: '2026-11-12T10:00:00.000Z' };
 
       await firstValueFrom(
-        setup(exerciseSubmitted({ exercise: exercise() }))
-          .deleteSubmittedDraft$,
+        setup(
+          exerciseSubmitted({
+            exercise: exercise({ submissions: [SUBMISSION] }),
+          }),
+        ).deleteSubmittedDraft$,
       );
 
       expect(drafts.delete).toHaveBeenCalledWith('1-1');
+    });
+
+    it("keeps a signed-out submission's draft, as the server saved nothing", async () => {
+      stored = { code: 'saved', savedAt: '2026-11-12T10:00:00.000Z' };
+
+      await firstValueFrom(
+        setup(
+          exerciseSubmitted({ exercise: exercise() }),
+        ).deleteSubmittedDraft$.pipe(toArray()),
+      );
+
+      expect(drafts.delete).not.toHaveBeenCalled();
     });
 
     it('keeps a draft typed while grading ran', async () => {
@@ -154,7 +169,9 @@ describe('DraftEffects', () => {
 
       await firstValueFrom(
         setup(
-          exerciseSubmitted({ exercise: exercise() }),
+          exerciseSubmitted({
+            exercise: exercise({ submissions: [SUBMISSION] }),
+          }),
         ).deleteSubmittedDraft$.pipe(toArray()),
       );
 

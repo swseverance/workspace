@@ -54,8 +54,6 @@ export class ExerciseDetail {
   protected readonly facade = inject(ExerciseFacade);
   protected readonly theme$ = inject(Theme).mode$;
   protected readonly auth = inject(AuthFacade);
-  // Only signed-in users can edit.
-  protected readonly user$ = this.auth.user$;
   protected readonly authStatus$ = this.auth.status$;
   protected readonly exercise$ = this.facade.exercise$;
   // The resolver holds each navigation until its exercise has loaded, so a
