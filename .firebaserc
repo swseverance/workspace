@@ -1,8 +1,0 @@
-{
-  "projects": {
-    "weight-tracker-prod": "weight-tracker-2592f",
-    "chinese-flashcards-prod": "chineseflashcards-4aea7",
-    "tcpl-exercises-dev": "tcpl-exercises-dev",
-    "tcpl-exercises-prod": "tcpl-exercises-prod"
-  }
-}
