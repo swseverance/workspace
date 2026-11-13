@@ -14,67 +14,70 @@
 
   <main>
     @if (loading()) {
-    <nz-spin />
+      <nz-spin />
     } @else if (current) {
-    <div class="button-container">
-      <button
-        nz-button
-        nzType="text"
-        nzShape="circle"
-        class="edit-btn"
-        (click)="!ref && openEdit()"
-      >
-        <nz-icon nzType="edit" [style.color]="'#1890ff'" />
-      </button>
+      <div class="button-container">
+        <button
+          nz-button
+          nzType="text"
+          nzShape="circle"
+          class="edit-btn"
+          (click)="!ref && openEdit()"
+        >
+          <nz-icon nzType="edit" [style.color]="'#1890ff'" />
+        </button>
 
-      <button
-        nz-button
-        nzType="text"
-        nzShape="circle"
-        class="delete-btn"
-        (click)="!ref && openDelete()"
-      >
-        <nz-icon nzType="delete" [style.color]="'#ff4d4f'" />
-      </button>
-    </div>
+        <button
+          nz-button
+          nzType="text"
+          nzShape="circle"
+          class="delete-btn"
+          (click)="!ref && openDelete()"
+        >
+          <nz-icon nzType="delete" [style.color]="'#ff4d4f'" />
+        </button>
+      </div>
 
-    <div class="card">
-      <div class="chinese">{{ current.chinese }}</div>
+      <div class="card">
+        <div class="chinese">{{ current.chinese }}</div>
 
-      @if (revealed()) {
-      <div class="details">
-        <div class="pinyin">{{ current.pinyin }}</div>
-        <div class="translation">{{ current.translation }}</div>
-        @if (current.notes) {
-        <div class="notes">{{ current.notes }}</div>
+        @if (revealed()) {
+          <div class="details">
+            <div class="pinyin">{{ current.pinyin }}</div>
+            <div class="translation">{{ current.translation }}</div>
+            @if (current.notes) {
+              <div class="notes">{{ current.notes }}</div>
+            }
+          </div>
         }
       </div>
-      }
-    </div>
 
-    <div class="actions">
-      <button
-        nz-button
-        nzDanger
-        [nzLoading]="updating() === 'reset'"
-        (click)="updating() !== 'reset' && setConfidence(0, 'reset')"
-      >
-        <span>Reset</span>
-      </button>
+      <div class="actions">
+        <button
+          nz-button
+          nzDanger
+          [nzLoading]="updating() === 'reset'"
+          (click)="updating() !== 'reset' && setConfidence(0, 'reset')"
+        >
+          <span>Reset</span>
+        </button>
 
-      <button nz-button nzType="default" (click)="!updating() && toggle()">
-        <span>Reveal</span>
-      </button>
+        <button nz-button nzType="default" (click)="!updating() && toggle()">
+          <span>Reveal</span>
+        </button>
 
-      <button
-        nz-button
-        nzType="primary"
-        [nzLoading]="updating() === 'increment'"
-        (click)="updating() !== 'increment' && setConfidence(current.confidence + 1, 'increment')"
-      >
-        <span>Got it</span>
-      </button>
-    </div>
+        <button
+          nz-button
+          nzType="primary"
+          [nzLoading]="updating() === 'increment'"
+          (click)="
+            updating() !== 'increment' &&
+              setConfidence(current.confidence + 1, 'increment')
+          "
+        >
+          <span>Got it</span>
+        </button>
+      </div>
     }
   </main>
 </app-page>
