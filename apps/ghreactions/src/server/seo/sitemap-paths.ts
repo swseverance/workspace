@@ -3,20 +3,17 @@ import { profiles } from '../api/profile.handler';
 import { USERS_PAGE_SIZE } from '../api/users.handler';
 
 /**
- * The home, search and users pages, plus each indexed user's tabs that have
- * rows. Empty tabs and users below MIN_INDEXED_REACTIONS are noindex, so
- * they're left out.
+ * The home, search and users pages, plus each ranked user's tabs that have
+ * rows. Empty tabs, users below MIN_INDEXED_REACTIONS and snapshots someone
+ * asked for (which expire) are noindex, so they're left out.
  */
 export async function sitemapPaths(): Promise<string[]> {
-  const [summaries, ranked] = await Promise.all([
-    profiles.summaries(),
-    profiles.rankedCount(),
-  ]);
+  const ranked = await profiles.ranked();
   const userPages = Array.from(
-    { length: Math.ceil(ranked / USERS_PAGE_SIZE) - 1 },
+    { length: Math.ceil(ranked.length / USERS_PAGE_SIZE) - 1 },
     (_, i) => `/users/${i + 2}`,
   );
-  const profilePaths = summaries
+  const profilePaths = ranked
     .map(({ username, counts }) => ({
       username: username.toLowerCase(),
       counts,

@@ -11,23 +11,26 @@ function makeRes() {
   return res;
 }
 
-const request = (page?: string) =>
-  ({ query: page === undefined ? {} : { page } }) as any;
+const request = (query: Record<string, unknown> = {}) => ({ query }) as any;
 
-const filterRequest = (q: unknown) => ({ query: { q } }) as any;
-
-const user: UserSummary = {
-  username: 'gaearon',
+const user = (username: string, rank: number): UserSummary => ({
+  username,
   counts: { issues: 3, pullRequests: 2, issueComments: 1 },
   reactions: { issues: 600, pullRequests: 250, issueComments: 50 },
   totalReactions: 900,
-};
+  rank,
+});
+
+/** 250 ranked users: user1 ... user250, plus two named ones at the front. */
+const ranked = [
+  user('Gaearon', 1),
+  user('gaborcsardi', 2),
+  ...Array.from({ length: 248 }, (_, i) => user(`user${i + 1}`, i + 3)),
+];
 
 describe('usersHandler', () => {
   beforeEach(() => {
-    profiles.rankedCount = vi.fn().mockResolvedValue(250);
-    profiles.ranked = vi.fn().mockResolvedValue([user]);
-    profiles.startingWith = vi.fn().mockResolvedValue([user]);
+    profiles.ranked = vi.fn().mockResolvedValue(ranked);
   });
 
   it('returns the first page by default', async () => {
@@ -35,24 +38,26 @@ describe('usersHandler', () => {
 
     await usersHandler(request(), res, vi.fn());
 
-    expect(profiles.ranked).toHaveBeenCalledWith(0, 100);
     expect(res.json).toHaveBeenCalledWith({
-      users: [user],
+      users: ranked.slice(0, 100),
       page: 1,
       pageCount: 3,
     });
   });
 
-  it('offsets later pages', async () => {
+  it('returns later pages, the last one short', async () => {
     const res = makeRes();
 
-    await usersHandler(request('3'), res, vi.fn());
+    await usersHandler(request({ page: '3' }), res, vi.fn());
 
-    expect(profiles.ranked).toHaveBeenCalledWith(200, 100);
+    expect(res.json).toHaveBeenCalledWith({
+      users: ranked.slice(200),
+      page: 3,
+      pageCount: 3,
+    });
   });
 
   it('serves an empty first page when nobody is ranked yet', async () => {
-    profiles.rankedCount = vi.fn().mockResolvedValue(0);
     profiles.ranked = vi.fn().mockResolvedValue([]);
     const res = makeRes();
 
@@ -64,10 +69,9 @@ describe('usersHandler', () => {
   it('returns 404 past the last page', async () => {
     const res = makeRes();
 
-    await usersHandler(request('4'), res, vi.fn());
+    await usersHandler(request({ page: '4' }), res, vi.fn());
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(profiles.ranked).not.toHaveBeenCalled();
   });
 
   it.each(['0', '-1', '1.5', 'abc'])(
@@ -75,25 +79,33 @@ describe('usersHandler', () => {
     async (page) => {
       const res = makeRes();
 
-      await usersHandler(request(page), res, vi.fn());
+      await usersHandler(request({ page }), res, vi.fn());
 
       expect(res.status).toHaveBeenCalledWith(400);
     },
   );
 
   describe('with q', () => {
-    it('returns the users starting with it as a single page', async () => {
+    it('returns the users starting with it, any case, keeping their ranks', async () => {
       const res = makeRes();
 
-      await usersHandler(filterRequest('Gae'), res, vi.fn());
+      await usersHandler(request({ q: 'GA' }), res, vi.fn());
 
-      expect(profiles.startingWith).toHaveBeenCalledWith('gae', 100);
-      expect(profiles.ranked).not.toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith({
-        users: [user],
+        users: [user('Gaearon', 1), user('gaborcsardi', 2)],
         page: 1,
         pageCount: 1,
       });
+    });
+
+    it('returns at most one page of matches', async () => {
+      const res = makeRes();
+
+      await usersHandler(request({ q: 'user' }), res, vi.fn());
+
+      const body = res.json.mock.calls[0][0];
+      expect(body.users).toHaveLength(100);
+      expect(body.pageCount).toBe(1);
     });
 
     it.each(['dan abramov', '@gaearon', 'a/b', 'x'.repeat(40)])(
@@ -101,9 +113,8 @@ describe('usersHandler', () => {
       async (q) => {
         const res = makeRes();
 
-        await usersHandler(filterRequest(q), res, vi.fn());
+        await usersHandler(request({ q }), res, vi.fn());
 
-        expect(profiles.startingWith).not.toHaveBeenCalled();
         expect(res.json).toHaveBeenCalledWith({
           users: [],
           page: 1,
@@ -115,23 +126,14 @@ describe('usersHandler', () => {
     it.each([[''], [['a', 'b']]])('returns 400 for q=%j', async (q) => {
       const res = makeRes();
 
-      await usersHandler(filterRequest(q), res, vi.fn());
+      await usersHandler(request({ q }), res, vi.fn());
 
       expect(res.status).toHaveBeenCalledWith(400);
     });
-
-    it('returns 500 when Firestore fails', async () => {
-      profiles.startingWith = vi.fn().mockRejectedValue(new Error('down'));
-      const res = makeRes();
-
-      await usersHandler(filterRequest('gae'), res, vi.fn());
-
-      expect(res.status).toHaveBeenCalledWith(500);
-    });
   });
 
-  it('returns 500 when Firestore fails', async () => {
-    profiles.rankedCount = vi.fn().mockRejectedValue(new Error('unavailable'));
+  it("returns 500 when the ranking can't be read", async () => {
+    profiles.ranked = vi.fn().mockRejectedValue(new Error('unavailable'));
     const res = makeRes();
 
     await usersHandler(request(), res, vi.fn());

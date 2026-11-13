@@ -81,6 +81,33 @@ describe('fetchProfile', () => {
     expect(issuesApi.fetchIssues).not.toHaveBeenCalled();
   });
 
+  describe('in parallel', () => {
+    it('starts every call before any has finished', async () => {
+      let finishComments!: (value: unknown) => void;
+      issueCommentsApi.fetchIssueComments = vi.fn(
+        () => new Promise((resolve) => (finishComments = resolve)),
+      ) as never;
+
+      const profile = fetchProfile('octocat', { parallel: true });
+
+      expect(issuesApi.fetchIssues).toHaveBeenCalled();
+      expect(pullRequestsApi.fetchPullRequests).toHaveBeenCalled();
+
+      finishComments(page([row('ic1', 2)]));
+      expect((await profile).totalReactions).toBe(9 + 4 + 2);
+    });
+
+    it('still reports a missing user as not_found', async () => {
+      issueCommentsApi.fetchIssueComments = vi
+        .fn()
+        .mockRejectedValue(new UserNotFoundError());
+
+      expect((await fetchProfile('ghost', { parallel: true })).status).toBe(
+        'not_found',
+      );
+    });
+  });
+
   it('rethrows other errors', async () => {
     issuesApi.fetchIssues = vi.fn().mockRejectedValue(new Error('boom'));
     await expect(fetchProfile('octocat')).rejects.toThrow('boom');

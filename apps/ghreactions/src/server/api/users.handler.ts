@@ -1,13 +1,13 @@
 import { UsersPage } from '@org/ghreactions-github';
 import { serializeError } from '@org/server';
-import { RequestHandler, Response } from 'express';
+import { RequestHandler } from 'express';
 import * as logger from 'firebase-functions/logger';
 import { profiles } from './profile.handler';
 
 export const USERS_PAGE_SIZE = 100;
 
-/** What GitHub allows in a username (any case). */
-const USERNAME_CHARACTERS = /^[a-z0-9-]{1,39}$/;
+/** The start of a GitHub username (lowercase). */
+const USERNAME_PREFIX = /^[a-z\d-]{1,39}$/;
 
 /**
  * GET /api/users?page=N: users ranked by total reactions, 1-based pages.
@@ -17,8 +17,8 @@ const USERNAME_CHARACTERS = /^[a-z0-9-]{1,39}$/;
  */
 export const usersHandler: RequestHandler = async (req, res) => {
   const q = req.query['q'];
-  if (q !== undefined) {
-    await filteredUsers(q, res);
+  if (q !== undefined && (typeof q !== 'string' || !q)) {
+    res.status(400).json({ message: 'q must be a non-empty string' });
     return;
   }
 
@@ -29,19 +29,34 @@ export const usersHandler: RequestHandler = async (req, res) => {
   }
 
   try {
-    const total = await profiles.rankedCount();
+    const ranked = await profiles.ranked();
+
+    if (q !== undefined) {
+      const prefix = q.toLowerCase();
+      const body: UsersPage = {
+        // Nothing GitHub wouldn't allow in a username can match one.
+        users: USERNAME_PREFIX.test(prefix)
+          ? ranked
+              .filter((user) => user.username.toLowerCase().startsWith(prefix))
+              .slice(0, USERS_PAGE_SIZE)
+          : [],
+        page: 1,
+        pageCount: 1,
+      };
+      res.json(body);
+      return;
+    }
+
     // Page 1 always exists, even with no users yet.
-    const pageCount = Math.max(1, Math.ceil(total / USERS_PAGE_SIZE));
+    const pageCount = Math.max(1, Math.ceil(ranked.length / USERS_PAGE_SIZE));
     if (page > pageCount) {
       res.status(404).json({ message: 'Page not found' });
       return;
     }
 
+    const start = (page - 1) * USERS_PAGE_SIZE;
     const body: UsersPage = {
-      users: await profiles.ranked(
-        (page - 1) * USERS_PAGE_SIZE,
-        USERS_PAGE_SIZE,
-      ),
+      users: ranked.slice(start, start + USERS_PAGE_SIZE),
       page,
       pageCount,
     };
@@ -51,27 +66,3 @@ export const usersHandler: RequestHandler = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-async function filteredUsers(q: unknown, res: Response): Promise<void> {
-  if (typeof q !== 'string' || !q) {
-    res.status(400).json({ message: 'q must be a non-empty string' });
-    return;
-  }
-
-  const prefix = q.toLowerCase();
-
-  try {
-    const body: UsersPage = {
-      // Nothing GitHub wouldn't allow in a username can match one.
-      users: USERNAME_CHARACTERS.test(prefix)
-        ? await profiles.startingWith(prefix, USERS_PAGE_SIZE)
-        : [],
-      page: 1,
-      pageCount: 1,
-    };
-    res.json(body);
-  } catch (err) {
-    logger.error('[users]', serializeError(err));
-    res.status(500).json({ message: 'Internal server error' });
-  }
-}
