@@ -16,6 +16,12 @@ a {
   max-width: min-content;
 }
 
+.snapshot {
+  display: flex;
+  gap: 8px;
+  max-width: 360px;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

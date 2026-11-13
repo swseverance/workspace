@@ -4,8 +4,8 @@
     A daily snapshot of GitHub's most-followed users, ranked by the reactions on
     each one's top issues, pull requests and recent issue comments, with each
     kind's share in its own column. Users with fewer than
-    {{ minReactions }} aren't listed. For anyone else, or the full and current
-    picture, <a routerLink="/search">search GitHub live</a>.
+    {{ minReactions }} aren't listed. Anyone else can
+    <a routerLink="/">get their own snapshot</a>.
   </p>
   <input
     nz-input
@@ -43,9 +43,9 @@
       </tr>
     </thead>
     <tbody>
-      @for (user of table.data; track user.username; let i = $index) {
+      @for (user of table.data; track user.username) {
         <tr>
-          <td class="rank">{{ filter() ? '' : firstRank() + i }}</td>
+          <td class="rank">{{ user.rank }}</td>
           <td>
             <a [routerLink]="['/u', user.username.toLowerCase(), 'issues']">{{
               user.username
@@ -94,10 +94,12 @@
   }
 </ng-template>
 
-<!-- Not in the ranking doesn't mean not on GitHub: offer the live search. -->
+<!-- Not in the ranking doesn't mean not on GitHub: offer a snapshot. -->
 <ng-template #noMatch>
-  No ranked user starts with "{{ filter() }}".
-  <a routerLink="/search" [queryParams]="{ username: filter() }"
-    >Search GitHub live for {{ filter() }}</a
-  >
+  No ranked user starts with "{{ filter() }}". If that's a whole username,
+  <a
+    [routerLink]="['/u', filter().toLowerCase(), 'issues']"
+    [state]="{ build: true }"
+    >build {{ filter() }}'s snapshot</a
+  >.
 </ng-template>

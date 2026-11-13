@@ -76,9 +76,6 @@ export class Users {
       ? Array.from({ length: this.result.value().pageCount }, (_, i) => i + 1)
       : [],
   );
-  /** Rank of the first user on this page. Filtered results have no ranks. */
-  protected readonly firstRank = computed(() => (this.page() - 1) * 100 + 1);
-
   protected onFilterInput(event: Event): void {
     this.typed.next((event.target as HTMLInputElement).value);
   }
