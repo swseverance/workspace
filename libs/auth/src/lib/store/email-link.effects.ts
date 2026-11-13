@@ -48,8 +48,8 @@ export function withoutEmailLinkParams(href: string): string {
 
 /**
  * Passwordless sign-in: Firebase emails a link, and opening it signs in.
- * Registered only for apps with emailLink set. Like any other sign-in, the
- * auth state listener then mints the session cookie.
+ * Like any other sign-in, the auth state listener then mints the session
+ * cookie.
  */
 @Injectable()
 export class EmailLinkEffects {
