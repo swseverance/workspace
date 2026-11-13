@@ -8,6 +8,13 @@ import {
   verifySessionCookieMiddleware,
 } from './session';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** The expiry of a 14-day cookie minted this long ago. */
+function expiryOfCookieAged(ageMs: number): number {
+  return Date.now() - ageMs + 14 * DAY_MS;
+}
+
 const auth = vi.hoisted(() => ({
   verifySessionCookie: vi.fn(),
   verifyIdToken: vi.fn(),
@@ -39,7 +46,7 @@ beforeEach(() => {
 
 describe('verifySessionCookieMiddleware', () => {
   it('sets req.user from a valid cookie', async () => {
-    auth.verifySessionCookie.mockResolvedValue({ uid: 'u1' });
+    auth.verifySessionCookie.mockResolvedValue({ uid: 'u1', exp: 1_800_000 });
     const req = createRequest({ cookies: { [SESSION_COOKIE_NAME]: 'c' } });
     const next = vi.fn();
 
@@ -47,6 +54,7 @@ describe('verifySessionCookieMiddleware', () => {
 
     expect(auth.verifySessionCookie).toHaveBeenCalledWith('c', true);
     expect(req.user).toEqual({ uid: 'u1' });
+    expect(req.sessionExpiresAt).toBe(1_800_000_000);
     expect(next).toHaveBeenCalledOnce();
   });
 
@@ -117,12 +125,16 @@ describe('getSessionHandler', () => {
 });
 
 describe('createSessionHandler', () => {
-  it('reports "valid" without re-minting when the cookie is for the same user', async () => {
+  it('reports "valid" without re-minting when the cookie is recent and for the same user', async () => {
     auth.verifyIdToken.mockResolvedValue({ uid: 'u1' });
     const res = createResponse();
 
     await createSessionHandler(
-      createRequest({ user: { uid: 'u1' }, body: { idToken: 'id-token' } }),
+      createRequest({
+        user: { uid: 'u1' },
+        sessionExpiresAt: expiryOfCookieAged(DAY_MS / 2),
+        body: { idToken: 'id-token' },
+      }),
       res,
       vi.fn(),
     );
@@ -132,13 +144,42 @@ describe('createSessionHandler', () => {
     expect(res.json).toHaveBeenCalledWith({ status: 'valid' });
   });
 
+  it("renews the same user's cookie once it is over a day old", async () => {
+    auth.createSessionCookie.mockResolvedValue('session-cookie');
+    const res = createResponse();
+
+    await createSessionHandler(
+      createRequest({
+        user: { uid: 'u1' },
+        sessionExpiresAt: expiryOfCookieAged(2 * DAY_MS),
+        body: { idToken: 'id-token' },
+      }),
+      res,
+      vi.fn(),
+    );
+
+    expect(auth.createSessionCookie).toHaveBeenCalledWith('id-token', {
+      expiresIn: 14 * DAY_MS,
+    });
+    expect(res.cookie).toHaveBeenCalledWith(
+      SESSION_COOKIE_NAME,
+      'session-cookie',
+      expect.objectContaining({ maxAge: 14 * DAY_MS }),
+    );
+    expect(res.json).toHaveBeenCalledWith({ status: 'created' });
+  });
+
   it('replaces a valid cookie that belongs to another user', async () => {
     auth.verifyIdToken.mockResolvedValue({ uid: 'u2' });
     auth.createSessionCookie.mockResolvedValue('session-cookie');
     const res = createResponse();
 
     await createSessionHandler(
-      createRequest({ user: { uid: 'u1' }, body: { idToken: 'id-token' } }),
+      createRequest({
+        user: { uid: 'u1' },
+        sessionExpiresAt: expiryOfCookieAged(0),
+        body: { idToken: 'id-token' },
+      }),
       res,
       vi.fn(),
     );
@@ -156,7 +197,11 @@ describe('createSessionHandler', () => {
     const res = createResponse();
 
     await createSessionHandler(
-      createRequest({ user: { uid: 'u1' }, body: { idToken: 'bad' } }),
+      createRequest({
+        user: { uid: 'u1' },
+        sessionExpiresAt: expiryOfCookieAged(0),
+        body: { idToken: 'bad' },
+      }),
       res,
       vi.fn(),
     );

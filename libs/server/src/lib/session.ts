@@ -14,6 +14,8 @@ declare global {
     interface Request {
       /** Set by verifySessionCookieMiddleware when the cookie is valid. */
       user?: SessionUser;
+      /** When that cookie expires, in ms since the epoch. Set with `user`. */
+      sessionExpiresAt?: number;
     }
   }
 }
@@ -24,6 +26,11 @@ export const SESSION_COOKIE_NAME = '__session';
 
 // 14 days; the max Firebase allows.
 const SESSION_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+
+// A cookie older than this is replaced the next time the client checks in
+// (every page load), so the 14 days count from the last visit rather than
+// from the sign-in. Not on every check-in: minting is a call to Google.
+const SESSION_RENEW_AFTER_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Sets `req.user` when the request carries a valid session cookie. Needs
@@ -43,8 +50,9 @@ export const verifySessionCookieMiddleware: RequestHandler = async (
   }
 
   try {
-    const { uid } = await getAuth().verifySessionCookie(cookie, true);
+    const { uid, exp } = await getAuth().verifySessionCookie(cookie, true);
     req.user = { uid };
+    req.sessionExpiresAt = exp * 1000;
   } catch {
     // Expired, revoked or forged: carry on signed out.
   }
@@ -96,10 +104,12 @@ export const createSessionHandler: RequestHandler<
     // fresh sign-in), but it can't tell whether the existing cookie is still
     // good: __session is httpOnly, invisible to client JS. The server
     // already verified it for this same request, so skip re-minting when
-    // it's valid and belongs to the token's user. A cookie for another
-    // account (one whose clear failed before a different sign-in) is
-    // replaced, or the API would act as the old user.
-    if (req.user) {
+    // it's valid, recent and belongs to the token's user. A cookie for
+    // another account (one whose clear failed before a different sign-in)
+    // is replaced, or the API would act as the old user. One that's no
+    // longer recent is replaced too, which is what keeps a regular visitor
+    // from ever reaching its expiry.
+    if (req.user && isRecent(req.sessionExpiresAt)) {
       const { uid } = await getAuth().verifyIdToken(idToken);
 
       if (uid === req.user.uid) {
@@ -124,6 +134,16 @@ export const createSessionHandler: RequestHandler<
     res.status(401).json({ message: 'Failed to create session' });
   }
 };
+
+/** Whether a cookie expiring then was minted under SESSION_RENEW_AFTER_MS ago. */
+function isRecent(expiresAt: number | undefined): boolean {
+  if (expiresAt === undefined) {
+    return false;
+  }
+
+  const age = SESSION_MAX_AGE_MS - (expiresAt - Date.now());
+  return age < SESSION_RENEW_AFTER_MS;
+}
 
 /** Clears the session cookie and revokes the user's refresh tokens. */
 export const deleteSessionHandler: RequestHandler = async (req, res) => {
