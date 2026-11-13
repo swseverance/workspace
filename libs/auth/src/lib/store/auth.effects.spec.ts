@@ -408,7 +408,7 @@ describe('AuthEffects', () => {
   });
 
   describe('clearCookieFailed$', () => {
-    it('logs and toasts the failure', async () => {
+    it('logs the failure without a toast', async () => {
       const error = new Error('x');
       actions$ = of(AuthActions.clearCookieFailed({ error }));
       const { effects } = setup();
@@ -420,7 +420,7 @@ describe('AuthEffects', () => {
         '[auth] [Auth] Clear Cookie Failed',
         error,
       );
-      expect(message.error).toHaveBeenCalledWith('Failed to Clear Cookie');
+      expect(message.error).not.toHaveBeenCalled();
     });
   });
 });
