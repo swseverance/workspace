@@ -7,6 +7,7 @@ import { AuthEffects } from './store/auth.effects';
 import { authFeature } from './store/auth.feature';
 import { EmailLinkEffects } from './store/email-link.effects';
 import { SessionEndedEffects } from './store/session-ended.effects';
+import { SessionStartedEffects } from './store/session-started.effects';
 import { SignInEffects } from './store/sign-in.effects';
 import { SignOutEffects } from './store/sign-out.effects';
 
@@ -25,6 +26,7 @@ export function provideCookieAuth(): EnvironmentProviders {
       SignInEffects,
       SignOutEffects,
       SessionEndedEffects,
+      SessionStartedEffects,
       EmailLinkEffects,
     ),
     // ng-zorro only provides this through NzModalModule.
