@@ -7,7 +7,7 @@ import {
 } from '@org/ghreactions-github';
 import { serializeError } from '@org/server';
 import { RequestHandler } from 'express';
-import { getFirestore } from 'firebase-admin/firestore';
+import { FieldPath, getFirestore } from 'firebase-admin/firestore';
 import * as logger from 'firebase-functions/logger';
 
 const collection = () => getFirestore().collection('profiles');
@@ -47,6 +47,33 @@ export const profiles = {
   async rankedCount(): Promise<number> {
     const snapshot = await ranked().count().get();
     return snapshot.data().count;
+  },
+
+  /**
+   * Indexed users whose username starts with `prefix` (lowercase), most
+   * reactions first, at most `limit`.
+   *
+   * Profiles are keyed by lowercased username, so the prefix is a range of
+   * document ids. The minimum and the order are applied here rather than in
+   * the query: combining them with the id range would need a composite
+   * index. That reads every profile with the prefix, which is bounded by how
+   * many users are tracked.
+   */
+  async startingWith(prefix: string, limit: number): Promise<UserSummary[]> {
+    const snapshot = await collection()
+      .where(FieldPath.documentId(), '>=', prefix)
+      .where(FieldPath.documentId(), '<', `${prefix}\uf8ff`)
+      .select('username', 'counts', 'reactions', 'totalReactions')
+      .get();
+
+    return snapshot.docs
+      .map((doc) => doc.data() as Partial<UserSummary>)
+      .filter(
+        (user): user is UserSummary =>
+          (user.totalReactions ?? 0) >= MIN_INDEXED_REACTIONS,
+      )
+      .sort((a, b) => b.totalReactions - a.totalReactions)
+      .slice(0, limit);
   },
 };
 

@@ -6,13 +6,15 @@
       nzType="primary"
       routerLink="/search"
       [queryParams]="{ username: username(), type: current().type }"
-      >Search all</a
+      >Search live</a
     >
   </div>
   @if (profile.hasValue()) {
+    <!-- This page is the snapshot view; the button above is the live one. -->
     <p class="refreshed">
-      Refreshed {{ profile.value().lastFetched | date: 'MMM d, y, HH:mm' }} UTC
-      · <a routerLink="/users">More users</a>
+      Snapshot of their most reacted items, refreshed
+      {{ profile.value().lastFetched | date: 'MMM d, y, HH:mm' }} UTC ·
+      <a routerLink="/users">More users</a>
     </p>
   }
 

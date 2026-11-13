@@ -30,10 +30,13 @@ export class Data {
     );
   }
 
-  /** One page of users ranked by total reactions (1-based). */
-  users(page: number) {
+  /**
+   * One page of users ranked by total reactions (1-based). With `filter`,
+   * the ranked users whose username starts with it instead, as one page.
+   */
+  users(page: number, filter = '') {
     return this.http.get<UsersPage>('/api/users', {
-      params: page > 1 ? { page } : {},
+      params: filter ? { q: filter } : page > 1 ? { page } : {},
     });
   }
 

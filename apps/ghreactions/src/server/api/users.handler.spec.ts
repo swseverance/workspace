@@ -14,6 +14,8 @@ function makeRes() {
 const request = (page?: string) =>
   ({ query: page === undefined ? {} : { page } }) as any;
 
+const filterRequest = (q: unknown) => ({ query: { q } }) as any;
+
 const user: UserSummary = {
   username: 'gaearon',
   counts: { issues: 3, pullRequests: 2, issueComments: 1 },
@@ -25,6 +27,7 @@ describe('usersHandler', () => {
   beforeEach(() => {
     profiles.rankedCount = vi.fn().mockResolvedValue(250);
     profiles.ranked = vi.fn().mockResolvedValue([user]);
+    profiles.startingWith = vi.fn().mockResolvedValue([user]);
   });
 
   it('returns the first page by default', async () => {
@@ -77,6 +80,55 @@ describe('usersHandler', () => {
       expect(res.status).toHaveBeenCalledWith(400);
     },
   );
+
+  describe('with q', () => {
+    it('returns the users starting with it as a single page', async () => {
+      const res = makeRes();
+
+      await usersHandler(filterRequest('Gae'), res, vi.fn());
+
+      expect(profiles.startingWith).toHaveBeenCalledWith('gae', 100);
+      expect(profiles.ranked).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({
+        users: [user],
+        page: 1,
+        pageCount: 1,
+      });
+    });
+
+    it.each(['dan abramov', '@gaearon', 'a/b', 'x'.repeat(40)])(
+      'matches nobody for %s, which no username can start with',
+      async (q) => {
+        const res = makeRes();
+
+        await usersHandler(filterRequest(q), res, vi.fn());
+
+        expect(profiles.startingWith).not.toHaveBeenCalled();
+        expect(res.json).toHaveBeenCalledWith({
+          users: [],
+          page: 1,
+          pageCount: 1,
+        });
+      },
+    );
+
+    it.each([[''], [['a', 'b']]])('returns 400 for q=%j', async (q) => {
+      const res = makeRes();
+
+      await usersHandler(filterRequest(q), res, vi.fn());
+
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('returns 500 when Firestore fails', async () => {
+      profiles.startingWith = vi.fn().mockRejectedValue(new Error('down'));
+      const res = makeRes();
+
+      await usersHandler(filterRequest('gae'), res, vi.fn());
+
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
+  });
 
   it('returns 500 when Firestore fails', async () => {
     profiles.rankedCount = vi.fn().mockRejectedValue(new Error('unavailable'));

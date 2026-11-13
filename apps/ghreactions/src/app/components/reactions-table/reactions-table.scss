@@ -7,19 +7,10 @@
   --card-border: #303030;
 }
 
-// The table's loading spinner: 50px lower (70px on desktop) and 50% larger.
-// Separate translate and scale properties, so ng-zorro's rotate animation
-// (transform) still runs.
-:host ::ng-deep .ant-spin-nested-loading > div > .ant-spin .ant-spin-dot {
-  translate: 0 50px;
-  scale: 1.5;
-}
+// The loading spinner, empty state and error are styled for every table in
+// styles.scss.
 
 @media (min-width: 600px) {
-  :host ::ng-deep .ant-spin-nested-loading > div > .ant-spin .ant-spin-dot {
-    translate: 0 70px;
-  }
-
   // Sum of the column widths; the page scrolls sideways below this.
   :host ::ng-deep .ant-table-content > table {
     min-width: 1980px;
@@ -147,11 +138,4 @@
       display: none;
     }
   }
-}
-
-// The empty cell centres its content; shrink the alert to fit so it centres
-// too, instead of spanning the row with its text in the middle.
-nz-alert {
-  display: inline-block;
-  text-align: left;
 }

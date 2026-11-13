@@ -19,6 +19,12 @@
   }
 }
 
+// The button has no label above it, so on desktop, where it shares the
+// fields' row, it sits at the bottom of the row to line up with the inputs.
+.submit-col {
+  align-self: flex-end;
+}
+
 nz-form-control,
 button {
   min-height: 34px;
