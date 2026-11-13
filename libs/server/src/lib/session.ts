@@ -145,18 +145,15 @@ function isRecent(expiresAt: number | undefined): boolean {
   return age < SESSION_RENEW_AFTER_MS;
 }
 
-/** Clears the session cookie and revokes the user's refresh tokens. */
-export const deleteSessionHandler: RequestHandler = async (req, res) => {
-  if (req.user) {
-    try {
-      // Revoke so a copy of this cookie (e.g. leaked via XSS or a stolen
-      // device) can't go on being replayed after the user signs out here.
-      await getAuth().revokeRefreshTokens(req.user.uid);
-    } catch {
-      // Already invalid or expired; nothing to revoke.
-    }
-  }
-
+/**
+ * Clears this browser's session cookie, and nothing more. Deliberately not
+ * revokeRefreshTokens(): that ends the user's sessions on every device, and
+ * the client also calls this whenever Firebase has no user on page load
+ * (e.g. the browser dropped its local data), not only on a sign-out. The
+ * cost is that a copy of the cookie taken beforehand stays usable until it
+ * expires.
+ */
+export const deleteSessionHandler: RequestHandler = (_req, res) => {
   res.clearCookie(SESSION_COOKIE_NAME);
   res.status(204).end();
 };

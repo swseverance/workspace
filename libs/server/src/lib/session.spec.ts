@@ -259,35 +259,22 @@ describe('createSessionHandler', () => {
 });
 
 describe('deleteSessionHandler', () => {
-  it('revokes the user and clears the cookie', async () => {
-    auth.revokeRefreshTokens.mockResolvedValue(undefined);
+  it("clears the cookie without ending the user's other sessions", () => {
     const res = createResponse();
 
-    await deleteSessionHandler(
-      createRequest({ user: { uid: 'u1' } }),
-      res,
-      vi.fn(),
-    );
+    deleteSessionHandler(createRequest({ user: { uid: 'u1' } }), res, vi.fn());
 
-    expect(auth.revokeRefreshTokens).toHaveBeenCalledWith('u1');
     expect(res.clearCookie).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
     expect(res.status).toHaveBeenCalledWith(204);
+    expect(auth.revokeRefreshTokens).not.toHaveBeenCalled();
   });
 
-  it('still clears the cookie when revoking fails or nobody is signed in', async () => {
-    auth.revokeRefreshTokens.mockRejectedValue(new Error('gone'));
-    const failed = createResponse();
-    const anonymous = createResponse();
+  it('clears the cookie when nobody is signed in', () => {
+    const res = createResponse();
 
-    await deleteSessionHandler(
-      createRequest({ user: { uid: 'u1' } }),
-      failed,
-      vi.fn(),
-    );
-    await deleteSessionHandler(createRequest(), anonymous, vi.fn());
+    deleteSessionHandler(createRequest(), res, vi.fn());
 
-    expect(failed.clearCookie).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
-    expect(anonymous.clearCookie).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
-    expect(auth.revokeRefreshTokens).toHaveBeenCalledTimes(1);
+    expect(res.clearCookie).toHaveBeenCalledWith(SESSION_COOKIE_NAME);
+    expect(res.status).toHaveBeenCalledWith(204);
   });
 });
