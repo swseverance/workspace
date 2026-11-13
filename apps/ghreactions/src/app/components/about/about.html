@@ -7,25 +7,39 @@
 
   <p nz-typography>
     GitHub Reactions shows which issues, pull requests and comments get the most
-    reactions on GitHub: for the most-followed developers, and for any public
-    account you search.
+    reactions on GitHub. There are two ways to look at a user:
   </p>
+
+  <ul nz-typography>
+    <li>
+      <strong>Snapshot.</strong> A saved profile of the user's most reacted
+      items, refreshed about once a day. It loads instantly and puts the user in
+      a ranking, but only exists for GitHub's most-followed users.
+    </li>
+    <li>
+      <strong>Live search.</strong> Everything a user has posted, fetched from
+      GitHub when you ask. It works for any public account and can be filtered,
+      but takes a moment and isn't ranked against anyone.
+    </li>
+  </ul>
 
   <div class="actions">
     <a nz-button nzType="primary" routerLink="/users">Most reacted users</a>
     <a nz-button routerLink="/search">Search for a user</a>
   </div>
 
-  <h2 nz-typography>Most reacted users</h2>
+  <h2 nz-typography>Snapshots: the most reacted users</h2>
 
   <p nz-typography>
     We follow GitHub's 1,000 most-followed users and refresh each one about once
     a day. Every profile lists their most reacted issues and pull requests, plus
     their most reacted recent issue comments. Reaction totals cover those top
-    items, not everything a user has posted.
+    items, not everything a user has posted. Users are ranked by those totals,
+    and the ranking can be filtered by username. Each snapshot links to the live
+    search for the same user.
   </p>
 
-  <h2 nz-typography>Search</h2>
+  <h2 nz-typography>Live search: any public account</h2>
 
   <p nz-typography>
     Search any public account to fetch its activity live from the GitHub GraphQL
