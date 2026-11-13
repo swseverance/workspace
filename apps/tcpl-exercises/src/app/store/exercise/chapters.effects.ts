@@ -31,13 +31,13 @@ export class ChaptersEffects {
   );
 
   /**
-   * A new session cookie means any chapters loaded so far were fetched
+   * A session starting means any chapters loaded so far were fetched
    * signed out, without the user's statuses. Going through loadChapters$
    * also cancels a signed-out request still in flight.
    */
   reloadChaptersOnSignIn$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.cookieCreated),
+      ofType(AuthActions.sessionStarted),
       map(() => loadChapters()),
     ),
   );

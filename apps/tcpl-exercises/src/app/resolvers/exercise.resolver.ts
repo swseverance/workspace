@@ -23,8 +23,8 @@ export const exerciseResolver: ResolveFn<boolean> = (route) => {
   const id = route.paramMap.get('id')!;
   const store = inject(Store);
   const exercises = inject(ExerciseService);
-  const cookieCreated$ = inject(Actions).pipe(
-    ofType(AuthActions.cookieCreated),
+  const sessionStarted$ = inject(Actions).pipe(
+    ofType(AuthActions.sessionStarted),
   );
 
   // Always fetched fresh, even when revisiting: the reducer keeps the
@@ -35,7 +35,7 @@ export const exerciseResolver: ResolveFn<boolean> = (route) => {
   // without the user's submitted code and results), so start the request
   // again, as loadChapters$ does. refreshExercise$ can't cover this:
   // it refetches the exercise in the store, which is still the previous one.
-  return cookieCreated$.pipe(
+  return sessionStarted$.pipe(
     startWith(null),
     switchMap(() => exercises.getExercise(id)),
     take(1),

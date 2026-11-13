@@ -65,7 +65,7 @@ export type UserSummary = Pick<
   'username' | 'counts' | 'reactions' | 'totalReactions'
 >;
 
-/** GET /api/users?page=N */
+/** GET /api/users?page=N, or ?q=PREFIX (always a single page). */
 export type UsersPage = {
   users: UserSummary[];
   /** 1-based. */

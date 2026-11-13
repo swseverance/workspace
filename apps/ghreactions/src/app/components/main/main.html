@@ -1,7 +1,12 @@
 <nz-collapse>
   <nz-collapse-panel nzActive nzHeader="Search">
     <form nz-form [formGroup]="form" (ngSubmit)="onSearch()">
-      <nz-row [nzGutter]="[8, 8]" nzAlign="bottom">
+      <!--
+        Top-aligned, so two fields side by side keep their labels level when
+        one's select wraps its tags onto a second line (State's "Open" and
+        "Closed" on a narrow phone).
+      -->
+      <nz-row [nzGutter]="[8, 8]" nzAlign="top">
         <nz-col class="field-col" [nzXs]="12">
           <nz-form-item nzLayout="vertical">
             <nz-form-label nzFor="username">Username</nz-form-label>
@@ -77,7 +82,7 @@
           </nz-form-item>
         </nz-col>
 
-        <nz-col>
+        <nz-col class="submit-col">
           <nz-form-item nzLayout="vertical">
             <nz-form-control>
               <button

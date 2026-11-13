@@ -70,7 +70,7 @@ describe('exerciseResolver', () => {
       .mockReturnValueOnce(of(fresh));
     const { dispatch, emitted } = resolve(getExercise);
 
-    actions$.next(AuthActions.cookieCreated({ user: { uid: 'alice' } }));
+    actions$.next(AuthActions.sessionStarted({ user: { uid: 'alice' } }));
     stale.next({ id: '1-1', code: '' } as Exercise);
 
     expect(await emitted).toEqual([true]);
@@ -90,7 +90,7 @@ describe('exerciseResolver', () => {
       .mockReturnValueOnce(throwError(() => error));
     const { dispatch, emitted } = resolve(getExercise);
 
-    actions$.next(AuthActions.cookieCreated({ user: { uid: 'alice' } }));
+    actions$.next(AuthActions.sessionStarted({ user: { uid: 'alice' } }));
 
     expect(await emitted).toEqual([]);
     expect(stale.observed).toBe(false);
@@ -99,7 +99,7 @@ describe('exerciseResolver', () => {
     );
 
     // Done with: a later sign-in doesn't fetch again.
-    actions$.next(AuthActions.cookieCreated({ user: { uid: 'alice' } }));
+    actions$.next(AuthActions.sessionStarted({ user: { uid: 'alice' } }));
     expect(getExercise).toHaveBeenCalledTimes(2);
   });
 

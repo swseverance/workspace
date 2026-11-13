@@ -19,6 +19,12 @@ h1 {
   opacity: 0.65;
 }
 
+.filter {
+  display: block;
+  max-width: 240px;
+  margin-top: 8px;
+}
+
 section {
   flex: 1 1 auto;
   min-height: 0;
@@ -96,9 +102,4 @@ td {
       pointer-events: none;
     }
   }
-}
-
-nz-alert {
-  display: inline-block;
-  text-align: left;
 }

@@ -130,7 +130,16 @@ export class AuthEffects implements OnInitEffects {
     ),
   );
 
-  /** Mints or clears the session cookie whenever Firebase's user changes. */
+  /**
+   * Mints or clears the session cookie whenever Firebase's user changes.
+   *
+   * That includes a clear on every page that loads signed out, where there
+   * is no cookie: a wasted DELETE for most visitors. Decided to leave it.
+   * Skipping it safely means tracking whether a cookie might exist (what the
+   * server reported, then every Firebase user since), and that much state
+   * in this effect isn't worth saving one request. What a visitor could see
+   * of it, the failure toast, is gone instead: see clearCookieFailed$.
+   */
   syncCookie$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.firebaseUserChanged),
@@ -229,9 +238,11 @@ export class AuthEffects implements OnInitEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.clearCookieFailed),
+        // Logged only, no toast. syncCookie$ clears on every signed-out page
+        // load, so a failure here would mostly tell visitors who never
+        // signed in about a cookie they never had.
         tap(({ type, error }) => {
           this.logger.error(`[auth] ${type}`, error);
-          this.message.error('Failed to Clear Cookie');
         }),
       ),
     { dispatch: false },

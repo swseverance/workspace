@@ -51,12 +51,12 @@ export class ExerciseEffects {
   );
 
   /**
-   * A new session cookie means the shown exercise was fetched signed out,
+   * A session starting means the shown exercise was fetched signed out,
    * without the user's code and results, so fetch it again.
    */
   refreshExercise$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.cookieCreated),
+      ofType(AuthActions.sessionStarted),
       withLatestFrom(this.store.select(selectId)),
       filter(([, id]) => id !== ''),
       switchMap(([, id]) =>
