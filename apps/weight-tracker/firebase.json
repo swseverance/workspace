@@ -1,4 +1,16 @@
 {
+  "apphosting": {
+    "backendId": "weight-tracker",
+    "rootDir": "/apps/weight-tracker",
+    "sourceDir": "../..",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "functions"
+    ]
+  },
   "firestore": {
     "database": "(default)",
     "location": "nam5",
@@ -7,19 +19,9 @@
   },
   "emulators": {
     "apphosting": {
-      "rootDirectory": "./",
       "startCommand": "npx nx serve weight-tracker",
       "port": 4200
     },
-    "firestore": {
-      "port": 8080
-    },
-    "auth": {
-      "port": 9099
-    },
-    "ui": {
-      "enabled": true
-    },
-    "singleProjectMode": true
+    "auth": {}
   }
 }

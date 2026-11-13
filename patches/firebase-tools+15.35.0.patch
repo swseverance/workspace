@@ -1,0 +1,36 @@
+diff --git a/node_modules/firebase-tools/lib/config.js b/node_modules/firebase-tools/lib/config.js
+index b6f1415..7679162 100644
+--- a/node_modules/firebase-tools/lib/config.js
++++ b/node_modules/firebase-tools/lib/config.js
+@@ -136,11 +136,9 @@ class Config {
+         if (path.isAbsolute(pathName)) {
+             return pathName;
+         }
+-        const outPath = path.normalize(path.join(this.projectDir, pathName));
+-        if (path.relative(this.projectDir, outPath).includes("..")) {
+-            throw new error_1.FirebaseError(clc.bold(pathName) + " is outside of project directory", { exit: 1 });
+-        }
+-        return outPath;
++        // Patched: allow paths outside the project directory, so a
++        // firebase.json in apps/<app> can point at ../../dist/... sources.
++        return path.normalize(path.join(this.projectDir, pathName));
+     }
+     readProjectFile(p, options = {}) {
+         options = options || {};
+diff --git a/node_modules/firebase-tools/lib/deploy/apphosting/deploy.js b/node_modules/firebase-tools/lib/deploy/apphosting/deploy.js
+index f86a9f9..f76b9b4 100644
+--- a/node_modules/firebase-tools/lib/deploy/apphosting/deploy.js
++++ b/node_modules/firebase-tools/lib/deploy/apphosting/deploy.js
+@@ -50,7 +50,11 @@ async function default_1(context, options) {
+         bucketsPerLocation[loc] = resolvedName;
+     }));
+     await Promise.all(Object.values(context.backendConfigs).map(async (cfg) => {
+-        const rootDir = options.projectRoot ?? process.cwd();
++        const projectRoot = options.projectRoot ?? process.cwd();
++        // Patched: sourceDir (relative to firebase.json) is the folder to
++        // upload, so firebase.json can live in apps/<app> of an Nx repo while
++        // the whole workspace is uploaded and rootDir stays repo-relative.
++        const rootDir = cfg.sourceDir ? path.resolve(projectRoot, cfg.sourceDir) : projectRoot;
+         const isLocalBuild = cfg.localBuild;
+         let archive;
+         if (isLocalBuild) {
