@@ -36,6 +36,11 @@ export const AuthActions = createActionGroup({
     // a page that loads signed out. `user` is who was signed in. Unlike
     // Sign Out Success, which only reports a sign-out started in this tab.
     'Session Ended': props<{ user: SessionUser }>(),
+    // The reverse: this tab became signed in as `user` after it loaded, in
+    // this tab or another. Never dispatched for a page that loads signed in.
+    // Unlike Cookie Created, which only reports that this tab's own request
+    // made the server set a cookie.
+    'Session Started': props<{ user: SessionUser }>(),
 
     // Keeping the httpOnly session cookie in step with Firebase's auth state.
     'Validate Cookie': props<{ user: SessionUser }>(),

@@ -16,13 +16,13 @@ import { ExerciseEffects } from './exercise.effects';
 import { initialExerciseState } from './exercise.state';
 
 const EXERCISE = { id: '1-1' } as Exercise;
-const cookieCreated = AuthActions.cookieCreated({ user: { uid: 'alice' } });
+const sessionStarted = AuthActions.sessionStarted({ user: { uid: 'alice' } });
 
 function setup(exerciseState: Partial<typeof initialExerciseState>) {
   const service = {
     getExercise: vi.fn(() => of(EXERCISE)),
   };
-  const actions$: Observable<Action> = of(cookieCreated);
+  const actions$: Observable<Action> = of(sessionStarted);
 
   TestBed.configureTestingModule({
     providers: [

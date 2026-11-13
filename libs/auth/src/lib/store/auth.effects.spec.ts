@@ -149,6 +149,9 @@ describe('AuthEffects', () => {
       const sub = effects.firebaseUserChanged$.subscribe((a) =>
         emitted.push(a),
       );
+      // SessionStartedEffects relies on this ordering (startedSessionFor):
+      // with Firebase unheard from until the session call finishes, going
+      // from unknown straight to signedIn can only mean a valid cookie.
       expect(firebase.onAuthStateChanged).not.toHaveBeenCalled();
 
       actions.next(AuthActions.sessionLoaded({ user: null }));
