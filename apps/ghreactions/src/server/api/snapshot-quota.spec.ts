@@ -4,13 +4,14 @@ import { MAX_NEW_SNAPSHOTS_PER_DAY, snapshotQuota } from './snapshot-quota';
 
 vi.mock('firebase-functions/logger', () => ({ error: vi.fn() }));
 
+// The provider's own way to swap in a fake, as the other Redis specs do.
 function useRedis(redis: object) {
-  vi.spyOn(redisProvider, 'get').mockReturnValue(redis as never);
+  redisProvider.provide(redis as never);
 }
 
 describe('snapshotQuota.take', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    redisProvider.reset();
     vi.useRealTimers();
     vi.unstubAllEnvs();
   });

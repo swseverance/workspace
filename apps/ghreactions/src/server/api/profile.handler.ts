@@ -19,13 +19,23 @@ import { snapshotQuota } from './snapshot-quota';
 /** A whole GitHub username (any case). */
 export const GITHUB_USERNAME = /^[a-z\d](?:[a-z\d-]{0,38})$/i;
 
-const collection = () => getFirestore().collection('profiles');
+// An object, so specs can swap in a fake collection.
+export const profileDb = {
+  collection: () => getFirestore().collection('profiles'),
+};
+
+const collection = () => profileDb.collection();
 const document = (username: string) => collection().doc(username.toLowerCase());
 
 // The ranking changes as refreshProfile works through the users, one a
 // minute, so a few minutes old is as good as fresh.
 const RANKING_TTL_MS = 5 * 60 * 1000;
 let ranking: { at: number; users: Promise<UserSummary[]> } | undefined;
+
+/** Drops the kept ranking, so the next ranked() reads again. For specs. */
+export function forgetRanking(): void {
+  ranking = undefined;
+}
 
 // gRPC's ALREADY_EXISTS, which create() fails with.
 const ALREADY_EXISTS = 6;

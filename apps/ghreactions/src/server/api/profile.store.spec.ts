@@ -1,33 +1,44 @@
 import { ProfileFields } from '@org/ghreactions-github';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { forgetRanking, profileDb, profiles } from './profile.handler';
 
-// A stand-in Firestore: one collection whose query returns `documents`, and
-// one document whose create/update are spies.
-const firestore = vi.hoisted(() => {
-  const state = {
-    documents: [] as Record<string, unknown>[],
-    create: vi.fn(),
-    update: vi.fn(),
-    where: vi.fn(),
-    doc: vi.fn(),
-  };
-  const query = {
-    select: () => query,
-    get: async () => ({
-      docs: state.documents.map((data) => ({ data: () => data })),
-    }),
-  };
-  state.where.mockReturnValue(query);
-  state.doc.mockReturnValue({ create: state.create, update: state.update });
-  return state;
+// A stand-in for the profiles collection: its query returns `documents`, and
+// its one document's create/update are spies. Swapped in through profileDb
+// rather than vi.mock: spec files share modules here, so a module mock (or a
+// module reset) in one file can leak into the others.
+const firestore = {
+  documents: [] as Record<string, unknown>[],
+  create: vi.fn(),
+  update: vi.fn(),
+  where: vi.fn(),
+  doc: vi.fn(),
+};
+const query = {
+  select: () => query,
+  get: async () => ({
+    docs: firestore.documents.map((data) => ({ data: () => data })),
+  }),
+};
+
+const realCollection = profileDb.collection;
+
+beforeEach(() => {
+  firestore.where.mockReset().mockReturnValue(query);
+  firestore.doc
+    .mockReset()
+    .mockReturnValue({ create: firestore.create, update: firestore.update });
+  firestore.create.mockReset();
+  firestore.update.mockReset();
+  profileDb.collection = () =>
+    ({ where: firestore.where, doc: firestore.doc }) as never;
+  forgetRanking();
 });
 
-vi.mock('firebase-admin/firestore', async (original) => ({
-  ...(await original<typeof import('firebase-admin/firestore')>()),
-  getFirestore: () => ({
-    collection: () => ({ where: firestore.where, doc: firestore.doc }),
-  }),
-}));
+afterEach(() => {
+  profileDb.collection = realCollection;
+  forgetRanking();
+  vi.useRealTimers();
+});
 
 const summary = (username: string, totalReactions: number, extra = {}) => ({
   username,
@@ -37,18 +48,7 @@ const summary = (username: string, totalReactions: number, extra = {}) => ({
   ...extra,
 });
 
-/** A fresh module each time, so one test's cached ranking can't reach the next. */
-async function load() {
-  vi.resetModules();
-  return (await import('./profile.handler')).profiles;
-}
-
 describe('profiles.ranked', () => {
-  beforeEach(() => {
-    vi.useRealTimers();
-    firestore.where.mockClear();
-  });
-
   it('ranks by reactions, leaving out snapshots someone asked for', async () => {
     firestore.documents = [
       summary('b-second', 200, { ranked: true }),
@@ -56,7 +56,6 @@ describe('profiles.ranked', () => {
       // Written before the flag existed: ranked.
       summary('a-first', 500),
     ];
-    const profiles = await load();
 
     expect(await profiles.ranked()).toEqual([
       { ...summary('a-first', 500), rank: 1 },
@@ -67,7 +66,6 @@ describe('profiles.ranked', () => {
 
   it('orders a tie by username, so ranks are stable', async () => {
     firestore.documents = [summary('zed', 100), summary('amy', 100)];
-    const profiles = await load();
 
     expect((await profiles.ranked()).map((u) => u.username)).toEqual([
       'amy',
@@ -78,7 +76,6 @@ describe('profiles.ranked', () => {
   it('reads once and reuses the result for five minutes', async () => {
     vi.useFakeTimers();
     firestore.documents = [summary('amy', 100)];
-    const profiles = await load();
 
     await profiles.ranked();
     vi.advanceTimersByTime(4 * 60 * 1000);
@@ -91,7 +88,6 @@ describe('profiles.ranked', () => {
   });
 
   it('does not keep a failed read', async () => {
-    const profiles = await load();
     firestore.where.mockImplementationOnce(() => ({
       select: () => ({ get: () => Promise.reject(new Error('unavailable')) }),
     }));
@@ -117,14 +113,9 @@ describe('profiles.store', () => {
 
   beforeEach(() => {
     vi.useFakeTimers({ now: new Date('2026-11-13T00:00:00Z') });
-    firestore.create.mockReset();
-    firestore.update.mockReset();
-    firestore.doc.mockClear();
   });
 
   it('creates an unranked document that expires in 30 days', async () => {
-    const profiles = await load();
-
     await profiles.store(fields);
 
     expect(firestore.doc).toHaveBeenCalledWith('newuser');
@@ -138,7 +129,6 @@ describe('profiles.store', () => {
 
   it('only refreshes a document that already exists, keeping its flag and expiry', async () => {
     firestore.create.mockRejectedValue(Object.assign(new Error(), { code: 6 }));
-    const profiles = await load();
 
     await profiles.store(fields);
 
@@ -151,7 +141,6 @@ describe('profiles.store', () => {
 
   it('rethrows any other failure', async () => {
     firestore.create.mockRejectedValue(new Error('unavailable'));
-    const profiles = await load();
 
     await expect(profiles.store(fields)).rejects.toThrow('unavailable');
     expect(firestore.update).not.toHaveBeenCalled();
