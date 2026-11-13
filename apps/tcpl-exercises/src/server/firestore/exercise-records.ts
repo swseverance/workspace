@@ -14,11 +14,6 @@ type WriteExerciseRecord = {
   lastUpdated: FieldValue;
 };
 
-type UpdateExerciseRecord = {
-  code: string;
-  lastUpdated: FieldValue;
-};
-
 type UpdateExerciseRecordWithTests = {
   code: string;
   tests: Record<string, ExerciseRecordTestResult>;
@@ -129,39 +124,30 @@ function exerciseRecordsCollectionRef(uid: string) {
   return getFirestore().collection(`users/${uid}/exercises`);
 }
 
-export async function saveExerciseRecordCode(
-  uid: string,
-  exerciseId: string,
-  code: string,
-): Promise<void> {
-  const ref = exerciseRecordRef(uid, exerciseId);
-  const snapshot = await ref.get();
-
-  if (!snapshot.exists) {
-    const write: WriteExerciseRecord = {
-      code,
-      tests: {},
-      compilationError: '',
-      compilerWarnings: '',
-      created: FieldValue.serverTimestamp(),
-      lastUpdated: FieldValue.serverTimestamp(),
-    };
-    await ref.set(write);
-    return;
-  }
-
-  const update: UpdateExerciseRecord = {
-    code,
-    lastUpdated: FieldValue.serverTimestamp(),
-  };
-  await ref.update(update);
-}
-
 /** What grading a submission produced, before it's truncated for saving. */
 export type GradedSubmission = Pick<
   ExerciseRecord,
   'tests' | 'compilationError' | 'compilerWarnings'
 >;
+
+/**
+ * Truncates a graded submission's long outputs (see SAVED_OUTPUT_LIMIT_BYTES),
+ * as saving does. Also used for a signed-out submission, which isn't saved,
+ * so it shows the same as a signed-in one.
+ */
+export function truncateGraded(graded: GradedSubmission): GradedSubmission {
+  return {
+    tests: truncateTests(graded.tests),
+    compilationError: truncateOutput(
+      graded.compilationError,
+      SAVED_COMPILATION_ERROR_LIMIT_BYTES,
+    ),
+    compilerWarnings: truncateOutput(
+      graded.compilerWarnings,
+      SAVED_COMPILATION_ERROR_LIMIT_BYTES,
+    ),
+  };
+}
 
 /**
  * Saves a graded submission as the exercise's current state and appends it
@@ -176,15 +162,7 @@ export async function saveExerciseRecordSubmission(
   graded: GradedSubmission,
   summary: Pick<ExerciseSubmission, 'status' | 'passed' | 'total'>,
 ): Promise<{ record: ExerciseRecord; submission: ExerciseSubmission }> {
-  const tests = truncateTests(graded.tests);
-  const compilationError = truncateOutput(
-    graded.compilationError,
-    SAVED_COMPILATION_ERROR_LIMIT_BYTES,
-  );
-  const compilerWarnings = truncateOutput(
-    graded.compilerWarnings,
-    SAVED_COMPILATION_ERROR_LIMIT_BYTES,
-  );
+  const { tests, compilationError, compilerWarnings } = truncateGraded(graded);
   const ref = exerciseRecordRef(uid, exerciseId);
   const snapshot = await ref.get();
   const batch = getFirestore().batch();

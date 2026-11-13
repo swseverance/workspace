@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { createReducer, on } from '@ngrx/store';
 import { Chapter, Exercise, ExerciseStatus } from '../../../shared/models';
 import {
@@ -9,12 +8,11 @@ import {
 import {
   applyHistoricalSubmission,
   codeEdited,
+  draftRestored,
   exerciseNavigationSucceeded,
   exerciseRefreshed,
   exercisesReset,
   exerciseSubmitted,
-  pendingChangesSaved,
-  savePendingChangesFailure,
   submitExercise,
   submitExerciseFailed,
 } from './exercise.actions';
@@ -24,18 +22,16 @@ import {
   initialExerciseState,
 } from './exercise.state';
 
+/**
+ * The server's code replaces the editor's here; restoreDraft$ then puts back
+ * any newer unsubmitted code, which DraftStore has saved on every edit.
+ */
 function upsertLoadedExercise(state: ExerciseState, exercise: Exercise) {
-  const existing = state.entities[exercise.id];
-
   return exerciseEntityAdapter.upsertOne(
-    existing
-      ? {
-          ...exercise,
-          code: existing.pendingChanges || exercise.code,
-          pendingChanges: existing.pendingChanges,
-          submitting: existing.submitting,
-        }
-      : { ...exercise, pendingChanges: '', submitting: false },
+    {
+      ...exercise,
+      submitting: state.entities[exercise.id]?.submitting ?? false,
+    },
     state,
   );
 }
@@ -66,52 +62,19 @@ export const exerciseReducer = createReducer(
 
   on(exercisesReset, () => initialExerciseState),
 
-  // `code` follows the editor too, so that applying a submission always
-  // changes it, even back to code the user has since typed over.
+  // `code` follows the editor, so that applying a submission always changes
+  // it, even back to code the user has since typed over.
   on(codeEdited, (state, { code }) =>
-    exerciseEntityAdapter.updateOne(
-      { id: state.id, changes: { code, pendingChanges: code } },
-      state,
-    ),
+    exerciseEntityAdapter.updateOne({ id: state.id, changes: { code } }, state),
   ),
 
-  // The editor shows the new code, and autosave keeps it.
   on(applyHistoricalSubmission, (state, { submission: { code } }) =>
-    exerciseEntityAdapter.updateOne(
-      { id: state.id, changes: { code, pendingChanges: code } },
-      state,
-    ),
+    exerciseEntityAdapter.updateOne({ id: state.id, changes: { code } }, state),
   ),
 
-  on(pendingChangesSaved, (state, { id, code }) => {
-    const entity = state.entities[id];
-
-    if (!entity || entity.pendingChanges !== code) {
-      return state;
-    }
-
-    return exerciseEntityAdapter.updateOne(
-      { id, changes: { pendingChanges: '' } },
-      state,
-    );
-  }),
-
-  on(savePendingChangesFailure, (state, { id, error }) => {
-    const entity = state.entities[id];
-
-    if (
-      !entity ||
-      !(error instanceof HttpErrorResponse) ||
-      error.status !== 400
-    ) {
-      return state;
-    }
-
-    return exerciseEntityAdapter.updateOne(
-      { id, changes: { pendingChanges: '' } },
-      state,
-    );
-  }),
+  on(draftRestored, (state, { id, code }) =>
+    exerciseEntityAdapter.updateOne({ id, changes: { code } }, state),
+  ),
 
   on(submitExercise, (state) => ({
     ...exerciseEntityAdapter.updateOne(
@@ -133,20 +96,11 @@ export const exerciseReducer = createReducer(
       return { ...state, chapters };
     }
 
+    // Keeps the editor's code, which may have changed while grading ran.
     const { code: _submittedCode, ...rest } = exercise;
 
     return exerciseEntityAdapter.updateOne(
-      {
-        id: exercise.id,
-        changes: {
-          ...rest,
-          pendingChanges:
-            entity.pendingChanges === exercise.code
-              ? ''
-              : entity.pendingChanges,
-          submitting: false,
-        },
-      },
+      { id: exercise.id, changes: { ...rest, submitting: false } },
       { ...state, chapters },
     );
   }),

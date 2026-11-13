@@ -1,9 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import {
-  ExerciseEntity,
-  exerciseEntityAdapter,
-  ExerciseState,
-} from './exercise.state';
+import { exerciseEntityAdapter, ExerciseState } from './exercise.state';
 
 export const selectExerciseState =
   createFeatureSelector<ExerciseState>('exercise');
@@ -35,13 +31,4 @@ export const selectCurrentEntity = createSelector(
 export const selectSubmissionPending = createSelector(
   selectCurrentEntity,
   (entity) => entity?.submitting ?? false,
-);
-
-export const selectExercisesWithPendingChanges = createSelector(
-  selectEntities,
-  (entities) =>
-    Object.values(entities).filter(
-      (entity): entity is ExerciseEntity =>
-        entity !== undefined && entity.pendingChanges !== '',
-    ),
 );

@@ -5,6 +5,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { provideSsrHttp } from './http/provide-http-client';
 import { AuthEffects } from './store/auth.effects';
 import { authFeature } from './store/auth.feature';
+import { EmailLinkEffects } from './store/email-link.effects';
 import { SessionEndedEffects } from './store/session-ended.effects';
 import { SignInEffects } from './store/sign-in.effects';
 import { SignOutEffects } from './store/sign-out.effects';
@@ -12,7 +13,8 @@ import { SignOutEffects } from './store/sign-out.effects';
 /**
  * For apps with cookie sessions: what provideNoAuth() sets up, with SSR-time
  * API calls forwarding the user's Cookie, plus the auth state and effects.
- * Needs provideStore() and provideEffects() earlier at the root.
+ * Users sign in with Google or a passwordless email link; the "Email link"
+ * sign-in method must be enabled in the Firebase project. Needs provideStore() and provideEffects() earlier at the root.
  */
 export function provideCookieAuth(): EnvironmentProviders {
   return makeEnvironmentProviders([
@@ -23,6 +25,7 @@ export function provideCookieAuth(): EnvironmentProviders {
       SignInEffects,
       SignOutEffects,
       SessionEndedEffects,
+      EmailLinkEffects,
     ),
     // ng-zorro only provides this through NzModalModule.
     NzModalService,

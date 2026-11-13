@@ -4,7 +4,6 @@ import { Action } from '@ngrx/store';
 import { AUTH } from '@org/firebase';
 import { Logger } from '@org/logger';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import type { ModalOptions } from 'ng-zorro-antd/modal';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { firstValueFrom, Observable, of, Subject } from 'rxjs';
 import { AuthActions } from './auth.actions';
@@ -22,7 +21,8 @@ describe('SignInEffects', () => {
   const auth = {};
   const message = { error: vi.fn() };
   const logger = { error: vi.fn() };
-  const modal = { confirm: vi.fn() };
+  let afterClose: Subject<unknown>;
+  const modal = { create: vi.fn(() => ({ afterClose })) };
 
   function setup() {
     TestBed.configureTestingModule({
@@ -38,42 +38,33 @@ describe('SignInEffects', () => {
     return TestBed.inject(SignInEffects);
   }
 
-  /** The options passed to the nth modal.confirm call. */
-  function confirmOptions(call = 0): ModalOptions {
-    return modal.confirm.mock.calls[call][0];
-  }
-
   beforeEach(() => {
     vi.clearAllMocks();
+    afterClose = new Subject();
   });
 
   describe('openSignInModal$', () => {
-    it('opens a confirm modal', () => {
+    it('opens the sign-in dialog', () => {
       actions$ = of(AuthActions.openSignInModal());
       setup().openSignInModal$.subscribe();
 
-      expect(modal.confirm).toHaveBeenCalledOnce();
-      expect(confirmOptions()).toMatchObject({
-        nzTitle: 'Sign in required',
-        nzOkText: 'Sign in with Google',
-        nzCancelText: 'Cancel',
-      });
+      expect(modal.create).toHaveBeenCalledOnce();
     });
 
-    it('signs in with Google on OK', async () => {
+    it('signs in with Google when the dialog closes with it', async () => {
       actions$ = of(AuthActions.openSignInModal());
       const action = firstValueFrom(setup().openSignInModal$);
 
-      (confirmOptions().nzOnOk as () => void)();
+      afterClose.next({ provider: 'google' });
 
       expect(await action).toEqual(AuthActions.signIn({ provider: 'google' }));
     });
 
-    it('reports a close on Cancel', async () => {
+    it('reports a close when the dialog is dismissed', async () => {
       actions$ = of(AuthActions.openSignInModal());
       const action = firstValueFrom(setup().openSignInModal$);
 
-      (confirmOptions().nzOnCancel as () => void)();
+      afterClose.next(undefined);
 
       expect(await action).toEqual(AuthActions.closeSignInModal());
     });
@@ -86,7 +77,7 @@ describe('SignInEffects', () => {
       actions.next(AuthActions.openSignInModal());
       actions.next(AuthActions.openSignInModal());
 
-      expect(modal.confirm).toHaveBeenCalledOnce();
+      expect(modal.create).toHaveBeenCalledOnce();
     });
 
     it('opens again once the previous modal is closed', () => {
@@ -96,11 +87,13 @@ describe('SignInEffects', () => {
       setup().openSignInModal$.subscribe((action) => emitted.push(action));
 
       actions.next(AuthActions.openSignInModal());
-      (confirmOptions(0).nzOnCancel as () => void)();
+      afterClose.next(undefined);
+      afterClose.complete();
+      afterClose = new Subject();
       actions.next(AuthActions.openSignInModal());
-      (confirmOptions(1).nzOnOk as () => void)();
+      afterClose.next({ provider: 'google' });
 
-      expect(modal.confirm).toHaveBeenCalledTimes(2);
+      expect(modal.create).toHaveBeenCalledTimes(2);
       expect(emitted).toEqual([
         AuthActions.closeSignInModal(),
         AuthActions.signIn({ provider: 'google' }),

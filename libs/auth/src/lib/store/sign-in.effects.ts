@@ -1,12 +1,16 @@
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Action } from '@ngrx/store';
 import { AUTH } from '@org/firebase';
 import { Logger } from '@org/logger';
 import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { exhaustMap, Observable, switchMap, tap } from 'rxjs';
+import { exhaustMap, map, switchMap, tap } from 'rxjs';
+import {
+  SignInDialog,
+  SignInDialogData,
+  SignInDialogResult,
+} from '../sign-in-dialog/sign-in-dialog';
 import { AuthActions } from './auth.actions';
 
 @Injectable()
@@ -17,29 +21,31 @@ export class SignInEffects {
   private readonly message = inject(NzMessageService);
   private readonly auth = inject(AUTH);
 
+  /**
+   * Google, or a sign-in link by email. Sending the link happens inside the
+   * dialog (it shows "check your inbox"), so closing it only ever means
+   * Google or dismissed.
+   */
   openSignInModal$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.openSignInModal),
-      // Ignores further requests while a modal is open. Each callback must
+      // Ignores further requests while a modal is open. Each one must
       // complete, or no later modal would ever open.
-      exhaustMap(
-        () =>
-          new Observable<Action>((subscriber) => {
-            this.modal.confirm({
-              nzTitle: 'Sign in required',
-              nzContent: 'Sign in with your Google account to continue.',
-              nzOkText: 'Sign in with Google',
-              nzCancelText: 'Cancel',
-              nzOnOk: () => {
-                subscriber.next(AuthActions.signIn({ provider: 'google' }));
-                subscriber.complete();
-              },
-              nzOnCancel: () => {
-                subscriber.next(AuthActions.closeSignInModal());
-                subscriber.complete();
-              },
-            });
-          }),
+      exhaustMap(() =>
+        this.modal
+          .create<SignInDialog, SignInDialogData, SignInDialogResult>({
+            nzTitle: 'Sign in',
+            nzContent: SignInDialog,
+            nzData: { mode: 'signIn' },
+            nzFooter: null,
+          })
+          .afterClose.pipe(
+            map((result) =>
+              result && 'provider' in result
+                ? AuthActions.signIn({ provider: result.provider })
+                : AuthActions.closeSignInModal(),
+            ),
+          ),
       ),
     ),
   );

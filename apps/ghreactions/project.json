@@ -121,8 +121,7 @@
     },
     "emulate": {
       "continuous": true,
-      "dependsOn": ["ghreactions-functions:watch"],
-      "command": "n=0; while [ ! -f dist/apps/ghreactions-functions/main.js ] && [ $n -lt 120 ]; do sleep 1; n=$((n+1)); done; [ -f dist/apps/ghreactions-functions/main.js ] || { echo 'No build after 120s: check the watch output above'; exit 1; }; cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- emulators:start --only apphosting,auth,functions,firestore --project ghreactionsdev"
+      "command": "cd apps/ghreactions && npm exec firebase-tools -- emulators:start --only apphosting,auth,firestore --project ghreactionsdev"
     }
   }
 }

@@ -1,4 +1,17 @@
 {
+  "apphosting": {
+    "backendId": "tcpl-exercises",
+    "rootDir": "/apps/tcpl-exercises",
+    "sourceDir": "../..",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "functions"
+    ],
+    "alwaysDeployFromSource": true
+  },
   "firestore": {
     "database": "(default)",
     "location": "nam5",
@@ -7,19 +20,9 @@
   },
   "emulators": {
     "apphosting": {
-      "rootDirectory": "./",
       "startCommand": "npx nx serve tcpl-exercises",
       "port": 4200
     },
-    "firestore": {
-      "port": 8080
-    },
-    "auth": {
-      "port": 9099
-    },
-    "ui": {
-      "enabled": true
-    },
-    "singleProjectMode": true
+    "auth": {}
   }
 }

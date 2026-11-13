@@ -20,40 +20,40 @@
     </nz-input-wrapper>
 
     @if (loading()) {
-    <nz-spin />
+      <nz-spin />
     } @else if (results().length === 0) {
-    <nz-empty nzNotFoundContent="No flashcards found" />
+      <nz-empty nzNotFoundContent="No flashcards found" />
     } @else {
-    <cdk-virtual-scroll-viewport itemSize="56" class="viewport">
-      <nz-list nzBordered>
-        <nz-list-item
-          *cdkVirtualFor="let card of results(); trackBy: trackById"
-          class="card-row"
-        >
-          <span class="chinese">{{ card.chinese }}</span>
+      <cdk-virtual-scroll-viewport itemSize="56" class="viewport">
+        <nz-list nzBordered>
+          <nz-list-item
+            *cdkVirtualFor="let card of results(); trackBy: trackById"
+            class="card-row"
+          >
+            <span class="chinese">{{ card.chinese }}</span>
 
-          <div class="card-actions">
-            <button
-              nz-button
-              nzType="text"
-              nzShape="circle"
-              (click)="!ref && openEdit(card)"
-            >
-              <nz-icon nzType="edit" [style.color]="'#1890ff'" />
-            </button>
+            <div class="card-actions">
+              <button
+                nz-button
+                nzType="text"
+                nzShape="circle"
+                (click)="!ref && openEdit(card)"
+              >
+                <nz-icon nzType="edit" [style.color]="'#1890ff'" />
+              </button>
 
-            <button
-              nz-button
-              nzType="text"
-              nzShape="circle"
-              (click)="!ref && openDelete(card)"
-            >
-              <nz-icon nzType="delete" [style.color]="'#ff4d4f'" />
-            </button>
-          </div>
-        </nz-list-item>
-      </nz-list>
-    </cdk-virtual-scroll-viewport>
+              <button
+                nz-button
+                nzType="text"
+                nzShape="circle"
+                (click)="!ref && openDelete(card)"
+              >
+                <nz-icon nzType="delete" [style.color]="'#ff4d4f'" />
+              </button>
+            </div>
+          </nz-list-item>
+        </nz-list>
+      </cdk-virtual-scroll-viewport>
     }
   </main>
 </app-page>

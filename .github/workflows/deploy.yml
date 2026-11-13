@@ -14,11 +14,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -41,8 +41,8 @@ jobs:
             echo "$AFFECTED"
             echo "NX_AFFECTED_EOF"
           } >> "$GITHUB_OUTPUT"
-          # One exact-match flag per deployable project. A substring check on
-          # the list would let ghreactions-functions alone deploy ghreactions.
+          # One exact-match flag per project, so a substring check can't
+          # mistake ghreactions-functions for ghreactions.
           for app in ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards; do
             if echo "$AFFECTED" | grep -qx "$app"; then
               echo "$app=true" >> "$GITHUB_OUTPUT"
@@ -69,7 +69,7 @@ jobs:
           fi
 
       - id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: projects/1007948396460/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
           service_account: github-deployer@swseverance-ci.iam.gserviceaccount.com
@@ -77,12 +77,9 @@ jobs:
       # develop -> dev releases (only apps with a dev environment)
       - name: Deploy ghreactions (dev)
         id: deploy-ghreactions-dev
-        if: github.ref == 'refs/heads/develop' && steps.affected.outputs['ghreactions'] == 'true'
+        # One deploy ships both the app and its functions.
+        if: github.ref == 'refs/heads/develop' && (steps.affected.outputs['ghreactions'] == 'true' || steps.affected.outputs['ghreactions-functions'] == 'true')
         run: npm run deploy:ghreactions:dev
-
-      - name: Deploy ghreactions-functions (dev)
-        if: github.ref == 'refs/heads/develop' && steps.affected.outputs['ghreactions-functions'] == 'true'
-        run: npm run deploy:ghreactions-functions:dev
 
       - name: Deploy tcpl-exercises (dev)
         id: deploy-tcpl-exercises-dev
@@ -92,12 +89,9 @@ jobs:
       # main -> prod releases for every app with changes
       - name: Deploy ghreactions (prod)
         id: deploy-ghreactions-prod
-        if: github.ref == 'refs/heads/main' && steps.affected.outputs['ghreactions'] == 'true'
+        # One deploy ships both the app and its functions.
+        if: github.ref == 'refs/heads/main' && (steps.affected.outputs['ghreactions'] == 'true' || steps.affected.outputs['ghreactions-functions'] == 'true')
         run: npm run deploy:ghreactions:prod
-
-      - name: Deploy ghreactions-functions (prod)
-        if: github.ref == 'refs/heads/main' && steps.affected.outputs['ghreactions-functions'] == 'true'
-        run: npm run deploy:ghreactions-functions:prod
 
       - name: Deploy tcpl-exercises (prod)
         id: deploy-tcpl-exercises-prod

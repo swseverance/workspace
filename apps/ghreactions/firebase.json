@@ -1,0 +1,46 @@
+{
+  "apphosting": {
+    "backendId": "ghreactions",
+    "rootDir": "/apps/ghreactions",
+    "sourceDir": "../..",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "functions"
+    ],
+    "alwaysDeployFromSource": true
+  },
+  "functions": [
+    {
+      "source": "../../dist/apps/ghreactions-functions",
+      "codebase": "ghreactions",
+      "runtime": "nodejs24",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "configDir": "../ghreactions-functions"
+    }
+  ],
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "emulators": {
+    "apphosting": {
+      "startCommand": "npx nx serve ghreactions",
+      "port": 4200
+    },
+    "auth": {},
+    "functions": {
+      "port": 5001
+    }
+  }
+}

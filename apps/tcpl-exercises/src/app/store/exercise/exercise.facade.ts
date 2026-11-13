@@ -3,9 +3,9 @@ import { Store } from '@ngrx/store';
 import { ExerciseSubmission } from '../../../shared/models';
 import { loadChapters } from './chapters.actions';
 import {
-  attemptToSubmitExercise,
   codeEdited,
   openApplySubmissionModal,
+  submitExercise,
 } from './exercise.actions';
 import {
   selectChapters,
@@ -29,7 +29,7 @@ export class ExerciseFacade {
   }
 
   submitExercise(code: string): void {
-    this.store.dispatch(attemptToSubmitExercise({ code }));
+    this.store.dispatch(submitExercise({ code }));
   }
 
   applySubmission(submission: ExerciseSubmission): void {

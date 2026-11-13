@@ -7,9 +7,11 @@ import {
   MoonOutline,
   SunOutline,
 } from '@ant-design/icons-angular/icons';
+import { provideMockActions } from '@ngrx/effects/testing';
 import { provideMockStore } from '@ngrx/store/testing';
 import type { AuthState } from '@org/auth';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
+import { EMPTY } from 'rxjs';
 import { App } from './app';
 
 async function render(auth: AuthState) {
@@ -25,6 +27,8 @@ async function render(auth: AuthState) {
         SunOutline,
       ]),
       provideMockStore({ initialState: { auth } }),
+      // AuthFacade listens for sign-in link results.
+      provideMockActions(() => EMPTY),
     ],
   }).compileComponents();
 
