@@ -13,7 +13,9 @@ import { MIN_INDEXED_REACTIONS } from '@org/ghreactions-github/models';
 import { SeoService } from '@org/ui';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzEmptyModule } from 'ng-zorro-antd/empty';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { debounceTime, distinctUntilChanged, map, Subject } from 'rxjs';
 import { Data } from '../../services/data';
 import { ColumnCount } from '../reactions-table/column-count';
 
@@ -26,6 +28,7 @@ const TITLE = 'Most reacted GitHub users';
     RouterLink,
     NzAlertModule,
     NzEmptyModule,
+    NzInputModule,
     NzTableModule,
     ColumnCount,
   ],
@@ -43,9 +46,25 @@ export class Users {
     Number(this.params().get('page') ?? 1),
   );
 
+  private readonly typed = new Subject<string>();
+  /**
+   * The start of a username to narrow the list to: what's in the filter box
+   * once typing pauses, or '' for the whole ranking. Kept here rather than
+   * in the URL, so typing doesn't navigate.
+   */
+  protected readonly filter = toSignal(
+    this.typed.pipe(
+      // People paste "@name".
+      map((text) => text.trim().replace(/^@/, '')),
+      debounceTime(500),
+      distinctUntilChanged(),
+    ),
+    { initialValue: '' },
+  );
+
   protected readonly result = rxResource({
-    params: () => this.page(),
-    stream: ({ params }) => this.data.users(params),
+    params: () => ({ page: this.page(), filter: this.filter() }),
+    stream: ({ params }) => this.data.users(params.page, params.filter),
   });
 
   protected readonly users = computed(() =>
@@ -57,8 +76,12 @@ export class Users {
       ? Array.from({ length: this.result.value().pageCount }, (_, i) => i + 1)
       : [],
   );
-  /** Rank of the first user on this page. */
+  /** Rank of the first user on this page. Filtered results have no ranks. */
   protected readonly firstRank = computed(() => (this.page() - 1) * 100 + 1);
+
+  protected onFilterInput(event: Event): void {
+    this.typed.next((event.target as HTMLInputElement).value);
+  }
 
   private readonly notFound = computed(() => {
     const error = this.result.error();

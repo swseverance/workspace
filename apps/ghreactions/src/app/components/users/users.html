@@ -1,10 +1,23 @@
 <header>
   <h1>{{ title }}</h1>
   <p class="subtitle">
-    Ranked by the reactions on each user's top issues, pull requests and recent
-    issue comments, with each kind's share in its own column. Users with fewer
-    than {{ minReactions }} aren't listed.
+    A daily snapshot of GitHub's most-followed users, ranked by the reactions on
+    each one's top issues, pull requests and recent issue comments, with each
+    kind's share in its own column. Users with fewer than
+    {{ minReactions }} aren't listed. For anyone else, or the full and current
+    picture, <a routerLink="/search">search GitHub live</a>.
   </p>
+  <input
+    nz-input
+    class="filter"
+    type="search"
+    placeholder="Filter by username"
+    aria-label="Filter by username"
+    autocapitalize="none"
+    autocorrect="off"
+    spellcheck="false"
+    (input)="onFilterInput($event)"
+  />
 </header>
 
 <section>
@@ -32,7 +45,7 @@
     <tbody>
       @for (user of table.data; track user.username; let i = $index) {
         <tr>
-          <td class="rank">{{ firstRank() + i }}</td>
+          <td class="rank">{{ filter() ? '' : firstRank() + i }}</td>
           <td>
             <a [routerLink]="['/u', user.username.toLowerCase(), 'issues']">{{
               user.username
@@ -74,6 +87,17 @@
     <nz-alert nzType="error" nzShowIcon [nzMessage]="message" />
   } @else if (!result.isLoading()) {
     <!-- Hidden while loading, so it can't flash before the first results. -->
-    <nz-empty nzNotFoundImage="simple" nzNotFoundContent="No users yet." />
+    <nz-empty
+      nzNotFoundImage="simple"
+      [nzNotFoundContent]="filter() ? noMatch : 'No users yet.'"
+    />
   }
+</ng-template>
+
+<!-- Not in the ranking doesn't mean not on GitHub: offer the live search. -->
+<ng-template #noMatch>
+  No ranked user starts with "{{ filter() }}".
+  <a routerLink="/search" [queryParams]="{ username: filter() }"
+    >Search GitHub live for {{ filter() }}</a
+  >
 </ng-template>
