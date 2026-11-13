@@ -49,9 +49,7 @@ describe('App', () => {
   it('offers sign in when signed out', async () => {
     const root = await render({ status: 'signedOut', user: null });
 
-    expect(
-      root.querySelector('[aria-label="Sign in with Google"]'),
-    ).not.toBeNull();
+    expect(root.querySelector('[aria-label="Sign in"]')).not.toBeNull();
     expect(root.querySelector('[aria-label="Sign out"]')).toBeNull();
   });
 
@@ -59,6 +57,6 @@ describe('App', () => {
     const root = await render({ status: 'signedIn', user: { uid: 'u1' } });
 
     expect(root.querySelector('[aria-label="Sign out"]')).not.toBeNull();
-    expect(root.querySelector('[aria-label="Sign in with Google"]')).toBeNull();
+    expect(root.querySelector('[aria-label="Sign in"]')).toBeNull();
   });
 });

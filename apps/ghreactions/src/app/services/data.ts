@@ -23,17 +23,32 @@ export type SearchParams = {
 export class Data {
   private http = inject(HttpClient);
 
-  /** A tracked user's precomputed profile; 404 for anyone else. */
+  /** A user's stored snapshot; 404 if there isn't one. Never builds one. */
   profile(username: string) {
     return this.http.get<Profile>(
       `/api/profile/${encodeURIComponent(username)}`,
     );
   }
 
-  /** One page of users ranked by total reactions (1-based). */
-  users(page: number) {
+  /**
+   * A user's snapshot, built from GitHub now if there isn't one (which takes
+   * a few seconds). 404 if GitHub has no such user; 429 when no more can be
+   * built for now.
+   */
+  buildProfile(username: string) {
+    return this.http.post<Profile>(
+      `/api/profile/${encodeURIComponent(username)}`,
+      null,
+    );
+  }
+
+  /**
+   * One page of users ranked by total reactions (1-based). With `filter`,
+   * the ranked users whose username starts with it instead, as one page.
+   */
+  users(page: number, filter = '') {
     return this.http.get<UsersPage>('/api/users', {
-      params: page > 1 ? { page } : {},
+      params: filter ? { q: filter } : page > 1 ? { page } : {},
     });
   }
 

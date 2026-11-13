@@ -40,10 +40,22 @@ export type ProfileFields = {
 };
 
 /**
+ * How long a snapshot someone asked for is kept. After that Firestore deletes
+ * it, and it can be asked for again. Ranked users' snapshots never expire.
+ */
+export const REQUESTED_SNAPSHOT_DAYS = 30;
+
+/**
  * A profile as the client gets it (GET /api/profile/:username): the stored
  * document with its timestamps as ISO strings.
  */
 export type Profile = ProfileFields & {
+  /**
+   * True for GitHub's most-followed users, who are listed on /users. False
+   * for a snapshot someone asked for: never listed, and kept for
+   * REQUESTED_SNAPSHOT_DAYS.
+   */
+  ranked: boolean;
   /** When the user started being tracked. */
   created: string;
   /** The last write of any kind. */
@@ -63,9 +75,12 @@ export const MIN_INDEXED_REACTIONS = 50;
 export type UserSummary = Pick<
   ProfileFields,
   'username' | 'counts' | 'reactions' | 'totalReactions'
->;
+> & {
+  /** Place among the ranked users, from 1; the same in filtered results. */
+  rank: number;
+};
 
-/** GET /api/users?page=N */
+/** GET /api/users?page=N, or ?q=PREFIX (always a single page). */
 export type UsersPage = {
   users: UserSummary[];
   /** 1-based. */

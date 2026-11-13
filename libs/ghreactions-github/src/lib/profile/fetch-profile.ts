@@ -17,28 +17,52 @@ const sumReactions = (rows: GHReactionsRow[]) =>
  * Builds a user's profile from three GitHub calls (a few more if GitHub
  * returns short pages). Issues and PRs come back sorted by reactions; GitHub
  * can't sort comments that way, so the newest are sorted here instead.
+ *
+ * By default the calls run one at a time, to stay clear of GitHub's
+ * secondary rate limits: right for refreshProfile, which runs all day with
+ * nobody waiting. `parallel` runs them together for a visitor who is
+ * waiting, which takes as long as the slowest call instead of all three
+ * (about a third to a half of the time, measured).
  */
-export async function fetchProfile(username: string): Promise<ProfileFields> {
-  try {
-    // Calls run one at a time to stay clear of GitHub's secondary rate
-    // limits. The user-scoped call goes first, so a missing user fails fast.
-    const issueComments = await issueCommentsApi.fetchIssueComments({
+export async function fetchProfile(
+  username: string,
+  { parallel = false } = {},
+): Promise<ProfileFields> {
+  const fetchIssueComments = () =>
+    issueCommentsApi.fetchIssueComments({
       username,
       type: ReactableType.IssueComment,
       cursor: null,
     });
-    const issues = await issuesApi.fetchIssues({
+  const fetchIssues = () =>
+    issuesApi.fetchIssues({
       username,
       type: ReactableType.Issue,
       cursor: null,
       sort: 'reactions',
     });
-    const pullRequests = await pullRequestsApi.fetchPullRequests({
+  const fetchPullRequests = () =>
+    pullRequestsApi.fetchPullRequests({
       username,
       type: ReactableType.PullRequest,
       cursor: null,
       sort: 'reactions',
     });
+
+  try {
+    let issueComments, issues, pullRequests;
+    if (parallel) {
+      [issueComments, issues, pullRequests] = await Promise.all([
+        fetchIssueComments(),
+        fetchIssues(),
+        fetchPullRequests(),
+      ]);
+    } else {
+      // The user-scoped call goes first, so a missing user fails fast.
+      issueComments = await fetchIssueComments();
+      issues = await fetchIssues();
+      pullRequests = await fetchPullRequests();
+    }
 
     const lists = {
       issues: reacted(issues.rows),

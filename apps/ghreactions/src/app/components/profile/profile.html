@@ -1,44 +1,74 @@
 <header>
-  <div class="title">
-    <h1>{{ heading() }}</h1>
-    <a
-      nz-button
-      nzType="primary"
-      routerLink="/search"
-      [queryParams]="{ username: username(), type: current().type }"
-      >Search all</a
-    >
-  </div>
+  <h1>{{ heading() }}</h1>
   @if (profile.hasValue()) {
-    <p class="refreshed">
-      Refreshed {{ profile.value().lastFetched | date: 'MMM d, y, HH:mm' }} UTC
-      · <a routerLink="/users">More users</a>
+    <p class="about">
+      Snapshot of their most reacted items, refreshed
+      {{ profile.value().lastFetched | date: 'MMM d, y, HH:mm' }} UTC ·
+      @if (profile.value().ranked) {
+        <a routerLink="/users">Ranked users</a>
+      } @else {
+        kept for {{ snapshotDays }} days
+      }
+      ·
+      <!-- The live search is the long way round: everything, unranked. -->
+      <a
+        routerLink="/search"
+        [queryParams]="{ username: username(), type: current().type }"
+        >Search everything live</a
+      >
     </p>
   }
 
-  <!-- Real links, so crawlers can follow them to each type's page. -->
-  <!-- Selected index set directly: nzLinkRouter only updates on router
-  events, so the server render would always mark the first tab. -->
-  <nz-tabs nzLinkRouter [nzSelectedIndex]="tabs.indexOf(current())">
-    @for (t of tabs; track t.key) {
-      <nz-tab>
-        <a
-          *nzTabLink
-          nz-tab-link
-          [routerLink]="['/u', username().toLowerCase(), t.path]"
-          >{{ t.label }}</a
-        >
-      </nz-tab>
-    }
-  </nz-tabs>
+  @if (!missing()) {
+    <!-- Real links, so crawlers can follow them to each type's page. -->
+    <!-- Selected index set directly: nzLinkRouter only updates on router
+    events, so the server render would always mark the first tab. -->
+    <nz-tabs nzLinkRouter [nzSelectedIndex]="tabs.indexOf(current())">
+      @for (t of tabs; track t.key) {
+        <nz-tab>
+          <a
+            *nzTabLink
+            nz-tab-link
+            [routerLink]="['/u', username().toLowerCase(), t.path]"
+            >{{ t.label }}</a
+          >
+        </nz-tab>
+      }
+    </nz-tabs>
+  }
 </header>
 
-<section>
-  <app-reactions-table
-    [rows]="rows()"
-    [showType]="false"
-    [loading]="profile.isLoading()"
-    [error]="error()"
-    [emptyText]="'No ' + current().label.toLowerCase() + ' with reactions'"
-  />
-</section>
+@if (missing()) {
+  <section class="missing">
+    @if (building()) {
+      <nz-spin nzSimple nzSize="large" />
+      <p>
+        Building {{ requested() }}'s snapshot from GitHub. This usually takes a
+        few seconds.
+      </p>
+    } @else {
+      <p>There's no snapshot for {{ requested() }} yet.</p>
+      @if (buildError(); as message) {
+        <nz-alert nzType="error" nzShowIcon [nzMessage]="message" />
+      }
+      <button nz-button nzType="primary" type="button" (click)="build()">
+        Build snapshot
+      </button>
+      <p class="hint">
+        We'll fetch their most reacted issues and pull requests and their most
+        reacted recent issue comments from GitHub, and keep the snapshot for
+        {{ snapshotDays }} days.
+      </p>
+    }
+  </section>
+} @else {
+  <section>
+    <app-reactions-table
+      [rows]="rows()"
+      [showType]="false"
+      [loading]="profile.isLoading()"
+      [error]="error()"
+      [emptyText]="'No ' + current().label.toLowerCase() + ' with reactions'"
+    />
+  </section>
+}

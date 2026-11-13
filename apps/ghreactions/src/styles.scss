@@ -17,23 +17,38 @@
   z-index: 2;
 }
 
-// Every page puts its table in a section that scrolls. On desktop, with no
-// rows (empty, loading or error), the empty state's bottom border moves to the
-// bottom of that section, so the table frame reaches the bottom of the
-// screen. Phones are left alone: reactions-table shows cards with no header
-// there, so there's no frame to close.
-@media (min-width: 600px) {
-  section:has(.ant-table-placeholder) {
-    border-bottom: 1px solid var(--table-border);
-  }
+// Every table's loading spinner: 50px lower (70px on desktop) and 50% larger.
+// Separate translate and scale properties, so ng-zorro's rotate animation
+// (transform) still runs.
+.ant-table-wrapper .ant-spin-nested-loading > div > .ant-spin .ant-spin-dot {
+  translate: 0 50px;
+  scale: 1.5;
+}
 
-  // Specific enough to beat nz-table's small-size cell padding.
-  .ant-table-wrapper
-    .ant-table
-    .ant-table-tbody
-    > tr.ant-table-placeholder
-    > td {
-    padding-top: 32px;
-    border-bottom-color: transparent;
+@media (min-width: 600px) {
+  .ant-table-wrapper .ant-spin-nested-loading > div > .ant-spin .ant-spin-dot {
+    translate: 0 70px;
   }
+}
+
+// A table's error, shown in its empty cell. The cell centres its content;
+// shrink the alert to fit so it centres too, instead of spanning the row with
+// its text in the middle.
+.ant-table-placeholder nz-alert {
+  display: inline-block;
+  text-align: left;
+}
+
+// Every page puts its table in a section that scrolls. With no rows (empty,
+// loading or error), the empty state's bottom border moves to the bottom of
+// that section, so the table frame reaches the bottom of the screen. The same
+// on phones and desktop.
+section:has(.ant-table-placeholder) {
+  border-bottom: 1px solid var(--table-border);
+}
+
+// Specific enough to beat nz-table's small-size cell padding.
+.ant-table-wrapper .ant-table .ant-table-tbody > tr.ant-table-placeholder > td {
+  padding-top: 32px;
+  border-bottom-color: transparent;
 }
