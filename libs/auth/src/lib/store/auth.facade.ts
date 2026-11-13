@@ -33,7 +33,7 @@ export class AuthFacade {
     this.store.dispatch(AuthActions.signIn({ provider: 'google' }));
   }
 
-  /** Emails a passwordless sign-in link (apps with emailLink set). */
+  /** Emails a passwordless sign-in link. */
   sendSignInLink(email: string): void {
     this.store.dispatch(AuthActions.sendSignInLink({ email }));
   }

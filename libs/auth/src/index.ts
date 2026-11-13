@@ -17,7 +17,6 @@
  *    authentication process.
  */
 export * from './http';
-export type { CookieAuthOptions } from './lib/auth-options';
 export * from './lib/provide-auth';
 export * from './lib/store/auth.actions';
 export * from './lib/store/auth.facade';

@@ -19,7 +19,7 @@ export type SignInDialogData = {
 export type SignInDialogResult =
   { provider: 'google' } | { email: string } | undefined;
 
-/** The sign-in modal's content, for apps with emailLink set. */
+/** The sign-in modal's content. */
 @Component({
   selector: 'lib-sign-in-dialog',
   imports: [NzButtonModule, NzDividerModule, NzInputModule],
