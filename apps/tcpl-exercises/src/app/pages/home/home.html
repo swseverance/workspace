@@ -25,9 +25,6 @@
 <ul nz-typography>
   <li>Pick an exercise and write your solution in the editor.</li>
   <li>
-    Sign in with Google to save your code as you type and submit it for testing.
-  </li>
-  <li>
     Each submission is compiled with
     <code>gcc -Wall -std=c17 -o main main.c -lm</code> and run against tests
     that supply input, command-line arguments and files.
@@ -50,8 +47,8 @@
     network access and strict time limits
   </li>
   <li>
-    Firebase Authentication with Google sign-in, exchanged for an httpOnly
-    session cookie so pages render already signed in
+    Firebase Authentication with Google or passwordless email link, exchanged
+    for an httpOnly session cookie so pages render already signed in
   </li>
   <li>Firestore for your code, test results and submission history</li>
   <li>Upstash Redis for rate limiting</li>
