@@ -102,21 +102,24 @@ export class Profile {
   protected readonly embedOpen = signal(false);
   protected readonly copied = signal(false);
   /**
-   * Two images, of which GitHub shows the one for the visitor's GitHub theme
-   * (the #gh-…-mode-only endings). One image could only follow their system
-   * setting, which their GitHub theme can differ from.
+   * HTML rather than Markdown: a <picture> is what GitHub supports for
+   * showing a different image in dark mode. Its older way, image URLs ending
+   * in #gh-dark-mode-only, does nothing for images from other sites, so both
+   * cards showed.
    */
   protected readonly cardMarkdown = computed(() => {
     const origin = this.document.location.origin;
     const name = this.username().toLowerCase();
-    const alt = `${this.username()}'s positive reactions on GitHub`;
+    const card = `${origin}/card/${name}.svg`;
 
-    return (['light', 'dark'] as const)
-      .map(
-        (theme) =>
-          `[![${alt}](${origin}/card/${name}.svg?theme=${theme}#gh-${theme}-mode-only)](${origin}/u/${name}/issues)`,
-      )
-      .join('\n');
+    return [
+      `<a href="${origin}/u/${name}/issues">`,
+      `  <picture>`,
+      `    <source media="(prefers-color-scheme: dark)" srcset="${card}?theme=dark">`,
+      `    <img alt="${this.username()}'s positive reactions on GitHub" src="${card}?theme=light">`,
+      `  </picture>`,
+      `</a>`,
+    ].join('\n');
   });
 
   protected readonly building = signal(false);
