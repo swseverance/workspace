@@ -24,15 +24,24 @@ h1 {
   opacity: 0.65;
 }
 
-// The README card and its Markdown, side by side where there's room.
+// The README card, in a panel the visitor can fold away.
 .embed {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 16px;
+  // Clear of the heading below it.
+  margin-bottom: 8px;
+
+  // The card and its HTML, side by side where there's room.
+  .embed-body {
+    display: flex;
+    flex-wrap: wrap;
+    // Stretch, so the text and code beside the card are exactly its height.
+    align-items: stretch;
+    gap: 16px;
+  }
 
   .snippet {
     flex: 1 1 260px;
+    // Or the code's long lines would set the width and wrap this under the card.
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -44,10 +53,40 @@ h1 {
       opacity: 0.65;
     }
 
-    textarea {
-      font-family: monospace;
+    // Takes whatever height the text above it leaves.
+    .code {
+      position: relative;
+      align-self: stretch;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    .copy {
+      position: absolute;
+      // Bottom corner: the top one sits over the end of the longest lines.
+      right: 4px;
+      bottom: 4px;
+      opacity: 0.6;
+
+      &:hover,
+      &:focus-visible {
+        opacity: 1;
+      }
+    }
+
+    // The HTML to paste. Long lines scroll sideways rather than wrap, so it
+    // reads as it will in the README.
+    pre {
+      box-sizing: border-box;
+      height: 100%;
+      margin: 0;
+      padding: 8px;
+      overflow: auto;
+      border: 1px solid var(--table-border);
+      border-radius: 6px;
+      background: rgba(128, 128, 128, 0.08);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
-      resize: none;
     }
   }
 }
