@@ -13,3 +13,8 @@ p,
 ul {
   margin: 0 !important;
 }
+
+// The questions fill the column, like the text around them.
+.questions {
+  align-self: stretch;
+}

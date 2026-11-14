@@ -35,6 +35,43 @@
   </li>
 </ul>
 
+<h2 nz-typography>Questions</h2>
+
+<!-- One panel per question; only the first starts open. -->
+<nz-collapse class="questions">
+  <nz-collapse-panel
+    nzHeader="My solution passed a few days ago, and now the sidebar doesn't show it as passing. What happened?"
+    [nzActive]="true"
+  >
+    <p nz-typography>
+      We added tests to that exercise. An exercise only counts as passing once
+      your code has run against every one of its tests, and it hasn't run
+      against the new ones yet. Your code is still saved: open the exercise and
+      submit it again to see whether it passes them too.
+    </p>
+  </nz-collapse-panel>
+
+  <nz-collapse-panel nzHeader="Do I need to sign in?">
+    <p nz-typography>
+      No. Signed out, you can write code, submit it and see the test results,
+      and the code you're working on is kept in this browser. Nothing is saved
+      on our side, though: sign in, with Google or an email link, to keep your
+      code, your results, your progress in the sidebar and your submission
+      history, on any device.
+    </p>
+  </nz-collapse-panel>
+
+  <nz-collapse-panel nzHeader="Why does a test say Time Limit Exceeded?">
+    <p nz-typography>
+      Each test gives your program a short time to finish, far more than a
+      correct solution needs. A program that hits the limit is almost always
+      stuck in a loop that never ends. A common cause is a loop that waits for a
+      particular character, such as a newline, and never checks for
+      <code>EOF</code>: when the input runs out first, it keeps going forever.
+    </p>
+  </nz-collapse-panel>
+</nz-collapse>
+
 <h2 nz-typography>Architecture</h2>
 
 <ul nz-typography>
