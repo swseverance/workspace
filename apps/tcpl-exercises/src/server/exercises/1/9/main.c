@@ -6,8 +6,11 @@ int main() {
 
   prev = EOF;
   while ((c = getchar()) != EOF) {
-    if (c != ' ' || prev != ' ')
+    if (c != ' ')
       putchar(c);
+    if (c == ' ')
+      if (prev != ' ')
+        putchar(c);
     prev = c;
   }
 
