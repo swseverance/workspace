@@ -6,9 +6,12 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import {
+  CheckOutline,
   CloseCircleFill,
+  CopyOutline,
   GithubOutline,
   MoonOutline,
+  RightOutline,
   SunOutline,
 } from '@ant-design/icons-angular/icons';
 import { provideNoAuth } from '@org/auth/http';
@@ -34,7 +37,17 @@ export const appConfig: ApplicationConfig = {
     // Dates render on the server too; UTC keeps its text and the browser's
     // the same, whatever the viewer's timezone.
     { provide: DATE_PIPE_DEFAULT_OPTIONS, useValue: { timezone: 'UTC' } },
-    provideNzIcons([CloseCircleFill, GithubOutline, MoonOutline, SunOutline]),
+    provideNzIcons([
+      // The card snippet's copy button.
+      CheckOutline,
+      CopyOutline,
+      CloseCircleFill,
+      GithubOutline,
+      MoonOutline,
+      // nz-collapse's arrow.
+      RightOutline,
+      SunOutline,
+    ]),
     provideTheme({
       storageKey: 'ghreactions-theme',
       classes: {

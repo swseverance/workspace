@@ -1,4 +1,46 @@
 <header>
+  @if (profile.hasValue()) {
+    <!-- Open to begin with: the card is the thing to show off. Folding it
+    lasts while the visitor moves between users. -->
+    <nz-collapse class="embed" nzSize="small">
+      <nz-collapse-panel
+        nzHeader="GitHub profile card"
+        [nzActive]="cardOpen()"
+        (nzActiveChange)="cardOpen.set($event)"
+      >
+        <div class="embed-body">
+          <app-card-image [username]="username()" />
+          <div class="snippet">
+            <p>
+              Paste this into your profile README. The card links to this page,
+              updates as the snapshot does, and follows light or dark mode.
+            </p>
+            <!-- As tcpl-exercises' code blocks do it: a small button on the code
+            whose icon turns into a check mark for a moment. -->
+            <div class="code">
+              <button
+                nz-button
+                nzType="text"
+                nzSize="small"
+                type="button"
+                class="copy"
+                [attr.aria-label]="copied() ? 'Copied' : 'Copy code'"
+                [nzTooltipTitle]="copied() ? 'Copied' : 'Copy code'"
+                nz-tooltip
+                (click)="copy()"
+              >
+                <nz-icon [nzType]="copied() ? 'check' : 'copy'" />
+              </button>
+              <pre
+                aria-label="HTML for the card"
+              ><code>{{ cardMarkdown() }}</code></pre>
+            </div>
+          </div>
+        </div>
+      </nz-collapse-panel>
+    </nz-collapse>
+  }
+
   <h1>{{ heading() }}</h1>
   @if (profile.hasValue()) {
     <p class="about">
@@ -16,39 +58,7 @@
         [queryParams]="{ username: username(), type: current().type }"
         >Search everything live</a
       >
-      ·
-      <a
-        role="button"
-        tabindex="0"
-        [attr.aria-expanded]="embedOpen()"
-        (click)="embedOpen.set(!embedOpen())"
-        (keydown.enter)="embedOpen.set(!embedOpen())"
-        >Add to your GitHub profile</a
-      >
     </p>
-
-    @if (embedOpen()) {
-      <div class="embed">
-        <app-card-image [username]="username()" />
-        <div class="snippet">
-          <p>
-            Paste this into your profile README. The card links to this page,
-            updates as the snapshot does, and follows light or dark mode.
-          </p>
-          <textarea
-            nz-input
-            readonly
-            rows="7"
-            aria-label="HTML for the card"
-            [value]="cardMarkdown()"
-            (focus)="$any($event.target).select()"
-          ></textarea>
-          <button nz-button nzType="primary" type="button" (click)="copy()">
-            {{ copied() ? 'Copied' : 'Copy' }}
-          </button>
-        </div>
-      </div>
-    }
   }
 
   @if (!missing()) {

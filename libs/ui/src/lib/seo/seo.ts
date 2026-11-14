@@ -36,7 +36,8 @@ export class SeoService {
   private readonly meta = inject(Meta);
   private readonly document = inject(DOCUMENT);
   private readonly siteName = inject(SEO_CONFIG).siteName;
-  private readonly siteUrl = this.resolveSiteUrl();
+  /** The site's main address, without a trailing slash; the same on the server and in the browser. */
+  readonly siteUrl = this.resolveSiteUrl();
 
   constructor() {
     // The same image on every page; the rest of its tags are in index.html.
