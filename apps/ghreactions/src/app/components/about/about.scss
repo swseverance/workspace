@@ -16,6 +16,11 @@ a {
   max-width: min-content;
 }
 
+// The example README card, which shrinks to fit a phone.
+.card-example {
+  max-width: 100%;
+}
+
 .snapshot {
   display: flex;
   gap: 8px;

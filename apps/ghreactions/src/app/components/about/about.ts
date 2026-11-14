@@ -6,10 +6,12 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
+import { CardImage } from '../card-image/card-image';
 
 @Component({
   selector: 'app-about',
   imports: [
+    CardImage,
     RouterLink,
     NzPageHeaderModule,
     NzTypographyModule,
@@ -23,6 +25,8 @@ export class About {
   private router = inject(Router);
 
   protected readonly snapshotDays = REQUESTED_SNAPSHOT_DAYS;
+  /** Whose README card the page shows: a ranked user, so always stored. */
+  protected readonly exampleUser = 'gaearon';
   protected readonly username = signal('');
 
   constructor() {
