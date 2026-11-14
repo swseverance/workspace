@@ -13,11 +13,11 @@
     <meta property="og:image:height" content="1260" />
     <!-- X reads og:title, og:description and og:image too. -->
     <meta name="twitter:card" content="summary_large_image" />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👍</text></svg>"
-    />
+    <!-- Real files, not a data: URI: Google only shows an icon it can fetch,
+         and otherwise falls back to /favicon.ico. The thumbs-up is from
+         Twemoji (jdecked/twemoji), licensed CC-BY 4.0. -->
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
