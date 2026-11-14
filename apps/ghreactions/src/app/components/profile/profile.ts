@@ -1,4 +1,5 @@
-import { DatePipe, DOCUMENT } from '@angular/common';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -23,13 +24,18 @@ import {
 import { SeoService } from '@org/ui';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzCollapseModule } from 'ng-zorro-antd/collapse';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NzTooltipModule } from 'ng-zorro-antd/tooltip';
 import { Data } from '../../services/data';
 import { CardImage } from '../card-image/card-image';
 import { ReactionsTable } from '../reactions-table/reactions-table';
 import { PROFILE_TABS } from './tabs';
+
+/** How long the copy button shows a check mark after copying. */
+const COPIED_MS = 2000;
 
 /**
  * A user's snapshot: their most reacted items, one tab per type.
@@ -46,9 +52,11 @@ import { PROFILE_TABS } from './tabs';
     RouterLink,
     NzAlertModule,
     NzButtonModule,
-    NzInputModule,
+    NzCollapseModule,
+    NzIconModule,
     NzSpinModule,
     NzTabsModule,
+    NzTooltipModule,
     ReactionsTable,
   ],
   templateUrl: './profile.html',
@@ -57,7 +65,8 @@ import { PROFILE_TABS } from './tabs';
 export class Profile {
   private data = inject(Data);
   private destroyRef = inject(DestroyRef);
-  private document = inject(DOCUMENT);
+  private seo = inject(SeoService);
+  private clipboard = inject(Clipboard);
   private params = toSignal(inject(ActivatedRoute).paramMap, {
     requireSync: true,
   });
@@ -98,9 +107,9 @@ export class Profile {
   );
 
   // The card for the user's GitHub profile README, and the Markdown for it.
-  // Only read in the browser, once the visitor opens the box.
-  protected readonly embedOpen = signal(false);
+  protected readonly cardOpen = signal(true);
   protected readonly copied = signal(false);
+  private copiedTimer?: ReturnType<typeof setTimeout>;
   /**
    * HTML rather than Markdown: a <picture> is what GitHub supports for
    * showing a different image in dark mode. Its older way, image URLs ending
@@ -108,7 +117,8 @@ export class Profile {
    * cards showed.
    */
   protected readonly cardMarkdown = computed(() => {
-    const origin = this.document.location.origin;
+    // Not the browser's origin: the panel is in the server's render too.
+    const origin = this.seo.siteUrl;
     const name = this.username().toLowerCase();
     const card = `${origin}/card/${name}.svg`;
 
@@ -137,13 +147,14 @@ export class Profile {
       : null;
 
   constructor() {
-    const seo = inject(SeoService);
+    const seo = this.seo;
+
+    this.destroyRef.onDestroy(() => clearTimeout(this.copiedTimer));
     const responseInit = inject(RESPONSE_INIT, { optional: true });
 
-    // Another user's page starts with the box closed.
+    // Another user's card hasn't been copied yet.
     effect(() => {
       this.requested();
-      this.embedOpen.set(false);
       this.copied.set(false);
     });
 
@@ -193,9 +204,11 @@ export class Profile {
   }
 
   protected copy(): void {
-    void this.document.defaultView?.navigator.clipboard
-      .writeText(this.cardMarkdown())
-      .then(() => this.copied.set(true));
+    if (!this.clipboard.copy(this.cardMarkdown())) return;
+
+    this.copied.set(true);
+    clearTimeout(this.copiedTimer);
+    this.copiedTimer = setTimeout(() => this.copied.set(false), COPIED_MS);
   }
 
   protected build(): void {
