@@ -16,7 +16,40 @@
         [queryParams]="{ username: username(), type: current().type }"
         >Search everything live</a
       >
+      ·
+      <a
+        role="button"
+        tabindex="0"
+        [attr.aria-expanded]="embedOpen()"
+        (click)="embedOpen.set(!embedOpen())"
+        (keydown.enter)="embedOpen.set(!embedOpen())"
+        >Add to your GitHub profile</a
+      >
     </p>
+
+    @if (embedOpen()) {
+      <div class="embed">
+        <app-card-image [username]="username()" />
+        <div class="snippet">
+          <p>
+            Paste this into your profile README. The card links to this page,
+            updates as the snapshot does, and matches each visitor's GitHub
+            theme.
+          </p>
+          <textarea
+            nz-input
+            readonly
+            rows="5"
+            aria-label="Markdown for the card"
+            [value]="cardMarkdown()"
+            (focus)="$any($event.target).select()"
+          ></textarea>
+          <button nz-button nzType="primary" type="button" (click)="copy()">
+            {{ copied() ? 'Copied' : 'Copy' }}
+          </button>
+        </div>
+      </div>
+    }
   }
 
   @if (!missing()) {
