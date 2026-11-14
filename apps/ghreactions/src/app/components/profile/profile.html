@@ -33,14 +33,13 @@
         <div class="snippet">
           <p>
             Paste this into your profile README. The card links to this page,
-            updates as the snapshot does, and matches each visitor's GitHub
-            theme.
+            updates as the snapshot does, and follows light or dark mode.
           </p>
           <textarea
             nz-input
             readonly
-            rows="5"
-            aria-label="Markdown for the card"
+            rows="7"
+            aria-label="HTML for the card"
             [value]="cardMarkdown()"
             (focus)="$any($event.target).select()"
           ></textarea>
