@@ -51,15 +51,29 @@ describe('exercise metadata', () => {
   }
 });
 
+// Every solution an exercise has must pass that exercise's tests.
+const SOLUTIONS = EXERCISES.flatMap((exercise) => [
+  { exercise, name: `Exercise ${exercise.id}`, source: exercise.solution },
+  ...(exercise.laterSolution
+    ? [
+        {
+          exercise,
+          name: `Exercise ${exercise.id}, later solution`,
+          source: exercise.laterSolution,
+        },
+      ]
+    : []),
+]);
+
 describe('exercise solutions', () => {
-  for (const exercise of EXERCISES) {
-    describe(`Exercise ${exercise.id}`, () => {
+  for (const { exercise, name, source } of SOLUTIONS) {
+    describe(name, () => {
       let binPath: string;
       let dir: string;
 
       beforeAll(() => {
         dir = mkdtempSync(join(tmpdir(), 'tcpl-exercise-'));
-        writeFileSync(join(dir, 'main.c'), exercise.solution);
+        writeFileSync(join(dir, 'main.c'), source);
         binPath = join(dir, 'main');
 
         const compile = spawnSync(

@@ -37,6 +37,12 @@ export function forgetRanking(): void {
   ranking = undefined;
 }
 
+/** When a snapshot asked for (or renewed) now expires. */
+const expiry = () =>
+  Timestamp.fromMillis(
+    Date.now() + REQUESTED_SNAPSHOT_DAYS * 24 * 60 * 60 * 1000,
+  );
+
 // gRPC's ALREADY_EXISTS, which create() fails with.
 const ALREADY_EXISTS = 6;
 
@@ -91,14 +97,20 @@ export const profiles = {
         ...fetched,
         ranked: false,
         created: FieldValue.serverTimestamp(),
-        expireAt: Timestamp.fromMillis(
-          Date.now() + REQUESTED_SNAPSHOT_DAYS * 24 * 60 * 60 * 1000,
-        ),
+        expireAt: expiry(),
       } satisfies WriteProfile);
     } catch (err) {
       if ((err as { code?: unknown }).code !== ALREADY_EXISTS) throw err;
       await document(username).update({ ...fields, ...fetched });
     }
+  },
+
+  /**
+   * Gives an unranked snapshot its full time again. Not for ranked ones,
+   * which have no expiry and must not gain one.
+   */
+  async renew(username: string): Promise<void> {
+    await document(username).update({ expireAt: expiry() });
   },
 };
 

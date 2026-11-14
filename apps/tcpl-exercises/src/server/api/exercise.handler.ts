@@ -38,8 +38,12 @@ function toExercise(
   }: Omit<ExerciseRecord, 'id'>,
   submissions: ExerciseSubmission[],
 ): Exercise {
-  const { id, chapter, number, suffix, title, summary, description, solution } =
-    exercise;
+  const { id, chapter, number, suffix, title, summary, description } = exercise;
+
+  // The page shows one block of code: the later solution under the first.
+  const solution = exercise.laterSolution
+    ? `${exercise.solution}\n${exercise.laterSolution}`
+    : exercise.solution;
 
   const finalTests: ExerciseTestCase[] = exercise.tests.map(
     ({

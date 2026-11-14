@@ -24,6 +24,34 @@ h1 {
   opacity: 0.65;
 }
 
+// The README card and its Markdown, side by side where there's room.
+.embed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+
+  .snippet {
+    flex: 1 1 260px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      opacity: 0.65;
+    }
+
+    textarea {
+      font-family: monospace;
+      font-size: 12px;
+      resize: none;
+    }
+  }
+}
+
 // No snapshot yet: the offer to build one, or the wait while it's built.
 .missing {
   display: flex;

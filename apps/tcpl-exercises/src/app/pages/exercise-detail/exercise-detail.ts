@@ -5,6 +5,7 @@ import {
   computed,
   effect,
   inject,
+  linkedSignal,
   signal,
   ViewChild,
 } from '@angular/core';
@@ -64,7 +65,6 @@ export class ExerciseDetail {
     () => this.router.currentNavigation() !== null,
   );
   protected readonly submissionPending$ = this.facade.submissionPending$;
-  protected readonly selectedTabIndex = signal(0);
 
   // The server never renders the signed-out alert (without a session cookie
   // it reports noSession), but Firebase can report signedOut before this lazy
@@ -82,6 +82,14 @@ export class ExerciseDetail {
   );
 
   private readonly exercise = toSignal(this.exercise$, { requireSync: true });
+
+  private readonly exerciseId = computed(() => this.exercise()?.id);
+
+  // Each exercise opens on the Code tab.
+  protected readonly selectedTabIndex = linkedSignal({
+    source: this.exerciseId,
+    computation: () => 0,
+  });
 
   // Changes only with the exercise's id, not on every edit to its code.
   private readonly seoExercise = computed(() => this.exercise(), {

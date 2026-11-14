@@ -22,7 +22,13 @@ export type ExerciseSource = {
   /** One or two plain-text sentences for the meta description. */
   summary: string;
   description: string;
+  /** Uses only what the book has introduced by this exercise. */
   solution: string;
+  /**
+   * A second solution, shown under the first, using something the book
+   * introduces later. Its opening comment says what.
+   */
+  laterSolution?: string;
   tests: ExerciseTestCaseSource[];
 };
 

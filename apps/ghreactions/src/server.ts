@@ -26,6 +26,7 @@ import {
 } from './server/api/profile.handler';
 import { tableHandler } from './server/api/table.handler';
 import { usersHandler } from './server/api/users.handler';
+import { cardHandler } from './server/card/card.handler';
 import { rateLimitMiddleware } from './server/middleware/rate-limit';
 import { sitemapPaths } from './server/seo/sitemap-paths';
 
@@ -58,6 +59,9 @@ app.get('/api/table', tableHandler);
 app.get('/api/profile/:username', profileHandler);
 app.post('/api/profile/:username', buildProfileHandler);
 app.get('/api/users', usersHandler);
+
+// For GitHub READMEs, so outside /api: no App Check, and cacheable.
+app.get('/card/:file', cardHandler);
 
 app.get('/robots.txt', robotsHandler);
 app.get('/sitemap.xml', sitemapHandler(sitemapPaths));

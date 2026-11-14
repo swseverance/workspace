@@ -30,6 +30,22 @@
     <a nz-button routerLink="/users">Most reacted users</a>
   </div>
 
+  <h2 nz-typography>A card for your GitHub profile</h2>
+
+  <p nz-typography>
+    Every snapshot comes with a card for your profile README, counting the
+    positive reactions to your issues and pull requests. This is
+    {{ exampleUser }}'s:
+  </p>
+
+  <a class="card-example" [routerLink]="['/u', exampleUser, 'issues']">
+    <app-card-image [username]="exampleUser" />
+  </a>
+
+  <p nz-typography>
+    To get yours, open your snapshot and choose "Add to your GitHub profile".
+  </p>
+
   <h2 nz-typography>Snapshots</h2>
 
   <p nz-typography>

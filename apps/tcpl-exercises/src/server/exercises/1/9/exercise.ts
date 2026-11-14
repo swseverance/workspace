@@ -1,5 +1,6 @@
 import { ExerciseSource } from '../../../../models/exercise';
 import description from './description.md' with { type: 'text' };
+import laterSolution from './later.c' with { type: 'text' };
 import solution from './main.c' with { type: 'text' };
 
 export const exercise1_9: ExerciseSource = {
@@ -11,6 +12,7 @@ export const exercise1_9: ExerciseSource = {
     'Copy input to output, replacing each run of one or more blanks with a single blank. K&R exercise 1-9, solved and tested in your browser.',
   description,
   solution,
+  laterSolution,
   tests: [
     // Empty input.
     { id: '93410031', expectedStdout: '' },

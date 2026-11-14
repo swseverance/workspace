@@ -4,12 +4,10 @@
 int main() {
   int c;
 
-  c = getchar() != EOF;
-  while (c == 1) {
-    printf("%d\n", c);
-    c = getchar() != EOF;
-  }
-  printf("%d\n", c);
+  while ((c = getchar()) != EOF)
+    printf("%d\n", c != EOF);
+  /* the loop has ended, so c is EOF */
+  printf("%d\n", c != EOF);
 
   return 0;
 }

@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DOCUMENT } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -23,9 +23,11 @@ import {
 import { SeoService } from '@org/ui';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { Data } from '../../services/data';
+import { CardImage } from '../card-image/card-image';
 import { ReactionsTable } from '../reactions-table/reactions-table';
 import { PROFILE_TABS } from './tabs';
 
@@ -39,10 +41,12 @@ import { PROFILE_TABS } from './tabs';
 @Component({
   selector: 'app-profile',
   imports: [
+    CardImage,
     DatePipe,
     RouterLink,
     NzAlertModule,
     NzButtonModule,
+    NzInputModule,
     NzSpinModule,
     NzTabsModule,
     ReactionsTable,
@@ -53,6 +57,7 @@ import { PROFILE_TABS } from './tabs';
 export class Profile {
   private data = inject(Data);
   private destroyRef = inject(DestroyRef);
+  private document = inject(DOCUMENT);
   private params = toSignal(inject(ActivatedRoute).paramMap, {
     requireSync: true,
   });
@@ -92,6 +97,28 @@ export class Profile {
       `${this.username()}'s most reacted ${this.current().label.toLowerCase()}`,
   );
 
+  // The card for the user's GitHub profile README, and the Markdown for it.
+  // Only read in the browser, once the visitor opens the box.
+  protected readonly embedOpen = signal(false);
+  protected readonly copied = signal(false);
+  /**
+   * Two images, of which GitHub shows the one for the visitor's GitHub theme
+   * (the #gh-…-mode-only endings). One image could only follow their system
+   * setting, which their GitHub theme can differ from.
+   */
+  protected readonly cardMarkdown = computed(() => {
+    const origin = this.document.location.origin;
+    const name = this.username().toLowerCase();
+    const alt = `${this.username()}'s positive reactions on GitHub`;
+
+    return (['light', 'dark'] as const)
+      .map(
+        (theme) =>
+          `[![${alt}](${origin}/card/${name}.svg?theme=${theme}#gh-${theme}-mode-only)](${origin}/u/${name}/issues)`,
+      )
+      .join('\n');
+  });
+
   protected readonly building = signal(false);
   protected readonly buildError = signal<string | null>(null);
 
@@ -109,6 +136,13 @@ export class Profile {
   constructor() {
     const seo = inject(SeoService);
     const responseInit = inject(RESPONSE_INIT, { optional: true });
+
+    // Another user's page starts with the box closed.
+    effect(() => {
+      this.requested();
+      this.embedOpen.set(false);
+      this.copied.set(false);
+    });
 
     effect(() => {
       if (this.missing() && this.buildOnArrival === this.requested()) {
@@ -153,6 +187,12 @@ export class Profile {
         `/u/${this.username().toLowerCase()}/${this.current().path}`,
       );
     });
+  }
+
+  protected copy(): void {
+    void this.document.defaultView?.navigator.clipboard
+      .writeText(this.cardMarkdown())
+      .then(() => this.copied.set(true));
   }
 
   protected build(): void {
