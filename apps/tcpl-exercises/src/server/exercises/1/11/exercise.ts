@@ -45,6 +45,42 @@ export const exercise1_11: ExerciseSource = {
     },
     // Carriage returns and form feeds don't separate words.
     { id: 'dd12ed78', stdin: 'a\rb\fc\n', expectedStdout: '1 1 6\n' },
+    // Every separator back to back, within lines and across them.
+    {
+      id: '05a2dcd2',
+      stdin: ' \t\nfoo\t \n\n \tbar baz\t\n',
+      expectedStdout: '4 3 21\n',
+    },
+    // Indented lines, a blank line between them, and no final newline.
+    {
+      id: '88ec4f21',
+      stdin: 'int main()\n{\n\treturn 0;\n\n    /* done */\n}',
+      expectedStdout: '5 9 41\n',
+    },
+    // Single characters, digits and punctuation each count as words.
+    {
+      id: 'f79d5c93',
+      stdin: 'a 1 , . ; -- x=y+1; /* c */\n',
+      expectedStdout: '1 10 28\n',
+    },
+    // Starts with blank lines; ends in blanks with no newline.
+    {
+      id: '0c978595',
+      stdin: '\n\n  first\tsecond \n third  ',
+      expectedStdout: '3 3 26\n',
+    },
+    // A tab-separated table with empty fields and a blank last row.
+    {
+      id: '054f0b9d',
+      stdin: 'name\tage\t\tcity\n\tbob\t\t\n\n',
+      expectedStdout: '3 4 23\n',
+    },
+    // Only blanks and tabs, with no newline: no lines and no words.
+    {
+      id: 'af1bfd77',
+      stdin: ' \t \t ',
+      expectedStdout: '0 0 5\n',
+    },
     // 2,000 words on one line.
     {
       id: 'fdcc5649',
