@@ -2,7 +2,11 @@ import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { LIMITED_USE_APP_CHECK_TOKEN } from '@org/auth';
 import { Observable } from 'rxjs';
-import { ChaptersResponseBody, Exercise } from '../../shared/models';
+import {
+  ChaptersResponseBody,
+  Exercise,
+  FormatCodeBody,
+} from '../../shared/models';
 
 @Service()
 export class ExerciseService {
@@ -14,6 +18,12 @@ export class ExerciseService {
 
   getExercise(exerciseId: string): Observable<Exercise> {
     return this.http.get<Exercise>(`/api/exercises/${exerciseId}`);
+  }
+
+  formatCode(code: string): Observable<FormatCodeBody> {
+    return this.http.post<FormatCodeBody>('/api/format', {
+      code,
+    } satisfies FormatCodeBody);
   }
 
   submitExercise(exerciseId: string, code: string): Observable<Exercise> {

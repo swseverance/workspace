@@ -73,3 +73,8 @@ export type Chapter = {
 export type ChaptersResponseBody = {
   chapters: Chapter[];
 };
+
+/** Sent to /api/format, and what comes back. */
+export type FormatCodeBody = {
+  code: string;
+};

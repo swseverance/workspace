@@ -8,11 +8,14 @@ import {
 import {
   applyHistoricalSubmission,
   codeEdited,
+  codeFormatted,
   draftRestored,
   exerciseNavigationSucceeded,
   exerciseRefreshed,
   exercisesReset,
   exerciseSubmitted,
+  formatCode,
+  formatCodeFailed,
   submitExercise,
   submitExerciseFailed,
 } from './exercise.actions';
@@ -31,6 +34,7 @@ function upsertLoadedExercise(state: ExerciseState, exercise: Exercise) {
     {
       ...exercise,
       submitting: state.entities[exercise.id]?.submitting ?? false,
+      formatting: state.entities[exercise.id]?.formatting ?? false,
     },
     state,
   );
@@ -74,6 +78,27 @@ export const exerciseReducer = createReducer(
 
   on(draftRestored, (state, { id, code }) =>
     exerciseEntityAdapter.updateOne({ id, changes: { code } }, state),
+  ),
+
+  on(formatCode, (state) =>
+    exerciseEntityAdapter.updateOne(
+      { id: state.id, changes: { formatting: true } },
+      state,
+    ),
+  ),
+
+  on(codeFormatted, (state, { id, code }) =>
+    exerciseEntityAdapter.updateOne(
+      { id, changes: { code, formatting: false } },
+      state,
+    ),
+  ),
+
+  on(formatCodeFailed, (state, { id }) =>
+    exerciseEntityAdapter.updateOne(
+      { id, changes: { formatting: false } },
+      state,
+    ),
   ),
 
   on(submitExercise, (state) => ({

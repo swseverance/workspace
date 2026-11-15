@@ -24,15 +24,27 @@
   </ng-template>
 
   <ng-template #submit>
-    <button
-      nz-button
-      nzType="primary"
-      type="button"
-      [disabled]="submissionPending || selectedTabIndex() !== 0"
-      (click)="onSubmit()"
-    >
-      Submit
-    </button>
+    <div class="code-actions">
+      <button
+        nz-button
+        nzType="primary"
+        type="button"
+        [disabled]="submissionPending || selectedTabIndex() !== 0"
+        (click)="onSubmit()"
+      >
+        Submit
+      </button>
+      <button
+        class="format-button"
+        nz-button
+        type="button"
+        [nzLoading]="exercise.formatting"
+        [disabled]="submissionPending || selectedTabIndex() !== 0"
+        (click)="onFormat()"
+      >
+        Format
+      </button>
+    </div>
   </ng-template>
 
   <div class="exercise-layout">
@@ -83,6 +95,7 @@
                 [docId]="exercise.id"
                 [code]="exercise.code"
                 [theme]="theme!"
+                [readonly]="exercise.formatting"
                 (codeChange)="onCodeChange($event)"
                 [loading]="exerciseLoading()"
               />

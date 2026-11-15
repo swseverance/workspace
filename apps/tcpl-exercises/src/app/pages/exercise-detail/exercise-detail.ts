@@ -126,6 +126,10 @@ export class ExerciseDetail {
     this.facade.codeEdited(code);
   }
 
+  protected onFormat(): void {
+    this.facade.formatCode(this.editor.getCode());
+  }
+
   protected onSubmit(): void {
     this.facade.submitExercise(this.editor.getCode());
   }

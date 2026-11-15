@@ -20,9 +20,9 @@ vi.mock('firebase-functions/logger', () => ({
 }));
 
 const {
-  GLOBAL_LIMIT_MESSAGE,
-  SIGNED_OUT_LIMIT_MESSAGE,
-  USER_LIMIT_MESSAGE,
+  FORMAT_CODE_LIMITS,
+  formatCodeRateLimitMiddleware,
+  SUBMIT_EXERCISE_LIMITS,
   submitExerciseRateLimitMiddleware,
 } = await import('./rate-limit');
 
@@ -80,7 +80,9 @@ describe('submitExerciseRateLimitMiddleware', () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(429);
-    expect(res.json).toHaveBeenCalledWith({ message: USER_LIMIT_MESSAGE });
+    expect(res.json).toHaveBeenCalledWith({
+      message: SUBMIT_EXERCISE_LIMITS.user.message,
+    });
     expect(loggerWarn).toHaveBeenCalledWith('[rate-limit] request rejected', {
       uid: 'user-123',
     });
@@ -101,7 +103,9 @@ describe('submitExerciseRateLimitMiddleware', () => {
 
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(429);
-    expect(res.json).toHaveBeenCalledWith({ message: GLOBAL_LIMIT_MESSAGE });
+    expect(res.json).toHaveBeenCalledWith({
+      message: SUBMIT_EXERCISE_LIMITS.global.message,
+    });
     expect(loggerWarn).toHaveBeenCalledWith(
       '[rate-limit] request rejected by global limit',
       { uid: 'user-123' },
@@ -137,8 +141,52 @@ describe('submitExerciseRateLimitMiddleware', () => {
       expect(next).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(429);
       expect(res.json).toHaveBeenCalledWith({
-        message: SIGNED_OUT_LIMIT_MESSAGE,
+        message: SUBMIT_EXERCISE_LIMITS.signedOut.message,
       });
     });
   });
+});
+
+describe('formatCodeRateLimitMiddleware', () => {
+  beforeEach(() => {
+    limit.mockReset();
+    loggerWarn.mockReset();
+  });
+
+  async function runFormat(uid?: string) {
+    const res = createResponse();
+    const next = vi.fn();
+
+    await formatCodeRateLimitMiddleware(createRequest(uid), res, next);
+
+    return { res, next };
+  }
+
+  it('calls next() when the request is within its limits', async () => {
+    allow({ user: true, global: true });
+
+    const { res, next } = await runFormat('user-123');
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['user', 'user-123', { user: false, global: true }],
+    ['global', 'user-123', { user: true, global: false }],
+    ['signedOut', undefined, { user: false, global: true }],
+  ] as const)(
+    'responds 429 with its own message over the %s limit',
+    async (limit, uid, limits) => {
+      allow(limits);
+
+      const { res, next } = await runFormat(uid);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({
+        message: FORMAT_CODE_LIMITS[limit].message,
+      });
+    },
+  );
 });
