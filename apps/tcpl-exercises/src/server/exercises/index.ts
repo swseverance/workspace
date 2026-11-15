@@ -4,7 +4,8 @@ import { exercise1_1 } from './1/1/exercise';
 import { exercise1_10 } from './1/10/exercise';
 import { exercise1_11 } from './1/11/exercise';
 import { exercise1_12 } from './1/12/exercise';
-import { exercise1_13 } from './1/13/exercise';
+import { exercise1_13a } from './1/13a/exercise';
+import { exercise1_13b } from './1/13b/exercise';
 import { exercise1_14 } from './1/14/exercise';
 import { exercise1_15 } from './1/15/exercise';
 import { exercise1_16 } from './1/16/exercise';
@@ -109,7 +110,8 @@ export const EXERCISES: ExerciseSource[] = [
   exercise1_10,
   exercise1_11,
   exercise1_12,
-  exercise1_13,
+  exercise1_13a,
+  exercise1_13b,
   exercise1_14,
   exercise1_15,
   exercise1_16,

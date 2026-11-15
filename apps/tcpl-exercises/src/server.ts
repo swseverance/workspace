@@ -33,7 +33,11 @@ import {
 } from './server/api/exercise.handler';
 import { exerciseExistsMiddleware } from './server/middleware/exercise-exists/exercise-exists';
 import { submitExerciseRateLimitMiddleware } from './server/middleware/rate-limit/rate-limit';
-import { exercisesIndexRedirectHandler, SITEMAP_PATHS } from './server/seo/seo';
+import {
+  exercisesIndexRedirectHandler,
+  movedExerciseRedirectHandler,
+  SITEMAP_PATHS,
+} from './server/seo/seo';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -111,6 +115,7 @@ app.get(
   sitemapHandler(() => SITEMAP_PATHS),
 );
 app.get('/exercises', exercisesIndexRedirectHandler);
+app.get('/exercises/:id', movedExerciseRedirectHandler);
 
 /**
  * Handle all other requests by rendering the Angular application.
