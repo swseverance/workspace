@@ -15,3 +15,29 @@ export const SITEMAP_PATHS = [
 export const exercisesIndexRedirectHandler: RequestHandler = (_req, res) => {
   res.redirect(301, `/exercises/${EXERCISES[0].id}`);
 };
+
+/**
+ * Exercises that have moved, old id to new. Add a line whenever an exercise
+ * is renumbered or split, so old links and search results keep working.
+ */
+export const MOVED_EXERCISES: Record<string, string> = {
+  // Split into 1-13a (horizontal) and 1-13b (vertical).
+  '1-13': '1-13a',
+};
+
+/** Permanently redirects a moved exercise's old page to its new one. */
+export const movedExerciseRedirectHandler: RequestHandler = (
+  req,
+  res,
+  next,
+) => {
+  const id = String(req.params['id']);
+
+  // Object.hasOwn: an id like "constructor" must not match.
+  if (!Object.hasOwn(MOVED_EXERCISES, id)) {
+    next();
+    return;
+  }
+
+  res.redirect(301, `/exercises/${MOVED_EXERCISES[id]}`);
+};
