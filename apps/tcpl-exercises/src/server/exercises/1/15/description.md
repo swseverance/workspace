@@ -1,6 +1,6 @@
-Rewrite the temperature conversion program of Section 1.2 to use a function for conversion.
+Rewrite the temperature conversion program of Section 1.2 to use a function named `celsius` for conversion.
 
-Print the same table as before, with `printf("%3.0f %6.1f\n", fahr, celsius)` for each row.
+Print the same table as before, with `printf("%3.0f %6.1f\n", fahr, celsius(fahr))` for each row.
 
 ```c
 #include <stdio.h>
