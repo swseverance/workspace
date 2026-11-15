@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '@org/ui';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, NzButtonModule, NzTypographyModule],
+  imports: [RouterLink, NzButtonModule, NzCollapseModule, NzTypographyModule],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

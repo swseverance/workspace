@@ -14,6 +14,7 @@ import {
   MenuFoldOutline,
   MenuUnfoldOutline,
   MoonOutline,
+  RightOutline,
   SunOutline,
 } from '@ant-design/icons-angular/icons';
 import { provideEffects } from '@ngrx/effects';
@@ -65,6 +66,8 @@ export const appConfig: ApplicationConfig = {
       MenuFoldOutline,
       MenuUnfoldOutline,
       MoonOutline,
+      // nz-collapse's arrow.
+      RightOutline,
       SunOutline,
     ]),
     provideStore(),
