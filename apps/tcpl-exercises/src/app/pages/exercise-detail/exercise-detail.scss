@@ -33,6 +33,19 @@
   @include bp.mobile {
     display: none;
   }
+
+  &.ant-btn-loading {
+    > ::ng-deep .ant-btn-loading-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    > ::ng-deep :not(.ant-btn-loading-icon) {
+      color: transparent;
+    }
+  }
 }
 
 .exercise-layout {
