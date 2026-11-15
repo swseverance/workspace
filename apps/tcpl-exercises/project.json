@@ -48,7 +48,7 @@
         "security": {
           "allowedHosts": []
         },
-        "externalDependencies": ["firebase-admin"]
+        "externalDependencies": ["firebase-admin", "@wasm-fmt/clang-format"]
       },
       "configurations": {
         "production": {

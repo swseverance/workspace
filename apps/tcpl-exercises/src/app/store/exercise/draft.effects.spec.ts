@@ -10,6 +10,7 @@ import { DraftEffects } from './draft.effects';
 import {
   applyHistoricalSubmission,
   codeEdited,
+  codeFormatted,
   draftRestored,
   exerciseNavigationSucceeded,
   exerciseRefreshed,
@@ -78,6 +79,16 @@ describe('DraftEffects', () => {
       );
 
       expect(drafts.set).toHaveBeenCalledWith('1-1', 'submitted');
+    });
+  });
+
+  describe('saveFormattedDraft$', () => {
+    it('saves formatted code for the exercise it belongs to, not the one shown', async () => {
+      await firstValueFrom(
+        setup(codeFormatted({ id: '1-2', code: 'tidy' })).saveFormattedDraft$,
+      );
+
+      expect(drafts.set).toHaveBeenCalledWith('1-2', 'tidy');
     });
   });
 

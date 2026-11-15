@@ -2,11 +2,14 @@ import { Chapter, Exercise, ExerciseSubmission } from '../../../shared/models';
 import {
   applyHistoricalSubmission,
   codeEdited,
+  codeFormatted,
   draftRestored,
   exerciseNavigationSucceeded,
   exerciseRefreshed,
   exercisesReset,
   exerciseSubmitted,
+  formatCode,
+  formatCodeFailed,
   submitExercise,
   submitExerciseFailed,
 } from './exercise.actions';
@@ -52,6 +55,7 @@ const EXERCISE: Exercise = {
 const ENTITY: ExerciseEntity = {
   ...EXERCISE,
   submitting: false,
+  formatting: false,
 };
 
 const CHAPTERS: Chapter[] = [
@@ -212,6 +216,40 @@ describe('exerciseReducer', () => {
     });
   });
 
+  describe('formatting', () => {
+    const formattingState = {
+      ...withEntities({ ...ENTITY, code: 'messy', formatting: true }),
+      id: '1-1',
+    };
+
+    it('marks the shown exercise as formatting', () => {
+      const state = exerciseReducer(
+        { ...withEntities(ENTITY), id: '1-1' },
+        formatCode({ code: 'messy' }),
+      );
+
+      expect(state.entities['1-1']).toEqual({ ...ENTITY, formatting: true });
+    });
+
+    it('replaces the code with the formatted code', () => {
+      const state = exerciseReducer(
+        formattingState,
+        codeFormatted({ id: '1-1', code: 'tidy' }),
+      );
+
+      expect(state.entities['1-1']).toEqual({ ...ENTITY, code: 'tidy' });
+    });
+
+    it('keeps the code when formatting fails', () => {
+      const state = exerciseReducer(
+        formattingState,
+        formatCodeFailed({ id: '1-1', error: new Error('boom') }),
+      );
+
+      expect(state.entities['1-1']).toEqual({ ...ENTITY, code: 'messy' });
+    });
+  });
+
   describe('submitExercise', () => {
     it('sets submitting to true for the selected exercise, leaving everything else unchanged', () => {
       const previousState = { ...withEntities(ENTITY), id: '1-1' };
@@ -272,6 +310,7 @@ describe('exerciseReducer', () => {
         ...submittedExercise,
         code: 'typed after submit',
         submitting: false,
+        formatting: false,
       });
     });
 

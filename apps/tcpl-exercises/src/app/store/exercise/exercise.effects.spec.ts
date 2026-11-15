@@ -7,16 +7,20 @@ import { provideMockStore } from '@ngrx/store/testing';
 import { AuthActions } from '@org/auth';
 import { Logger } from '@org/logger';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { firstValueFrom, Observable, of } from 'rxjs';
+import { firstValueFrom, Observable, of, throwError } from 'rxjs';
 import type { Exercise, ExerciseTestCase } from '../../../shared/models';
 import { ExerciseService } from '../../services/exercise-service';
 import {
+  codeFormatted,
   exercisesReset,
   exerciseSubmitted,
+  formatCode,
+  formatCodeFailed,
   submitExercise,
   submitExerciseFailed,
 } from './exercise.actions';
 import { ExerciseEffects } from './exercise.effects';
+import { initialExerciseState } from './exercise.state';
 
 describe('ExerciseEffects.sessionEnded$', () => {
   it('goes home and then resets the exercise state', async () => {
@@ -144,7 +148,7 @@ describe('ExerciseEffects submission messages', () => {
       error,
     );
     expect(message.error).toHaveBeenCalledWith(
-      'Too many submissions. Please wait a moment and try again.',
+      'Too many requests. Please wait a moment and try again.',
     );
   });
 
@@ -161,5 +165,81 @@ describe('ExerciseEffects submission messages', () => {
       error,
     );
     expect(message.error).toHaveBeenCalledWith('Failed to Submit Exercise');
+  });
+});
+
+describe('ExerciseEffects formatting', () => {
+  const message = { error: vi.fn() };
+  const logger = { error: vi.fn() };
+  const formatCode$ = vi.fn();
+
+  function setup(action: Action) {
+    TestBed.configureTestingModule({
+      providers: [
+        ExerciseEffects,
+        // State, not overrideSelector: an overridden selector stays
+        // overridden for later spec files in the same worker.
+        provideMockStore({
+          initialState: { exercise: { ...initialExerciseState, id: '1-1' } },
+        }),
+        provideMockActions(() => of(action)),
+        { provide: Router, useValue: {} },
+        { provide: ExerciseService, useValue: { formatCode: formatCode$ } },
+        { provide: NzMessageService, useValue: message },
+        { provide: Logger, useValue: logger },
+      ],
+    });
+    return TestBed.inject(ExerciseEffects);
+  }
+
+  beforeEach(() => vi.clearAllMocks());
+
+  it("puts the server's formatted code in the shown exercise", async () => {
+    formatCode$.mockReturnValue(of({ code: 'tidy' }));
+
+    const action = await firstValueFrom(
+      setup(formatCode({ code: 'messy' })).formatCode$,
+    );
+
+    expect(formatCode$).toHaveBeenCalledWith('messy');
+    expect(action).toEqual(codeFormatted({ id: '1-1', code: 'tidy' }));
+  });
+
+  it('reports a failed request', async () => {
+    const error = new Error('boom');
+    formatCode$.mockReturnValue(throwError(() => error));
+
+    const action = await firstValueFrom(
+      setup(formatCode({ code: 'messy' })).formatCode$,
+    );
+
+    expect(action).toEqual(formatCodeFailed({ id: '1-1', error }));
+  });
+
+  it("shows the server's message for a 429", async () => {
+    const error = new HttpErrorResponse({
+      status: 429,
+      error: { message: 'Too many format requests.' },
+    });
+
+    await firstValueFrom(
+      setup(formatCodeFailed({ id: '1-1', error })).formatCodeFailed$,
+    );
+
+    expect(message.error).toHaveBeenCalledWith('Too many format requests.');
+  });
+
+  it('reports a generic failure otherwise', async () => {
+    const error = new HttpErrorResponse({ status: 500 });
+
+    await firstValueFrom(
+      setup(formatCodeFailed({ id: '1-1', error })).formatCodeFailed$,
+    );
+
+    expect(logger.error).toHaveBeenCalledWith(
+      '[exercise] format failed:',
+      error,
+    );
+    expect(message.error).toHaveBeenCalledWith('Failed to Format Code');
   });
 });

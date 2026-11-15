@@ -23,6 +23,18 @@
   gap: 6px;
 }
 
+.code-actions {
+  display: flex;
+  gap: 8px;
+}
+
+// A phone has no room for it beside the tabs and Submit.
+.format-button {
+  @include bp.mobile {
+    display: none;
+  }
+}
+
 .exercise-layout {
   display: flex;
   flex-direction: column;

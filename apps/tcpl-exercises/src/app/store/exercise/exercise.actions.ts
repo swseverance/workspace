@@ -15,6 +15,22 @@ export const draftRestored = createAction(
   props<{ id: string; code: string }>(),
 );
 
+/** Asks the server to format the shown exercise's code. */
+export const formatCode = createAction(
+  'Format Code',
+  props<{ code: string }>(),
+);
+
+export const codeFormatted = createAction(
+  'Code Formatted',
+  props<{ id: string; code: string }>(),
+);
+
+export const formatCodeFailed = createAction(
+  'Format Code Failed',
+  props<{ id: string; error: unknown }>(),
+);
+
 export const submitExercise = createAction(
   'Submit Exercise',
   props<{ code: string }>(),
