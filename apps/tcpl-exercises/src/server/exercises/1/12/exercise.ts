@@ -48,6 +48,36 @@ export const exercise1_12: ExerciseSource = {
     },
     // A carriage return doesn't separate words.
     { id: '5d794e4f', stdin: 'a\rb c\n', expectedStdout: 'a\rb\nc\n' },
+    // A single character and nothing else.
+    {
+      id: '5c6b2872',
+      stdin: 'x',
+      expectedStdout: 'x\n',
+    },
+    // Ends in blanks and a tab, with no newline: no empty last line.
+    {
+      id: 'a27537e3',
+      stdin: 'a b \t',
+      expectedStdout: 'a\nb\n',
+    },
+    // Only newlines: no words, so no output at all.
+    {
+      id: '51c3c1eb',
+      stdin: '\n\n\n',
+      expectedStdout: '',
+    },
+    // Every separator back to back, within lines and across them.
+    {
+      id: 'c9ddc37d',
+      stdin: ' \t\nfoo\t \n\n \tbar baz\t\n',
+      expectedStdout: 'foo\nbar\nbaz\n',
+    },
+    // A backslash and a letter are two ordinary characters, not a separator.
+    {
+      id: '16de58d8',
+      stdin: 'a\\tb \\n\n',
+      expectedStdout: 'a\\tb\n\\n\n',
+    },
     // One 5,000-character word.
     {
       id: 'c21cdc3a',
