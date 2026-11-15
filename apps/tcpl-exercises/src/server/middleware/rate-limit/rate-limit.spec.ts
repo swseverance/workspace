@@ -20,6 +20,8 @@ vi.mock('firebase-functions/logger', () => ({
 }));
 
 const {
+  FORMAT_LIMIT_MESSAGE,
+  formatCodeRateLimitMiddleware,
   GLOBAL_LIMIT_MESSAGE,
   SIGNED_OUT_LIMIT_MESSAGE,
   USER_LIMIT_MESSAGE,
@@ -141,4 +143,46 @@ describe('submitExerciseRateLimitMiddleware', () => {
       });
     });
   });
+});
+
+describe('formatCodeRateLimitMiddleware', () => {
+  beforeEach(() => {
+    limit.mockReset();
+    loggerWarn.mockReset();
+  });
+
+  async function runFormat(uid?: string) {
+    const res = createResponse();
+    const next = vi.fn();
+
+    await formatCodeRateLimitMiddleware(createRequest(uid), res, next);
+
+    return { res, next };
+  }
+
+  it('calls next() when the request is within its limits', async () => {
+    allow({ user: true, global: true });
+
+    const { res, next } = await runFormat('user-123');
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['the user limit', 'user-123', { user: false, global: true }],
+    ['the global limit', 'user-123', { user: true, global: false }],
+    ['the signed-out limit', undefined, { user: false, global: true }],
+  ])(
+    'responds 429 with its own message over %s',
+    async (_name, uid, limits) => {
+      allow(limits);
+
+      const { res, next } = await runFormat(uid);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(429);
+      expect(res.json).toHaveBeenCalledWith({ message: FORMAT_LIMIT_MESSAGE });
+    },
+  );
 });

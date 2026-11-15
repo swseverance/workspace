@@ -4,6 +4,7 @@ import { ExerciseSubmission } from '../../../shared/models';
 import { loadChapters } from './chapters.actions';
 import {
   codeEdited,
+  formatCode,
   openApplySubmissionModal,
   submitExercise,
 } from './exercise.actions';
@@ -26,6 +27,10 @@ export class ExerciseFacade {
 
   codeEdited(code: string): void {
     this.store.dispatch(codeEdited({ code }));
+  }
+
+  formatCode(code: string): void {
+    this.store.dispatch(formatCode({ code }));
   }
 
   submitExercise(code: string): void {

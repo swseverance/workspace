@@ -3,6 +3,8 @@ import { Chapter, Exercise } from '../../../shared/models';
 
 export type ExerciseEntity = Exercise & {
   submitting: boolean;
+  /** The editor is read-only meanwhile, so the result can't overwrite typing. */
+  formatting: boolean;
 };
 
 export const exerciseEntityAdapter = createEntityAdapter<ExerciseEntity>();

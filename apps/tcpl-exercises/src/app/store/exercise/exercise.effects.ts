@@ -8,6 +8,7 @@ import { Logger } from '@org/logger';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import {
   catchError,
+  exhaustMap,
   filter,
   map,
   of,
@@ -17,10 +18,13 @@ import {
 } from 'rxjs';
 import { ExerciseService } from '../../services/exercise-service';
 import {
+  codeFormatted,
   exerciseNavigationFailed,
   exerciseRefreshed,
   exercisesReset,
   exerciseSubmitted,
+  formatCode,
+  formatCodeFailed,
   refreshExerciseFailed,
   submitExercise,
   submitExerciseFailed,
@@ -75,6 +79,35 @@ export class ExerciseEffects {
         tap(({ error }) => {
           this.logger.error('[exercise] load failed:', error);
           this.message.error('Failed to Load Exercise');
+        }),
+      ),
+    { dispatch: false },
+  );
+
+  /** exhaustMap: a second click while one is in flight does nothing. */
+  formatCode$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(formatCode),
+      withLatestFrom(this.store.select(selectId)),
+      exhaustMap(([{ code }, id]) =>
+        this.exercise.formatCode(code).pipe(
+          map((formatted) => codeFormatted({ id, code: formatted.code })),
+          catchError((error) => of(formatCodeFailed({ id, error }))),
+        ),
+      ),
+    ),
+  );
+
+  formatCodeFailed$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(formatCodeFailed),
+        tap(({ error }) => {
+          this.logger.error('[exercise] format failed:', error);
+
+          this.message.error(
+            rateLimitMessage(error) ?? 'Failed to Format Code',
+          );
         }),
       ),
     { dispatch: false },
@@ -138,7 +171,9 @@ export class ExerciseEffects {
         tap(({ error }) => {
           this.logger.error('[exercise] submit failed:', error);
 
-          this.message.error(submitErrorMessage(error));
+          this.message.error(
+            rateLimitMessage(error) ?? 'Failed to Submit Exercise',
+          );
         }),
       ),
     { dispatch: false },
@@ -146,16 +181,17 @@ export class ExerciseEffects {
 }
 
 /**
- * A 429 carries the server's own explanation (per-user or site-wide limit),
- * so show that. Anything else gets a generic message.
+ * A 429 carries the server's own explanation (which limit was hit), so show
+ * that. Null for any other error.
  */
-function submitErrorMessage(error: unknown): string {
-  if (error instanceof HttpErrorResponse && error.status === 429) {
-    const message = error.error?.message;
-    if (typeof message === 'string' && message) {
-      return message;
-    }
-    return 'Too many submissions. Please wait a moment and try again.';
+function rateLimitMessage(error: unknown): string | null {
+  if (!(error instanceof HttpErrorResponse) || error.status !== 429) {
+    return null;
   }
-  return 'Failed to Submit Exercise';
+
+  const message = error.error?.message;
+
+  return typeof message === 'string' && message
+    ? message
+    : 'Too many requests. Please wait a moment and try again.';
 }

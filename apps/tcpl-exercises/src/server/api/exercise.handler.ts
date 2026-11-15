@@ -108,8 +108,6 @@ function toExercise(
   };
 }
 
-const MAX_CODE_LENGTH = 20_000;
-
 export async function getExerciseForUser(
   exercise: ExerciseSource,
   user: SessionUser | undefined,
@@ -151,19 +149,8 @@ export const submitExerciseHandler: RequestHandler<
   unknown,
   ExerciseCodeRequestBody
 > = async (req, res) => {
-  const code = req.body.code === null ? '' : req.body.code;
-
-  if (typeof code !== 'string') {
-    res.status(400).json({ message: 'code is required' });
-    return;
-  }
-
-  if (code.length > MAX_CODE_LENGTH) {
-    res
-      .status(400)
-      .json({ message: `code must be at most ${MAX_CODE_LENGTH} characters` });
-    return;
-  }
+  // validCodeMiddleware has checked it.
+  const { code } = req.body;
 
   try {
     const uid = req.user?.uid;

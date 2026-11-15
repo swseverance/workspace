@@ -31,8 +31,13 @@ import {
   getExerciseHandler,
   submitExerciseHandler,
 } from './server/api/exercise.handler';
+import { formatCodeHandler } from './server/api/format.handler';
 import { exerciseExistsMiddleware } from './server/middleware/exercise-exists/exercise-exists';
-import { submitExerciseRateLimitMiddleware } from './server/middleware/rate-limit/rate-limit';
+import {
+  formatCodeRateLimitMiddleware,
+  submitExerciseRateLimitMiddleware,
+} from './server/middleware/rate-limit/rate-limit';
+import { validCodeMiddleware } from './server/middleware/valid-code/valid-code';
 import {
   exercisesIndexRedirectHandler,
   movedExerciseRedirectHandler,
@@ -106,7 +111,14 @@ app.post(
   consumeAppCheckTokenMiddleware,
   exerciseExistsMiddleware,
   submitExerciseRateLimitMiddleware,
+  validCodeMiddleware,
   submitExerciseHandler,
+);
+app.post(
+  '/api/format',
+  formatCodeRateLimitMiddleware,
+  validCodeMiddleware,
+  formatCodeHandler,
 );
 
 app.get('/robots.txt', robotsHandler);

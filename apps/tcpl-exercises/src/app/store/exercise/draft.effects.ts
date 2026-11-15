@@ -7,6 +7,7 @@ import { DraftStore } from '../../services/draft-store';
 import {
   applyHistoricalSubmission,
   codeEdited,
+  codeFormatted,
   draftRestored,
   exerciseNavigationSucceeded,
   exerciseRefreshed,
@@ -84,6 +85,16 @@ export class DraftEffects {
   );
 
   /** Leaves nothing behind for the next person on a shared computer. */
+  /** Formatting changes the code without an edit in the editor. */
+  saveFormattedDraft$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(codeFormatted),
+        tap(({ id, code }) => this.drafts.set(id, code)),
+      ),
+    { dispatch: false },
+  );
+
   clearDrafts$ = createEffect(
     () =>
       this.actions$.pipe(
