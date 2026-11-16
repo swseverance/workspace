@@ -1,0 +1,56 @@
+{
+  "name": "secure-dev",
+  "build": { "dockerfile": "Dockerfile" },
+
+  "features": {
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {},
+    // Java is required by the Firebase emulators.
+    "ghcr.io/devcontainers/features/java:1": { "version": "21" }
+  },
+
+  "remoteUser": "node",
+
+  // Only the project folder is mounted from the Mac. Nothing from the host home
+  // directory (~/.ssh, ~/.config/gcloud, ~/.npmrc, ...) is visible in here.
+  "mounts": [
+    // Claude Code login, kept in a Docker volume shared by all projects using
+    // this template, so you sign in once.
+    "source=claude-code-config,target=/home/node/.claude,type=volume"
+  ],
+
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    // In the container "localhost" resolves to IPv6 first, so dev servers bind
+    // only to [::1] and the Firebase emulators' IPv4 port check never sees
+    // them. Prefer IPv4, as on macOS.
+    "NODE_OPTIONS": "--dns-result-order=ipv4first",
+    // Install scripts are allowed in here (they are off on the Mac itself):
+    // the container holds no host credentials for them to steal.
+    "NPM_CONFIG_IGNORE_SCRIPTS": "false",
+    // Commits made in here are unsigned: the signing key and SSH agent stay
+    // on the Mac on purpose. This overrides commit.gpgsign=true from the
+    // host .gitconfig that VS Code copies in, without touching the Mac's
+    // own setting.
+    "GIT_CONFIG_COUNT": "1",
+    "GIT_CONFIG_KEY_0": "commit.gpgsign",
+    "GIT_CONFIG_VALUE_0": "false"
+  },
+
+  // Hide the host SSH agent that VS Code forwards into containers by default.
+  "remoteEnv": {
+    "SSH_AUTH_SOCK": ""
+  },
+
+  // No root escalation inside the container (this also disables sudo).
+  "runArgs": ["--cap-drop=ALL", "--security-opt=no-new-privileges"],
+
+  // Dev-server ports are forwarded to the Mac automatically, so
+  // http://localhost:<port> opens in Chrome as usual.
+  "otherPortsAttributes": { "onAutoForward": "notify" },
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["anthropic.claude-code"]
+    }
+  }
+}
