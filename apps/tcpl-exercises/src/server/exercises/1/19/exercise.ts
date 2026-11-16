@@ -3,6 +3,11 @@ import description from './description.md' with { type: 'text' };
 import solution from './main.c' with { type: 'text' };
 
 const DIGITS = '0123456789'.repeat(90);
+// With MAXLINE 1000, the longest line that fits: 998 characters, a newline
+// and the terminating '\0'.
+const LONGEST = 'abcdefghijklmnopqrstuvwxyz'.repeat(39).slice(0, 998);
+
+const reversed = (text: string) => [...text].reverse().join('');
 
 export const exercise1_19: ExerciseSource = {
   id: '1-19',
@@ -30,11 +35,33 @@ export const exercise1_19: ExerciseSource = {
     { id: '8667ba51', stdin: '  a\t\n', expectedStdout: '\ta  \n' },
     // No final newline.
     { id: '87b537dc', stdin: 'abc', expectedStdout: 'cba' },
+    // A short line after a long one, which mustn't pick up its leftovers.
+    {
+      id: 'ccac89b3',
+      stdin: 'abcdefgh\nxy\n',
+      expectedStdout: 'hgfedcba\nyx\n',
+    },
+    // The whole line is reversed, not each word.
+    {
+      id: '8cfabd2c',
+      stdin: 'hello, world\n',
+      expectedStdout: 'dlrow ,olleh\n',
+    },
+    // Only empty lines.
+    { id: 'e7b28f5e', stdin: '\n\n\n', expectedStdout: '\n\n\n' },
+    // Several lines, the last with no newline: none is added or moved.
+    { id: 'ac5cd831', stdin: 'ab\ncd\nef', expectedStdout: 'ba\ndc\nfe' },
     // A 900-character line.
     {
       id: '3afd25bc',
       stdin: DIGITS + '\n',
-      expectedStdout: [...DIGITS].reverse().join('') + '\n',
+      expectedStdout: reversed(DIGITS) + '\n',
+    },
+    // The longest line that fits in the array.
+    {
+      id: '46cd70ba',
+      stdin: LONGEST + '\n',
+      expectedStdout: reversed(LONGEST) + '\n',
     },
     // 2,000 lines.
     {

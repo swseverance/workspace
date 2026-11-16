@@ -41,7 +41,7 @@
     },
     "emulate": {
       "continuous": true,
-      "command": "nx run ghreactions-functions:build:local && cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- functions:shell --config apps/ghreactions/firebase.json --project ghreactionsdev"
+      "command": "nx run ghreactions-functions:build:local && cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- emulators:start --only functions --config apps/ghreactions/firebase.json --project ghreactionsdev"
     }
   }
 }
