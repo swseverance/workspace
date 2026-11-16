@@ -1,0 +1,44 @@
+{
+  "name": "cp-functions",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/cp-functions/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "platform": "node",
+        "outputPath": "dist/apps/cp-functions",
+        "format": ["cjs"],
+        "bundle": true,
+        "thirdParty": false,
+        "main": "apps/cp-functions/src/main.ts",
+        "tsConfig": "apps/cp-functions/tsconfig.app.json",
+        "generatePackageJson": true,
+        "esbuildOptions": {
+          "sourcemap": true,
+          "outExtension": {
+            ".js": ".js"
+          }
+        }
+      },
+      "configurations": {
+        "production": {
+          "esbuildOptions": {
+            "sourcemap": false,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        }
+      }
+    },
+    "emulate": {
+      "continuous": true,
+      "command": "nx run cp-functions:build && printf 'GMAIL_USER=emulator@example.com\\nGMAIL_APP_PASSWORD=unused\\n' > dist/apps/cp-functions/.secret.local && npm exec firebase-tools -- emulators:start --only functions --config apps/cp-functions/firebase.json --project codeforces-notifier-7d458"
+    }
+  }
+}

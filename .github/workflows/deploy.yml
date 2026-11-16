@@ -40,7 +40,7 @@ jobs:
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # Manual run: treat every deployable app as affected.
-            AFFECTED=$(printf '%s\n' ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions)
+            AFFECTED=$(printf '%s\n' ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions cp-functions)
           else
             AFFECTED=$(npx nx show projects --affected --base="$BASE" --head="${{ github.sha }}")
           fi
@@ -53,7 +53,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           # One exact-match flag per project, so a substring check can't
           # mistake ghreactions-functions for ghreactions.
-          for app in ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions; do
+          for app in ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions cp-functions; do
             if echo "$AFFECTED" | grep -qx "$app"; then
               echo "$app=true" >> "$GITHUB_OUTPUT"
             else
@@ -75,7 +75,7 @@ jobs:
               fi
             done
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            npx nx run-many -t build --parallel=3 -p ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions
+            npx nx run-many -t build --parallel=3 -p ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions cp-functions
           else
             npx nx affected -t build --parallel=3 --base="${{ steps.affected.outputs.base }}" --head="${{ github.sha }}"
           fi
@@ -125,6 +125,12 @@ jobs:
         id: deploy-billing-functions-prod
         if: github.ref == 'refs/heads/main' && steps.affected.outputs['billing-functions'] == 'true'
         run: npm run deploy:billing-functions:prod
+
+      # Daily competitive-programming emails: one environment, main only.
+      - name: Deploy cp-functions (prod)
+        id: deploy-cp-functions-prod
+        if: github.ref == 'refs/heads/main' && steps.affected.outputs['cp-functions'] == 'true'
+        run: npm run deploy:cp-functions:prod
 
       # Load each site that was just deployed. After all deploys, so one
       # failing check doesn't skip the other apps' deploys; !cancelled() so
