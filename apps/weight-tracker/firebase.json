@@ -8,7 +8,16 @@
       ".git",
       "firebase-debug.log",
       "firebase-debug.*.log",
-      "functions"
+      "functions",
+      ".agents",
+      ".claude",
+      ".codex",
+      ".cursor",
+      ".devcontainer",
+      ".gemini",
+      ".github",
+      ".opencode",
+      ".vscode"
     ]
   },
   "firestore": {
