@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "deploy:billing-functions:prod": "npm exec nx build billing-functions && npm exec firebase-tools -- deploy --only functions --config apps/billing-functions/firebase.json --project fir-billing-dd1db",
     "deploy:chinese-flashcards:prod": "npm exec firebase-tools -- deploy --config apps/chinese-flashcards/firebase.json --project chineseflashcards-4aea7",
     "deploy:ghreactions:dev": "npm exec nx build ghreactions-functions && npm exec firebase-tools -- deploy --config apps/ghreactions/firebase.json --project ghreactionsdev --force",
     "deploy:ghreactions:prod": "npm exec nx build ghreactions-functions && npm exec firebase-tools -- deploy --config apps/ghreactions/firebase.json --project ghreactionsprod --force",
@@ -86,6 +87,7 @@
     "@codemirror/lang-cpp": "^6.0.3",
     "@codemirror/language": "^6.13.1",
     "@codemirror/theme-one-dark": "^6.1.3",
+    "@google-cloud/billing": "^5.1.2",
     "@ngrx/effects": "^22.0.1",
     "@ngrx/entity": "^22.0.1",
     "@ngrx/store": "^22.0.1",
