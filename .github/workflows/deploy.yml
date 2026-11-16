@@ -5,6 +5,11 @@ on:
     branches:
       - develop
       - main
+  # Manual run (Actions -> Deploy -> Run workflow): redeploys every app for
+  # the chosen branch, changed or not. Needed after updating a secret, which
+  # changes no files. The branch still decides the environment: develop ->
+  # dev, main -> prod; on any other branch nothing is deployed.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -33,7 +38,12 @@ jobs:
             BASE=$(git rev-list --max-parents=0 HEAD)
           fi
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
-          AFFECTED=$(npx nx show projects --affected --base="$BASE" --head="${{ github.sha }}")
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual run: treat every deployable app as affected.
+            AFFECTED=$(printf '%s\n' ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards)
+          else
+            AFFECTED=$(npx nx show projects --affected --base="$BASE" --head="${{ github.sha }}")
+          fi
           echo "Affected projects:"
           echo "$AFFECTED"
           {
@@ -64,6 +74,8 @@ jobs:
                 npx nx build "$app" --configuration=development
               fi
             done
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            npx nx run-many -t build --parallel=3 -p ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards
           else
             npx nx affected -t build --parallel=3 --base="${{ steps.affected.outputs.base }}" --head="${{ github.sha }}"
           fi
