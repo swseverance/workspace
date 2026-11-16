@@ -19,11 +19,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -40,7 +40,7 @@ jobs:
           echo "base=$BASE" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             # Manual run: treat every deployable app as affected.
-            AFFECTED=$(printf '%s\n' ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards)
+            AFFECTED=$(printf '%s\n' ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions)
           else
             AFFECTED=$(npx nx show projects --affected --base="$BASE" --head="${{ github.sha }}")
           fi
@@ -53,7 +53,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           # One exact-match flag per project, so a substring check can't
           # mistake ghreactions-functions for ghreactions.
-          for app in ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards; do
+          for app in ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions; do
             if echo "$AFFECTED" | grep -qx "$app"; then
               echo "$app=true" >> "$GITHUB_OUTPUT"
             else
@@ -75,13 +75,13 @@ jobs:
               fi
             done
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            npx nx run-many -t build --parallel=3 -p ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards
+            npx nx run-many -t build --parallel=3 -p ghreactions ghreactions-functions tcpl-exercises weight-tracker chinese-flashcards billing-functions
           else
             npx nx affected -t build --parallel=3 --base="${{ steps.affected.outputs.base }}" --head="${{ github.sha }}"
           fi
 
       - id: auth
-        uses: google-github-actions/auth@v3
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: projects/1007948396460/locations/global/workloadIdentityPools/github-actions-pool/providers/github-actions-provider
           service_account: github-deployer@swseverance-ci.iam.gserviceaccount.com
@@ -119,6 +119,12 @@ jobs:
         id: deploy-chinese-flashcards-prod
         if: github.ref == 'refs/heads/main' && steps.affected.outputs['chinese-flashcards'] == 'true'
         run: npm run deploy:chinese-flashcards:prod
+
+      # The billing kill switch: one environment, deployed from main only.
+      - name: Deploy billing-functions (prod)
+        id: deploy-billing-functions-prod
+        if: github.ref == 'refs/heads/main' && steps.affected.outputs['billing-functions'] == 'true'
+        run: npm run deploy:billing-functions:prod
 
       # Load each site that was just deployed. After all deploys, so one
       # failing check doesn't skip the other apps' deploys; !cancelled() so
