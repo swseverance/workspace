@@ -42,6 +42,8 @@ export const exercise1_20: ExerciseSource = {
     { id: 'f697084e', stdin: 'ab\t\n', expectedStdout: 'ab      \n' },
     // No final newline.
     { id: '314f7462', stdin: 'a\tb', expectedStdout: 'a       b' },
+    // A tab at the end of the input.
+    { id: '43efa941', stdin: 'a\t', expectedStdout: 'a       ' },
     // A blank before a tab.
     { id: 'b286e933', stdin: ' \tx\n', expectedStdout: '        x\n' },
     // A tab past the first stop.
@@ -49,6 +51,12 @@ export const exercise1_20: ExerciseSource = {
       id: '375daa5d',
       stdin: 'abcdefghij\tx\n',
       expectedStdout: 'abcdefghij      x\n',
+    },
+    // A tab past the second stop, with no tab before it.
+    {
+      id: '56a0a9e0',
+      stdin: 'abcdefghijklmnopqr\tx\n',
+      expectedStdout: 'abcdefghijklmnopqr      x\n',
     },
     // Tabs after text of different lengths.
     {
@@ -66,6 +74,13 @@ export const exercise1_20: ExerciseSource = {
     },
     // Blanks after a tab stay.
     { id: 'af745440', stdin: 'a\t  b\n', expectedStdout: 'a         b\n' },
+    // A backspace or a carriage return takes one column, like any other
+    // character.
+    {
+      id: '53612e8a',
+      stdin: 'ab\b\tx\nab\r\tx\n',
+      expectedStdout: 'ab\b     x\nab\r     x\n',
+    },
     // Four lines of a table.
     {
       id: '22322a40',
@@ -85,6 +100,12 @@ export const exercise1_20: ExerciseSource = {
       id: '29a72741',
       stdin: 'abc\t'.repeat(200) + '\n',
       expectedStdout: 'abc     '.repeat(200) + '\n',
+    },
+    // A line of more than 1000 characters.
+    {
+      id: '2300e7be',
+      stdin: 'abc\t'.repeat(300) + '\n',
+      expectedStdout: 'abc     '.repeat(300) + '\n',
     },
   ],
 };

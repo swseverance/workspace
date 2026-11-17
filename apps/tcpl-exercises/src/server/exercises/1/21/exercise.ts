@@ -82,6 +82,10 @@ export const exercise1_21: ExerciseSource = {
     },
     // No final newline.
     { id: '6230c2b2', stdin: 'ab      x', expectedStdout: 'ab\tx' },
+    // Blanks at the end of the input, with no final newline.
+    { id: 'd41f7a0c', stdin: 'abc  ', expectedStdout: 'abc  ' },
+    // Blanks that reach a tab stop at the end of the input.
+    { id: 'fa006f02', stdin: 'abc     ', expectedStdout: 'abc\t' },
     // Two blanks reaching a tab stop become a tab.
     {
       id: '55c8838f',

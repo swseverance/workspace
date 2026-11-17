@@ -3,7 +3,7 @@ import * as logger from 'firebase-functions/logger';
 import { ExerciseTestCaseSource } from '../../models/exercise';
 import { ExerciseTestResult } from '../../models/exercise-submission';
 import { DEFAULT_PROGRAM, TestStopReason } from '../../shared/models';
-import { normalizeOutput } from '../../shared/output-diff';
+import { outputMatches } from '../../shared/output-diff';
 
 const SANDBOX_DIR = '/vercel/sandbox';
 
@@ -119,10 +119,6 @@ function stopReason(exitCode: number): TestStopReason | null {
   return exitCode === OUTPUT_LIMIT_EXIT_CODE ? 'outputLimit' : null;
 }
 
-function compareOutput(actual: string, expected: string): boolean {
-  return normalizeOutput(actual) === normalizeOutput(expected);
-}
-
 /** Turns the grader's per-step output into what's stored and shown. */
 export function toGradeResult(
   { compile, tests: runs }: GraderOutput,
@@ -162,7 +158,7 @@ export function toGradeResult(
       return {
         id: test.id,
         passed:
-          run.exitCode === 0 && compareOutput(run.stdout, test.expectedStdout),
+          run.exitCode === 0 && outputMatches(run.stdout, test.expectedStdout),
         stdout: run.stdout,
         stderr: run.stderr,
         stopReason: stopReason(run.exitCode),

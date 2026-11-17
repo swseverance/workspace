@@ -2,7 +2,7 @@ Write a program `entab` that replaces strings of blanks (spaces) by the minimum 
 
 Put a tab stop every 8 columns, as in `detab`: the tab stops are at columns 0, 8, 16, 24 and so on, and every line starts again at column 0. The output must print exactly as the input does, with every character in the same column, but with as few tabs and blanks as possible.
 
-Blanks that run up to a tab stop become a tab, except that a single blank stays a blank. Blanks that stop short of a tab stop stay as they are. A tab in the input is copied, and any blanks just before it are dropped, because the tab covers them. A tab in the input also moves the column to the next tab stop, which changes where the blanks after it end.
+Blanks that run up to a tab stop become a tab, except that a single blank stays a blank. Blanks that stop short of a tab stop stay as they are. A tab in the input is copied, and any blanks just before it that stop short of a tab stop are dropped, because the tab covers them. A tab in the input also moves the column to the next tab stop, which changes where the blanks after it end.
 
 For example, with `\t` standing for a tab and `·` for a blank:
 

@@ -126,36 +126,28 @@ export function diffChars(
 }
 
 /**
- * What of a program's output counts: everything up to and including the
- * first newline in the whitespace at the very end. So extra blank lines and
- * whitespace after the final newline are ignored, but a missing final
- * newline isn't, and neither are spaces just before it (as on any other
- * line). Output with no newline in its trailing whitespace counts up to the
- * last non-whitespace character.
+ * Whether a program's output is the expected output. Every character
+ * counts, including blanks at the very end and blank lines after the final
+ * newline: the exercises about whitespace (1-18, 1-21) can't be graded if
+ * any of it is ignored.
  *
- * The grader compares outputs through this and the diff shows them through
- * it, so the two can't disagree about what passed. Must return a prefix of
- * `text`: splitLines relies on that.
+ * The grader decides through this and the diff draws every character, so
+ * the two can't disagree about what passed.
  */
-export function normalizeOutput(text: string): string {
-  const content = text.trimEnd();
-  const newline = text.indexOf('\n', content.length);
-
-  return newline === -1 ? content : text.slice(0, newline + 1);
+export function outputMatches(actual: string, expected: string): boolean {
+  return actual === expected;
 }
 
 type RawLine = { text: string; newline: boolean };
 
-/** Splits output into lines the way the grader sees it. */
+/** Splits output into lines, each knowing whether a newline ends it. */
 export function splitLines(text: string): RawLine[] {
-  const kept = normalizeOutput(text);
-
-  if (kept === '') {
+  if (text === '') {
     return [];
   }
 
-  const endsWithNewline = kept.endsWith('\n');
-  const lines = (endsWithNewline ? kept.slice(0, -1) : kept).split('\n');
+  const endsWithNewline = text.endsWith('\n');
+  const lines = (endsWithNewline ? text.slice(0, -1) : text).split('\n');
 
   return lines.map((line, i) => ({
     text: line,
