@@ -3,6 +3,8 @@ name: commit
 description: Commit every change in the repo with a meaningful commit message, moving off develop or main to a new branch first. Use when the user runs /commit.
 argument-hint: [notes for the commit message or branch name]
 disable-model-invocation: true
+context: fork
+model: sonnet
 ---
 
 # Commit all changes

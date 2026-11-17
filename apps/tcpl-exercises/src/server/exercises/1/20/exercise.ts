@@ -44,6 +44,42 @@ export const exercise1_20: ExerciseSource = {
     { id: '314f7462', stdin: 'a\tb', expectedStdout: 'a       b' },
     // A blank before a tab.
     { id: 'b286e933', stdin: ' \tx\n', expectedStdout: '        x\n' },
+    // A tab past the first stop.
+    {
+      id: '375daa5d',
+      stdin: 'abcdefghij\tx\n',
+      expectedStdout: 'abcdefghij      x\n',
+    },
+    // Tabs after text of different lengths.
+    {
+      id: 'a07b112d',
+      stdin: 'a\tbc\tdef\tg\n',
+      expectedStdout: 'a       bc      def     g\n',
+    },
+    // A tab alone on a line.
+    { id: '604a7511', stdin: '\t\n', expectedStdout: '        \n' },
+    // The line after a tab at the end of a line starts at column 0.
+    {
+      id: '4e125580',
+      stdin: 'ab\t\ncd\tx\n',
+      expectedStdout: 'ab      \ncd      x\n',
+    },
+    // Blanks after a tab stay.
+    { id: 'af745440', stdin: 'a\t  b\n', expectedStdout: 'a         b\n' },
+    // Four lines of a table.
+    {
+      id: '22322a40',
+      stdin:
+        'name\tqty\tprice\n' +
+        'apple\t3\t0.50\n' +
+        'watermelon\t12\t4.25\n' +
+        'fig\t100\t10.00\n',
+      expectedStdout:
+        'name    qty     price\n' +
+        'apple   3       0.50\n' +
+        'watermelon      12      4.25\n' +
+        'fig     100     10.00\n',
+    },
     // 200 tabs on one line.
     {
       id: '29a72741',
