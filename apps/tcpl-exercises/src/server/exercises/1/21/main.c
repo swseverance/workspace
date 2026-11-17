@@ -20,6 +20,8 @@ int main() {
         pos = 0;
       }
     } else {
+      if (c == '\t')
+        nb = 0; /* the tab covers the blanks before it */
       while (nb > 0) {
         putchar(' ');
         --nb;
