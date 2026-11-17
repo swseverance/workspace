@@ -101,6 +101,24 @@ export const exercise1_22: ExerciseSource = {
       stdin: 'ab cccccccccccccccccccccccccccccc\n',
       expectedStdout: 'ab\ncccccccccccccccccccc\ncccccccccc\n',
     },
+    // Blanks at the start of a line aren't a place to break.
+    {
+      id: 'f52b68b3',
+      stdin: '  aaaaaaaaaaaaaaaaaaaaaa\n',
+      expectedStdout: '  aaaaaaaaaaaaaaaaaa\naaaa\n',
+    },
+    // Tabs at the start of a line aren't a place to break either.
+    {
+      id: '51b4e95e',
+      stdin: '\t\taaaaaaaaaaaaaaaaaaaaaa\n',
+      expectedStdout: '\t\taaaaaaaaaaaaaaaaaa\naaaa\n',
+    },
+    // A long line of only blanks is cut like a long word.
+    {
+      id: 'ed17d2a6',
+      stdin: ' '.repeat(25) + '\n',
+      expectedStdout: ' '.repeat(20) + '\n' + ' '.repeat(5) + '\n',
+    },
     // Short and empty lines stay as they are.
     {
       id: 'c8d60792',
