@@ -20,11 +20,10 @@ typedef struct _iobuf {
   int fd; /* file descriptor */
 } FILE;
 
-FILE _iob[OPEN_MAX] = {
-    /* stdin, stdout, stderr */
-    {0, (char *)0, (char *)0, {1, 0, 0, 0, 0}, 0},
-    {0, (char *)0, (char *)0, {0, 1, 0, 0, 0}, 1},
-    {0, (char *)0, (char *)0, {0, 1, 1, 0, 0}, 2}};
+FILE _iob[OPEN_MAX] = {/* stdin, stdout, stderr */
+                       {0, (char *)0, (char *)0, {1, 0, 0, 0, 0}, 0},
+                       {0, (char *)0, (char *)0, {0, 1, 0, 0, 0}, 1},
+                       {0, (char *)0, (char *)0, {0, 1, 1, 0, 0}, 2}};
 
 #define stdin (&_iob[0])
 #define stdout (&_iob[1])
