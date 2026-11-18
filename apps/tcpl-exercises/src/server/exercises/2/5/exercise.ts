@@ -2,6 +2,19 @@ import { ExerciseSource } from '../../../../models/exercise';
 import description from './description.md' with { type: 'text' };
 import solution from './main.c' with { type: 'text' };
 
+// 500 pairs that all differ: the match moves back and forth through s1, so
+// each s1 is longer or shorter than the one before, and every seventh pair
+// has no match.
+const PAIRS = Array.from({ length: 500 }, (_, i) => {
+  const at = (i * 37) % 100;
+  const found = i % 7 !== 0;
+  return {
+    s1: 'a'.repeat(at) + (found ? 'b' : 'a'),
+    s2: 'cb',
+    answer: found ? at : -1,
+  };
+});
+
 export const exercise2_5: ExerciseSource = {
   id: '2-5',
   chapter: 2,
@@ -60,11 +73,11 @@ export const exercise2_5: ExerciseSource = {
       stdin: 'hello\n' + 'x'.repeat(499) + 'o\n',
       expectedStdout: '4\n',
     },
-    // 500 pairs.
+    // 500 pairs, each with its own answer.
     {
-      id: 'b74101ab',
-      stdin: 'the quick brown fox\nxyz\n'.repeat(500),
-      expectedStdout: '18\n'.repeat(500),
+      id: 'b0c7d0d3',
+      stdin: PAIRS.map((pair) => `${pair.s1}\n${pair.s2}\n`).join(''),
+      expectedStdout: PAIRS.map((pair) => `${pair.answer}\n`).join(''),
     },
   ],
 };
