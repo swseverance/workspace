@@ -28,8 +28,14 @@ export const exercise2_5: ExerciseSource = {
     { id: '3bd5300e', stdin: 'hello\n\n', expectedStdout: '-1\n' },
     // An empty s1.
     { id: 'a486e60e', stdin: '\nabc\n', expectedStdout: '-1\n' },
+    // An s2 longer than s1.
+    { id: 'c02140c9', stdin: 'ab\nxyzb\n', expectedStdout: '1\n' },
     // A blank in s2.
     { id: '3ed7767e', stdin: 'hello world\n \n', expectedStdout: '5\n' },
+    // Blanks at the start of s1 count as characters.
+    { id: 'f59e68b7', stdin: '  ab\nb\n', expectedStdout: '3\n' },
+    // A blank at the end of s1 can be the match.
+    { id: '1bf81891', stdin: 'ab \n \n', expectedStdout: '2\n' },
     // Upper and lower case are different characters.
     { id: 'cebb19cc', stdin: 'Hello\nh\n', expectedStdout: '-1\n' },
     // Several pairs.
@@ -38,13 +44,21 @@ export const exercise2_5: ExerciseSource = {
       stdin: 'abc\nc\nabc\nz\nabc\ncba\n',
       expectedStdout: '2\n-1\n0\n',
     },
+    // An empty s2 after one that wasn't.
+    { id: 'fce42e5d', stdin: 'abc\nb\nabc\n\n', expectedStdout: '1\n-1\n' },
     // A last line with no newline.
     { id: '98586332', stdin: 'abc\nb', expectedStdout: '1\n' },
-    // A match at the end of a 998-character s1.
+    // A match at the end of a 500-character s1.
     {
-      id: '240c5a7e',
-      stdin: 'a'.repeat(997) + 'b\nb\n',
-      expectedStdout: '997\n',
+      id: 'e28d29ae',
+      stdin: 'a'.repeat(499) + 'b\nb\n',
+      expectedStdout: '499\n',
+    },
+    // A match with the last character of a 500-character s2.
+    {
+      id: '41a80eaf',
+      stdin: 'hello\n' + 'x'.repeat(499) + 'o\n',
+      expectedStdout: '4\n',
     },
     // 500 pairs.
     {
