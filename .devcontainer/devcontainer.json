@@ -20,6 +20,9 @@
 
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    // Claude Code is installed as root by the feature above, so it can't
+    // update itself as the node user. Rebuild the container to update it.
+    "DISABLE_AUTOUPDATER": "1",
     // In the container "localhost" resolves to IPv6 first, so dev servers bind
     // only to [::1] and the Firebase emulators' IPv4 port check never sees
     // them. Prefer IPv4, as on macOS.
@@ -44,9 +47,24 @@
   // No root escalation inside the container (this also disables sudo).
   "runArgs": ["--cap-drop=ALL", "--security-opt=no-new-privileges"],
 
-  // Dev-server ports are forwarded to the Mac automatically, so
-  // http://localhost:<port> opens in Chrome as usual.
-  "otherPortsAttributes": { "onAutoForward": "notify" },
+  // Only the ports Chrome on the Mac needs are forwarded: the app and the
+  // browser-facing parts of the Firebase Emulator Suite. They match the
+  // "emulators" blocks in apps/*/firebase.json (Firebase defaults where a port
+  // isn't set there), so a new dev server or emulator port must be added here.
+  "forwardPorts": [4200, 4000, 4400, 4500, 5001, 8080, 9099, 9150],
+  "portsAttributes": {
+    "4200": { "label": "App (App Hosting emulator)" },
+    "4000": { "label": "Emulator UI" },
+    "4400": { "label": "Emulator Hub" },
+    "4500": { "label": "Emulator logging" },
+    "5001": { "label": "Functions emulator" },
+    "8080": { "label": "Firestore emulator" },
+    "9099": { "label": "Auth emulator" },
+    "9150": { "label": "Firestore emulator websocket" }
+  },
+  // Everything else (VS Code, Claude Code, emulator internals) stays inside
+  // the container.
+  "otherPortsAttributes": { "onAutoForward": "ignore" },
 
   "customizations": {
     "vscode": {

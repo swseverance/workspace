@@ -4,7 +4,7 @@ import {
   diffOutput,
   DiffRow,
   foldRows,
-  normalizeOutput,
+  outputMatches,
   splitLines,
   toGlyphs,
   visibleDiff,
@@ -12,40 +12,40 @@ import {
 
 const kinds = (rows: DiffRow[]) => rows.map((r) => r.kind);
 
-describe('normalizeOutput', () => {
-  it('keeps the final newline but drops whitespace after it', () => {
-    expect(normalizeOutput('a \nb\n \t\n')).toBe('a \nb\n');
-    expect(normalizeOutput('a\n\n\n')).toBe('a\n');
+describe('outputMatches', () => {
+  it('matches identical output only', () => {
+    expect(outputMatches('a \nb\n', 'a \nb\n')).toBe(true);
+    expect(outputMatches('', '')).toBe(true);
+    expect(outputMatches('a\n', 'b\n')).toBe(false);
   });
 
-  it('keeps spaces before the final newline, as on any other line', () => {
-    expect(normalizeOutput('a \n')).toBe('a \n');
+  it('counts the final newline and blank lines after it', () => {
+    expect(outputMatches('a', 'a\n')).toBe(false);
+    expect(outputMatches('a\n\n', 'a\n')).toBe(false);
+    expect(outputMatches('a\n \t\n', 'a\n')).toBe(false);
   });
 
-  it('drops trailing whitespace when there is no newline in it', () => {
-    expect(normalizeOutput('a  \t')).toBe('a');
-    expect(normalizeOutput('a\nb')).toBe('a\nb');
-    expect(normalizeOutput(' a')).toBe(' a');
-  });
-
-  it('returns a prefix of its input', () => {
-    for (const text of ['a \nb\n \t\n', 'a  ', ' \n', '', 'x\n\ny']) {
-      expect(text.startsWith(normalizeOutput(text))).toBe(true);
-    }
+  it('counts blanks at the end, with or without a newline', () => {
+    expect(outputMatches('a \n', 'a\n')).toBe(false);
+    expect(outputMatches('a', 'a  ')).toBe(false);
+    expect(outputMatches('a\t', 'a')).toBe(false);
   });
 });
 
 describe('splitLines', () => {
-  it('ignores trailing whitespace like the grader does', () => {
+  it('keeps every line, including blank and whitespace-only ones at the end', () => {
     expect(splitLines('a\nb\n\n  \n')).toEqual([
       { text: 'a', newline: true },
       { text: 'b', newline: true },
+      { text: '', newline: true },
+      { text: '  ', newline: true },
     ]);
     expect(splitLines('a\nb')).toEqual([
       { text: 'a', newline: true },
       { text: 'b', newline: false },
     ]);
-    expect(splitLines('  ')).toEqual([]);
+    expect(splitLines('  ')).toEqual([{ text: '  ', newline: false }]);
+    expect(splitLines('\n')).toEqual([{ text: '', newline: true }]);
     expect(splitLines('')).toEqual([]);
   });
 
@@ -55,8 +55,23 @@ describe('splitLines', () => {
 });
 
 describe('diffOutput', () => {
-  it('matches identical output, ignoring blank lines after the final newline', () => {
-    expect(kinds(diffOutput('1\n2\n', '1\n2\n\n'))).toEqual(['equal', 'equal']);
+  it('matches identical output', () => {
+    expect(kinds(diffOutput('1\n2\n', '1\n2\n'))).toEqual(['equal', 'equal']);
+  });
+
+  it('marks blank lines after the final newline as extra', () => {
+    expect(kinds(diffOutput('1\n2\n', '1\n2\n\n'))).toEqual([
+      'equal',
+      'equal',
+      'extra',
+    ]);
+  });
+
+  it('marks blanks at the end of output with no newline', () => {
+    expect(kinds(diffOutput('abc  ', 'abc'))).toEqual(['changed']);
+    expect(describeFirstDifference(diffOutput('abc  ', 'abc'))).toBe(
+      'Line 1, column 4: expected a space but got the end of the line.',
+    );
   });
 
   it('marks a line that differs only in its final newline', () => {
@@ -254,7 +269,9 @@ describe('describeFirstDifference', () => {
     expect(describeFirstDifference(diffOutput('a b', 'a\tb'))).toBe(
       'Line 1, column 2: expected a space but got a tab.',
     );
-    expect(describeFirstDifference(diffOutput('ab', 'ab '))).toBeNull();
+    expect(describeFirstDifference(diffOutput('ab', 'ab '))).toBe(
+      'Line 1, column 3: expected the end of the line but got a space.',
+    );
     expect(describeFirstDifference(diffOutput('ab\nc', 'ab \nc'))).toBe(
       'Line 1, column 3: expected the end of the line but got a space.',
     );

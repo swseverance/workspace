@@ -16,6 +16,18 @@ export const exercise1_22: ExerciseSource = {
     { id: '8a6b8e1e', expectedStdout: '' },
     // A short line.
     { id: 'bc6b6a3e', stdin: 'hello world\n', expectedStdout: 'hello world\n' },
+    // A short line keeps its blanks, wherever they are.
+    {
+      id: 'a6a50db6',
+      stdin: 'a  b  \n',
+      expectedStdout: 'a  b  \n',
+    },
+    // A tab counts as one character: this line is 20 long.
+    {
+      id: '1b9cd0ce',
+      stdin: 'aaaa\tbbbbbbbbbbbbbbb\n',
+      expectedStdout: 'aaaa\tbbbbbbbbbbbbbbb\n',
+    },
     // Exactly 20 characters.
     {
       id: 'f34785cc',
@@ -46,6 +58,31 @@ export const exercise1_22: ExerciseSource = {
       stdin: 'aaaaaaaaaa     bbbbbbbbbbbb\n',
       expectedStdout: 'aaaaaaaaaa\nbbbbbbbbbbbb\n',
     },
+    // Blanks and tabs at a break are all dropped, even those past 20
+    // characters.
+    {
+      id: 'b6202c81',
+      stdin: 'aaaaaaaaaaaaaaaaaa \t \tbbb ccc\n',
+      expectedStdout: 'aaaaaaaaaaaaaaaaaa\nbbb ccc\n',
+    },
+    // A break that leaves nothing prints no empty line.
+    {
+      id: '99a511b2',
+      stdin: 'aaaaaaaaaaaaaaaaaaaa \n',
+      expectedStdout: 'aaaaaaaaaaaaaaaaaaaa\n',
+    },
+    // The line after such a break keeps the blanks it starts with.
+    {
+      id: 'c4d44dc1',
+      stdin: 'aaaaaaaaaaaaaaaaaaaa \n  b\n',
+      expectedStdout: 'aaaaaaaaaaaaaaaaaaaa\n  b\n',
+    },
+    // The last piece keeps the blanks at its end.
+    {
+      id: '49163146',
+      stdin: 'aaaaaaaaaa bbbbbbbbbb  \n',
+      expectedStdout: 'aaaaaaaaaa\nbbbbbbbbbb  \n',
+    },
     // No blanks: break after 20 characters.
     {
       id: '1dda31d8',
@@ -64,11 +101,35 @@ export const exercise1_22: ExerciseSource = {
       stdin: 'ab cccccccccccccccccccccccccccccc\n',
       expectedStdout: 'ab\ncccccccccccccccccccc\ncccccccccc\n',
     },
+    // Blanks at the start of a line aren't a place to break.
+    {
+      id: 'f52b68b3',
+      stdin: '  aaaaaaaaaaaaaaaaaaaaaa\n',
+      expectedStdout: '  aaaaaaaaaaaaaaaaaa\naaaa\n',
+    },
+    // Tabs at the start of a line aren't a place to break either.
+    {
+      id: '51b4e95e',
+      stdin: '\t\taaaaaaaaaaaaaaaaaaaaaa\n',
+      expectedStdout: '\t\taaaaaaaaaaaaaaaaaa\naaaa\n',
+    },
+    // A long line of only blanks is cut like a long word.
+    {
+      id: 'ed17d2a6',
+      stdin: ' '.repeat(25) + '\n',
+      expectedStdout: ' '.repeat(20) + '\n' + ' '.repeat(5) + '\n',
+    },
     // Short and empty lines stay as they are.
     {
       id: 'c8d60792',
       stdin: 'short\n\naaaaaaaaaa bbbbbbbbbb\n',
       expectedStdout: 'short\n\naaaaaaaaaa\nbbbbbbbbbb\n',
+    },
+    // An empty line after a folded line stays.
+    {
+      id: 'f758eec8',
+      stdin: 'aaaaaaaaaa bbbbbbbbbb\n\nx\n',
+      expectedStdout: 'aaaaaaaaaa\nbbbbbbbbbb\n\nx\n',
     },
     // No final newline.
     {

@@ -42,12 +42,12 @@ describe('parseGraderOutput', () => {
 });
 
 describe('toGradeResult', () => {
-  it('passes tests that exit 0 with matching stdout, ignoring whitespace after the final newline', () => {
+  it('passes tests that exit 0 with exactly the expected stdout', () => {
     const result = toGradeResult(
       {
         compile: { exitCode: 0, stdout: '', stderr: '' },
         tests: [
-          { exitCode: 0, stdout: '10\n\n  \n', stderr: '' },
+          { exitCode: 0, stdout: '10\n', stderr: '' },
           { exitCode: 0, stdout: '1\n', stderr: 'debug\n' },
         ],
       },
@@ -61,7 +61,7 @@ describe('toGradeResult', () => {
         {
           id: 'a',
           passed: true,
-          stdout: '10\n\n  \n',
+          stdout: '10\n',
           stderr: '',
           stopReason: null,
           exitCode: 0,
@@ -91,6 +91,21 @@ describe('toGradeResult', () => {
     );
 
     // The second has a space before its newline, which counts too.
+    expect(result.results.map((r) => r.passed)).toEqual([false, false]);
+  });
+
+  it('fails a test whose output has anything extra at the end', () => {
+    const result = toGradeResult(
+      {
+        compile: { exitCode: 0, stdout: '', stderr: '' },
+        tests: [
+          { exitCode: 0, stdout: '10\n\n', stderr: '' },
+          { exitCode: 0, stdout: '0\n  ', stderr: '' },
+        ],
+      },
+      TESTS,
+    );
+
     expect(result.results.map((r) => r.passed)).toEqual([false, false]);
   });
 
