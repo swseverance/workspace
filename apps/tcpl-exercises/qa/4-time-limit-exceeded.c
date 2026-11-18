@@ -5,9 +5,12 @@ int main(void) {
 
   /* Bug: getchar() returns EOF (-1) at the end, never '\0'. */
   while ((c = getchar()) != '\0') {
-    if (c == ' ') ++nb;
-    if (c == '\t') ++nt;
-    if (c == '\n') ++nl;
+    if (c == ' ')
+      ++nb;
+    if (c == '\t')
+      ++nt;
+    if (c == '\n')
+      ++nl;
   }
 
   printf("%d %d %d\n", nb, nt, nl);
