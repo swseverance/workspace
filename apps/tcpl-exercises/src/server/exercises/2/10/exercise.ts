@@ -35,6 +35,12 @@ export const exercise2_10: ExerciseSource = {
       stdin: '0 9\t+-*/ (){}\n',
       expectedStdout: '0 9\t+-*/ (){}\n',
     },
+    // Control characters are unchanged: CR, form feed, DEL and 0x01.
+    {
+      id: 'f91fd63c',
+      stdin: 'A\rB\fC\x7fD\x01E\n',
+      expectedStdout: 'a\rb\fc\x7fd\x01e\n',
+    },
     // The characters either side of A-Z and a-z in ASCII.
     { id: '6ada8c7c', stdin: '@A Z[ `a z{\n', expectedStdout: '@a z[ `a z{\n' },
     // Several lines, including a blank one.
@@ -50,6 +56,18 @@ export const exercise2_10: ExerciseSource = {
       id: 'f00623df',
       stdin: 'ÉTÉ Über\n',
       expectedStdout: 'ÉtÉ Über\n',
+    },
+    // Characters of three and four bytes pass through untouched.
+    {
+      id: 'e592b078',
+      stdin: '中文 😀 END\n',
+      expectedStdout: '中文 😀 end\n',
+    },
+    // A 2,000-character line.
+    {
+      id: 'ba9bae78',
+      stdin: 'Ab'.repeat(1000) + '\n',
+      expectedStdout: 'ab'.repeat(1000) + '\n',
     },
     // Every printable ASCII character, 50 times over.
     {
