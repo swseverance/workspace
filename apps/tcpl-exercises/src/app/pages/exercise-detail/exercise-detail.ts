@@ -26,6 +26,7 @@ import { Panel } from '../../components/panel/panel';
 import { Submissions } from '../../components/submissions/submissions';
 import { TestCases } from '../../components/test-cases/test-cases';
 import { VisibleText } from '../../components/visible-text/visible-text';
+import { exerciseName } from '../../pipes/exercise-name-pipe';
 import { ExerciseFacade } from '../../store/exercise/exercise.facade';
 import { NotFound } from '../not-found/not-found';
 
@@ -85,6 +86,9 @@ export class ExerciseDetail {
 
   private readonly exerciseId = computed(() => this.exercise()?.id);
 
+  /** The Solution tab's position among the tabs. */
+  protected readonly SOLUTION_TAB = 2;
+
   // Each exercise opens on the Code tab.
   protected readonly selectedTabIndex = linkedSignal({
     source: this.exerciseId,
@@ -106,7 +110,9 @@ export class ExerciseDetail {
 
       if (this.exerciseFound() && exercise) {
         seo.setPage(
-          this.exerciseHeading(exercise),
+          // The book's name first: it's what people search for, and search
+          // results cut a long title off at the end.
+          `The C Programming Language, ${this.exerciseHeading(exercise)}`,
           exercise.summary,
           `/exercises/${exercise.id}`,
         );
@@ -117,9 +123,7 @@ export class ExerciseDetail {
   protected exerciseHeading(
     exercise: Pick<Exercise, 'chapter' | 'number' | 'suffix' | 'title'>,
   ): string {
-    const { chapter, number, suffix, title } = exercise;
-
-    return `Exercise ${chapter}-${number}${suffix ?? ''}: ${title}`;
+    return `${exerciseName(exercise)}: ${exercise.title}`;
   }
 
   protected onCodeChange(code: string): void {

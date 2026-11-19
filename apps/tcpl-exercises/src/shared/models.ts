@@ -66,7 +66,7 @@ export type Exercise = {
 export type Chapter = {
   number: number;
   exercises: Array<
-    Pick<Exercise, 'id' | 'chapter' | 'number' | 'suffix' | 'status'>
+    Pick<Exercise, 'id' | 'chapter' | 'number' | 'suffix' | 'title' | 'status'>
   >;
 };
 

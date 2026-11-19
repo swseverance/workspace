@@ -15,10 +15,7 @@
                   class="link"
                   (click)="sidebar.closeOnMobile()"
                 >
-                  <span
-                    >Exercise {{ exercise.chapter }}-{{ exercise.number
-                    }}{{ exercise.suffix ?? '' }}</span
-                  >
+                  <span>{{ exercise | exerciseName }}</span>
 
                   @if (exercise.status !== 'indeterminate') {
                     <app-status
