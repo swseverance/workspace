@@ -1,6 +1,25 @@
 import { ExerciseSource } from '../../../../models/exercise';
+import { lines, seededRandom } from '../../utils';
 import description from './description.md' with { type: 'text' };
 import solution from './main.c' with { type: 'text' };
+
+/** rightrot as the exercise defines it, for 32-bit unsigned values. */
+function rightrot(x: number, n: number): number {
+  const by = n % 32;
+
+  // >>> 0 turns JavaScript's signed 32-bit result back into an unsigned one.
+  return by === 0 ? x : ((x >>> by) | (x << (32 - by))) >>> 0;
+}
+
+const next = seededRandom(28);
+
+// Random x over all 32 bits, rotated by a random n from 0 to 31.
+const RANDOM = Array.from({ length: 200 }, () => {
+  const x = next();
+  const n = next() % 32;
+
+  return { x, n };
+});
 
 export const exercise2_8: ExerciseSource = {
   id: '2-8',
@@ -44,6 +63,12 @@ export const exercise2_8: ExerciseSource = {
       stdin: '305419896 36\n',
       expectedStdout: '2166572391\n',
     },
+    // Rotating by several times the word size.
+    {
+      id: 'c206c143',
+      stdin: '305419896 200\n',
+      expectedStdout: '2014458966\n',
+    },
     // Several lines, the last with no newline.
     { id: '92d4812f', stdin: '2 1\n1 1', expectedStdout: '1\n2147483648\n' },
     // 1 rotated by each n from 0 to 31.
@@ -63,6 +88,12 @@ export const exercise2_8: ExerciseSource = {
         { length: 32 },
         (_, n) => `${2 ** (31 - n)}\n`,
       ).join(''),
+    },
+    // 200 random lines, checked against rightrot written in TypeScript.
+    {
+      id: '39a7e6be',
+      stdin: lines(RANDOM.map(({ x, n }) => `${x} ${n}`)),
+      expectedStdout: lines(RANDOM.map(({ x, n }) => rightrot(x, n))),
     },
   ],
 };
