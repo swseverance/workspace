@@ -1,6 +1,29 @@
 import { ExerciseSource } from '../../../../models/exercise';
+import { lines, seededRandom } from '../../utils';
 import description from './description.md' with { type: 'text' };
 import solution from './main.c' with { type: 'text' };
+
+/** setbits as the exercise defines it, for 32-bit unsigned values. */
+function setbits(x: number, p: number, n: number, y: number): number {
+  const mask = 2 ** n - 1;
+  const shift = p + 1 - n;
+
+  // >>> 0 turns JavaScript's signed 32-bit result back into an unsigned one.
+  return ((x & ~(mask << shift)) | ((y & mask) << shift)) >>> 0;
+}
+
+const next = seededRandom(26);
+
+// Random x and y over all 32 bits, with a field that fits: p from 0 to 31,
+// n from 1 to p+1 and at most 31.
+const RANDOM = Array.from({ length: 200 }, () => {
+  const x = next();
+  const y = next();
+  const p = next() % 32;
+  const n = 1 + (next() % Math.min(p + 1, 31));
+
+  return { x, p, n, y };
+});
 
 export const exercise2_6: ExerciseSource = {
   id: '2-6',
@@ -64,6 +87,14 @@ export const exercise2_6: ExerciseSource = {
         { length: 32 },
         (_, p) => `${2 ** 32 - 1 - 2 ** p}\n`,
       ).join(''),
+    },
+    // 200 random lines, checked against setbits written in TypeScript.
+    {
+      id: '15ab8b7d',
+      stdin: lines(RANDOM.map(({ x, p, n, y }) => `${x} ${p} ${n} ${y}`)),
+      expectedStdout: lines(
+        RANDOM.map(({ x, p, n, y }) => setbits(x, p, n, y)),
+      ),
     },
   ],
 };
