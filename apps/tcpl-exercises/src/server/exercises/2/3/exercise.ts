@@ -28,6 +28,10 @@ export const exercise2_3: ExerciseSource = {
     { id: '811ee064', stdin: '0X1a\n', expectedStdout: '26\n' },
     // Zero with a prefix, and leading zeros.
     { id: 'eb947aa6', stdin: '0x0\n000010\n', expectedStdout: '0\n16\n' },
+    // A leading zero that isn't part of a prefix.
+    { id: 'ca1feaff', stdin: '0a\n', expectedStdout: '10\n' },
+    // Many leading zeros: the value still fits in an int.
+    { id: '6ddffdf4', stdin: '0x00000000000000002a\n', expectedStdout: '42\n' },
     // Every digit.
     {
       id: 'b10865c7',

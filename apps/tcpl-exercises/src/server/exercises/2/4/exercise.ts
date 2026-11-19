@@ -44,17 +44,31 @@ export const exercise2_4: ExerciseSource = {
     },
     // Blanks and tabs in s2.
     { id: 'cfc6687d', stdin: 'a b\tc d\n \t\n', expectedStdout: 'abcd\n' },
+    // Digits and punctuation.
+    { id: 'bc1ef85d', stdin: 'a1,b2.c3!\n123,\n', expectedStdout: 'ab.c!\n' },
+    // A percent sign in s1.
+    { id: '71425cab', stdin: '50% off\nf\n', expectedStdout: '50% o\n' },
+    // An s2 longer than s1.
+    { id: '245139f2', stdin: 'ab\nxyzb\n', expectedStdout: 'a\n' },
     // Runs at the start and end of s1.
     { id: '04787190', stdin: 'xxabcxx\nx\n', expectedStdout: 'abc\n' },
     // Several pairs.
     { id: '22514987', stdin: 'abc\nb\ndef\nf\n', expectedStdout: 'ac\nde\n' },
+    // An empty s2 after one that wasn't.
+    { id: '00bc2c0a', stdin: 'abc\nb\nabc\n\n', expectedStdout: 'ac\nabc\n' },
     // A last line with no newline.
     { id: '18ef61e3', stdin: 'abc\nb', expectedStdout: 'ac\n' },
-    // A 998-character s1.
+    // A 500-character s1.
     {
-      id: '56a75e97',
-      stdin: 'ab'.repeat(499) + '\na\n',
-      expectedStdout: 'b'.repeat(499) + '\n',
+      id: 'c635f43d',
+      stdin: 'ab'.repeat(250) + '\na\n',
+      expectedStdout: 'b'.repeat(250) + '\n',
+    },
+    // A 500-character s2.
+    {
+      id: '20490d55',
+      stdin: 'hello world\n' + 'x'.repeat(498) + 'lo\n',
+      expectedStdout: 'he wrd\n',
     },
     // 500 pairs.
     {

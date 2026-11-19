@@ -1,6 +1,17 @@
 import { ExerciseSource } from '../../../../models/exercise';
+import { lines, seededRandom } from '../../utils';
 import description from './description.md' with { type: 'text' };
 import solution from './main.c' with { type: 'text' };
+
+/** bitcount: the number of 1-bits in a 32-bit unsigned value. */
+function bitcount(x: number): number {
+  return [...x.toString(2)].filter((bit) => bit === '1').length;
+}
+
+const next = seededRandom(29);
+
+// Random values over all 32 bits.
+const RANDOM = Array.from({ length: 200 }, () => next());
 
 export const exercise2_9: ExerciseSource = {
   id: '2-9',
@@ -44,6 +55,12 @@ export const exercise2_9: ExerciseSource = {
         { length: 1024 },
         (_, i) => `${[...i.toString(2)].filter((bit) => bit === '1').length}\n`,
       ).join(''),
+    },
+    // 200 random numbers, checked against bitcount written in TypeScript.
+    {
+      id: 'a7ac3b8e',
+      stdin: lines(RANDOM),
+      expectedStdout: lines(RANDOM.map(bitcount)),
     },
   ],
 };
