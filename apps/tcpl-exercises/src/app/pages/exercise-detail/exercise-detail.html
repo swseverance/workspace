@@ -115,16 +115,24 @@
             </div>
           </nz-tab>
 
-          <nz-tab nzTitle="Solution">
-            <div class="readonly-editor">
-              <app-code-editor
-                [docId]="exercise.id"
-                [code]="exercise.solution"
-                [theme]="theme!"
-                [readonly]="true"
-                [loading]="exerciseLoading()"
-              />
-            </div>
+          <!-- Always rendered, unlike the other tabs, so the solution is
+               in the server's HTML for search engines to read. While the
+               tab is closed its pane is hidden and holds plain text; the
+               editor only exists while the tab is open, like the others. -->
+          <nz-tab nzTitle="Solution" nzForceRender>
+            @if (selectedTabIndex() === SOLUTION_TAB) {
+              <div class="readonly-editor">
+                <app-code-editor
+                  [docId]="exercise.id"
+                  [code]="exercise.solution"
+                  [theme]="theme!"
+                  [readonly]="true"
+                  [loading]="exerciseLoading()"
+                />
+              </div>
+            } @else {
+              <pre><code>{{ exercise.solution }}</code></pre>
+            }
           </nz-tab>
         </nz-tabs>
       </app-panel>

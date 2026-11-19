@@ -111,6 +111,12 @@
       flex: 1;
       min-height: 0;
     }
+
+    // The Solution tab's pane is rendered even while closed; make sure it
+    // never shows, whatever nz-tabs' own classes say during a transition.
+    .ant-tabs-tabpane:not(.ant-tabs-tabpane-active) {
+      display: none;
+    }
   }
 }
 

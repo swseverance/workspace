@@ -11,6 +11,7 @@ import { ScrollTopOnNavigation } from '@org/ui';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { Chapter } from '../../../shared/models';
 import { Status, StatusColor } from '../../components/status/status';
+import { ExerciseNamePipe } from '../../pipes/exercise-name-pipe';
 import { SidebarService } from '../../services/sidebar-service';
 import { ExerciseFacade } from '../../store/exercise/exercise.facade';
 
@@ -23,6 +24,7 @@ type ExerciseStatus = Chapter['exercises'][number]['status'];
     RouterOutlet,
     NzMenuModule,
     AsyncPipe,
+    ExerciseNamePipe,
     Status,
     ScrollTopOnNavigation,
   ],
