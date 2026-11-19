@@ -21,6 +21,12 @@ const SANDBOX_TIMEOUT_MS = 60_000;
 // otherwise produce hundreds of MB.
 const OUTPUT_LIMIT_KB = 64;
 
+// For the runtime that -fsanitize=address links in (see GRADE_SCRIPT). The
+// book's programs never free what they allocate, so memory still held at
+// exit isn't reported; and an allocation too big to satisfy returns NULL,
+// as malloc does, instead of ending the run.
+const ASAN_OPTIONS = 'detect_leaks=0:allocator_may_return_null=1';
+
 // `timeout` exits with 124 when it stops a command, or 137 if it had to
 // SIGKILL one that ignored SIGTERM.
 const TIMED_OUT_EXIT_CODES = new Set([124, 137]);
@@ -39,6 +45,11 @@ const OUTPUT_LIMIT_EXIT_CODE = 153;
  * out POSIX extras such as getline and strdup, which the book defines
  * itself with different signatures.
  *
+ * -fsanitize=address makes a run abort, with a report on stderr, when it
+ * reads or writes outside an array or other object; without it such a
+ * run usually carries on and can print the right answer by luck.
+ * ASAN_OPTIONS adjusts what it reports.
+ *
  * -lm links the math library, which glibc keeps separate from libc, so
  * <math.h> functions such as sin and pow (chapter 4) can be used.
  *
@@ -52,7 +63,7 @@ const OUTPUT_LIMIT_EXIT_CODE = 153;
 const GRADE_SCRIPT = `
 b64() { base64 -w0 "$1"; }
 
-timeout -k 1 ${COMPILE_TIMEOUT_S} gcc -Wall -std=c17 -o main main.c -lm > compile.out 2> compile.err
+timeout -k 1 ${COMPILE_TIMEOUT_S} gcc -Wall -std=c17 -fsanitize=address -o main main.c -lm > compile.out 2> compile.err
 code=$?
 echo "compile:$code:$(b64 compile.out):$(b64 compile.err)"
 [ "$code" -eq 0 ] || exit 0
@@ -63,6 +74,7 @@ for ((i = 0; i < $1; i++)); do
   prog=$(cat "tests/$i.prog")
   mkdir -p "tests/$i.d"
   ( cd "tests/$i.d" && ulimit -f ${OUTPUT_LIMIT_KB}
+    export ASAN_OPTIONS=${ASAN_OPTIONS}
     timeout -k ${RUN_KILL_GRACE_MS / 1000} ${RUN_TIMEOUT_MS / 1000} bash -c 'exec -a "$0" ../../main "$@"' "$prog" "\${args[@]}" < "../$i.in" > "../$i.out" 2> "../$i.err" )
   code=$?
   echo "test:$code:$(b64 "tests/$i.out"):$(b64 "tests/$i.err")"

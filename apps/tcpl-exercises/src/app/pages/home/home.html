@@ -26,8 +26,9 @@
   <li>Pick an exercise and write your solution in the editor.</li>
   <li>
     Each submission is compiled with
-    <code>gcc -Wall -std=c17 -o main main.c -lm</code> and run against tests
-    that supply input, command-line arguments and files.
+    <code>gcc -Wall -std=c17 -fsanitize=address -o main main.c -lm</code> and
+    run against tests that supply input, command-line arguments and files. The
+    sanitizer stops a run that reads or writes outside an array.
   </li>
   <li>
     See which tests pass, exactly where your output differs, and your submission
