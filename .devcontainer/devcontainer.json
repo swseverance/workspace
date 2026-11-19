@@ -28,7 +28,8 @@
     // them. Prefer IPv4, as on macOS.
     "NODE_OPTIONS": "--dns-result-order=ipv4first",
     // Install scripts are allowed in here (they are off on the Mac itself):
-    // the container holds no host credentials for them to steal.
+    // the container holds no host credentials for them to steal, only the
+    // dev tokens from the env file in runArgs.
     "NPM_CONFIG_IGNORE_SCRIPTS": "false",
     // Commits made in here are unsigned: the signing key and SSH agent stay
     // on the Mac on purpose. This overrides commit.gpgsign=true from the
@@ -45,7 +46,15 @@
   },
 
   // No root escalation inside the container (this also disables sudo).
-  "runArgs": ["--cap-drop=ALL", "--security-opt=no-new-privileges"],
+  "runArgs": [
+    "--cap-drop=ALL",
+    "--security-opt=no-new-privileges",
+    // Dev tokens for the emulators (GHREACTIONS_TOKEN, UPSTASH_REDIS_REST_TOKEN,
+    // VERCEL_TOKEN), as plain KEY=value lines. Docker reads the file on the
+    // Mac; it is not mounted. The container won't start without it.
+    "--env-file",
+    "${localEnv:HOME}/.config/workspace.env"
+  ],
 
   // Only the ports Chrome on the Mac needs are forwarded: the app and the
   // browser-facing parts of the Firebase Emulator Suite. They match the
