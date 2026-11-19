@@ -138,7 +138,16 @@ function compile(name, code, extraFlags = []) {
   const bin = join(dir, 'main');
   const result = spawnSync(
     'gcc',
-    ['-Wall', '-std=c17', ...extraFlags, '-o', bin, join(dir, 'main.c'), '-lm'],
+    [
+      '-Wall',
+      '-std=c17',
+      '-fsanitize=address',
+      ...extraFlags,
+      '-o',
+      bin,
+      join(dir, 'main.c'),
+      '-lm',
+    ],
     { encoding: 'utf8' },
   );
   return {
@@ -162,7 +171,11 @@ function run(program, input) {
     input: input.stdin ?? '',
     timeout: LOCAL_TIMEOUT_MS,
     maxBuffer: 16 * 1024 * 1024,
-    env: { ...process.env, ASAN_OPTIONS: 'detect_leaks=0' },
+    // As in run-c.ts.
+    env: {
+      ...process.env,
+      ASAN_OPTIONS: 'detect_leaks=0:allocator_may_return_null=1',
+    },
   });
   const ms = performance.now() - started;
   rmSync(cwd, { recursive: true, force: true });

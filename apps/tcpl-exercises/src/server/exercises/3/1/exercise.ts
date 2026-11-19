@@ -1,6 +1,59 @@
-import { ExerciseSource } from '../../../../models/exercise';
+import {
+  ExerciseSource,
+  ExerciseTestCaseSource,
+} from '../../../../models/exercise';
+import { lines, seededRandom } from '../../utils';
 import description from './description.md' with { type: 'text' };
 import solution from './main.c' with { type: 'text' };
+
+const INT_MIN = -2147483648;
+const INT_MAX = 2147483647;
+
+/** A test that searches v for each of xs, checked against indexOf. */
+function search(
+  id: string,
+  v: readonly number[],
+  xs: readonly number[],
+): ExerciseTestCaseSource {
+  return {
+    id,
+    stdin: lines([v.length, ...v, ...xs]),
+    expectedStdout: lines(xs.map((x) => v.indexOf(x))),
+  };
+}
+
+const next = seededRandom(31);
+
+/**
+ * n distinct random values over the whole range of int, in increasing
+ * order, searched in random order for every element, the values either
+ * side of each, and both ends of the range.
+ */
+function random(id: string, n: number): ExerciseTestCaseSource {
+  const values = new Set<number>();
+  while (values.size < n) {
+    values.add(next() | 0);
+  }
+
+  const v = [...values].sort((a, b) => a - b);
+  const xs = [
+    ...new Set([INT_MIN, INT_MAX, ...v.flatMap((e) => [e - 1, e, e + 1])]),
+  ].filter((x) => x >= INT_MIN && x <= INT_MAX);
+
+  // Fisher-Yates shuffle.
+  for (let i = xs.length - 1; i > 0; i--) {
+    const j = next() % (i + 1);
+    [xs[i], xs[j]] = [xs[j], xs[i]];
+  }
+
+  return search(id, v, xs);
+}
+
+// 1000 random values from 0 to 199, so each appears about five times, in
+// increasing order.
+const REPEATED = Array.from({ length: 1000 }, () => next() % 200).sort(
+  (a, b) => a - b,
+);
 
 // v[i] = 3i for 1000 elements, searched for every element and the value
 // just above each, plus one value below them all.
@@ -22,10 +75,8 @@ export const exercise3_1: ExerciseSource = {
   description,
   solution,
   tests: [
-    // Empty input.
-    { id: '0052bcf3', expectedStdout: '' },
     // An empty array holds nothing.
-    { id: '03cabb8f', stdin: '0\n5\n', expectedStdout: '-1\n' },
+    { id: 'eaa144c7', stdin: '0\n5\n0\n-1\n', expectedStdout: '-1\n-1\n-1\n' },
     // One element: found, below it, above it.
     {
       id: '0472d5c5',
@@ -51,16 +102,44 @@ export const exercise3_1: ExerciseSource = {
       stdin: '6\n10\n20\n30\n40\n50\n60\n5\n10\n20\n30\n40\n50\n60\n65\n35\n',
       expectedStdout: '-1\n0\n1\n2\n3\n4\n5\n-1\n-1\n',
     },
-    // Negative and large values.
+    // Three elements the same: the first, not the middle one.
+    { id: 'e5fe70d8', stdin: '3\n7\n7\n7\n7\n', expectedStdout: '0\n' },
+    // Runs of equal elements: the first of each run.
     {
-      id: '0e66b86a',
-      stdin:
-        '5\n-2000000000\n-5\n0\n7\n2000000000\n' +
-        '2000000000\n-2000000000\n-5\n0\n7\n-6\n1999999999\n2147483647\n',
-      expectedStdout: '4\n0\n1\n2\n3\n-1\n-1\n-1\n',
+      id: 'bd965516',
+      stdin: '7\n1\n1\n2\n2\n2\n3\n3\n0\n1\n2\n3\n4\n',
+      expectedStdout: '-1\n0\n2\n5\n-1\n',
     },
-    // A last line with no newline.
-    { id: '0ed8e7e6', stdin: '3\n1\n2\n3\n2', expectedStdout: '1\n' },
+    // Negative elements, and 0 above them all.
+    {
+      id: '95f4a60f',
+      stdin: '3\n-3\n-2\n-1\n-1\n0\n',
+      expectedStdout: '2\n-1\n',
+    },
+    // Two elements too far apart to subtract.
+    {
+      id: '1d6f27da',
+      stdin: '2\n-2000000000\n2000000000\n-2000000000\n2000000000\n0\n',
+      expectedStdout: '0\n1\n-1\n',
+    },
+    // The smallest and largest int, and the values next to them.
+    {
+      id: '7102024b',
+      stdin:
+        '5\n-2147483648\n-1\n0\n1\n2147483647\n' +
+        '-2147483648\n2147483647\n0\n-2147483647\n2147483646\n',
+      expectedStdout: '0\n4\n2\n-1\n-1\n',
+    },
+    // 50 random elements, checked against indexOf in TypeScript.
+    random('e683c07c', 50),
+    // 1000 random elements, checked the same way.
+    random('86d7e7b0', 1000),
+    // 1000 random elements with repeats, searched for -1 to 200.
+    search(
+      'cda91533',
+      REPEATED,
+      Array.from({ length: 202 }, (_, i) => i - 1),
+    ),
     // 1000 elements, 2001 searches.
     {
       id: '135c84e9',

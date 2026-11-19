@@ -81,6 +81,7 @@ describe('exercise solutions', () => {
           [
             '-Wall',
             '-std=c17',
+            '-fsanitize=address', // as in run-c.ts
             ...MACOS_STRICT_HEADERS,
             '-o',
             binPath,
@@ -115,9 +116,17 @@ describe('exercise solutions', () => {
             input: test.stdin ?? '',
             encoding: 'utf8',
             timeout: 5000,
+            // As in run-c.ts.
+            env: {
+              ...process.env,
+              ASAN_OPTIONS: 'detect_leaks=0:allocator_may_return_null=1',
+            },
           });
 
           expect(result.stdout).toBe(test.expectedStdout);
+          // As the grader requires; a memory error the sanitizer finds
+          // ends the run with another status.
+          expect(result.status).toBe(0);
         });
       });
     });
