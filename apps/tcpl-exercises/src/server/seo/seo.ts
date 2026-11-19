@@ -23,6 +23,8 @@ export const exercisesIndexRedirectHandler: RequestHandler = (_req, res) => {
 export const MOVED_EXERCISES: Record<string, string> = {
   // Split into 1-13a (horizontal) and 1-13b (vertical).
   '1-13': '1-13a',
+  // Split into 3-2a (escape) and 3-2b (unescape).
+  '3-2': '3-2a',
 };
 
 /** Permanently redirects a moved exercise's old page to its new one. */
