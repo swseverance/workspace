@@ -1,6 +1,27 @@
 import { ExerciseSource } from '../../../../models/exercise';
+import { lines, seededRandom } from '../../utils';
 import description from './description.md' with { type: 'text' };
 import solution from './main.c' with { type: 'text' };
+
+/** invert as the exercise defines it, for 32-bit unsigned values. */
+function invert(x: number, p: number, n: number): number {
+  const mask = 2 ** n - 1;
+
+  // >>> 0 turns JavaScript's signed 32-bit result back into an unsigned one.
+  return (x ^ (mask << (p + 1 - n))) >>> 0;
+}
+
+const next = seededRandom(27);
+
+// Random x over all 32 bits, with a field that fits: p from 0 to 31, n from
+// 1 to p+1 and at most 31.
+const RANDOM = Array.from({ length: 200 }, () => {
+  const x = next();
+  const p = next() % 32;
+  const n = 1 + (next() % Math.min(p + 1, 31));
+
+  return { x, p, n };
+});
 
 export const exercise2_7: ExerciseSource = {
   id: '2-7',
@@ -63,6 +84,12 @@ export const exercise2_7: ExerciseSource = {
         { length: 32 },
         (_, p) => `${2 ** 32 - 1 - 2 ** p}\n`,
       ).join(''),
+    },
+    // 200 random lines, checked against invert written in TypeScript.
+    {
+      id: '1fa8965f',
+      stdin: lines(RANDOM.map(({ x, p, n }) => `${x} ${p} ${n}`)),
+      expectedStdout: lines(RANDOM.map(({ x, p, n }) => invert(x, p, n))),
     },
   ],
 };
