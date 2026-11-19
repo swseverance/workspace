@@ -22,6 +22,7 @@ function toChapters(
       chapter: exercise.chapter,
       number: exercise.number,
       suffix: exercise.suffix,
+      title: exercise.title,
       status: getStatus(exercise),
     })),
   }));

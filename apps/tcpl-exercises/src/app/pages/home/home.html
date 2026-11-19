@@ -72,6 +72,25 @@
   </nz-collapse-panel>
 </nz-collapse>
 
+<h2 nz-typography>All exercises</h2>
+
+<!-- No @let for the chapters; see exercises.html. -->
+@for (chapter of (chapters$ | async) ?? []; track chapter.number) {
+  <h3 nz-typography>
+    Chapter {{ chapter.number }}: {{ chapterTitles[chapter.number] }}
+  </h3>
+
+  <ul nz-typography>
+    @for (exercise of chapter.exercises; track exercise.id) {
+      <li>
+        <a [routerLink]="['/exercises', exercise.id]"
+          >{{ exercise | exerciseName }}: {{ exercise.title }}</a
+        >
+      </li>
+    }
+  </ul>
+}
+
 <h2 nz-typography>Architecture</h2>
 
 <ul nz-typography>

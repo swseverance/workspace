@@ -62,8 +62,20 @@ const CHAPTERS: Chapter[] = [
   {
     number: 1,
     exercises: [
-      { id: '1-1', chapter: 1, number: 1, status: 'indeterminate' },
-      { id: '1-2', chapter: 1, number: 2, status: 'passed' },
+      {
+        id: '1-1',
+        chapter: 1,
+        number: 1,
+        title: 'T1',
+        status: 'indeterminate',
+      },
+      {
+        id: '1-2',
+        chapter: 1,
+        number: 2,
+        title: 'T2',
+        status: 'passed',
+      },
     ],
   },
 ];
@@ -278,8 +290,20 @@ describe('exerciseReducer', () => {
         {
           number: 1,
           exercises: [
-            { id: '1-1', chapter: 1, number: 1, status: 'pending' },
-            { id: '1-2', chapter: 1, number: 2, status: 'passed' },
+            {
+              id: '1-1',
+              chapter: 1,
+              number: 1,
+              title: 'T1',
+              status: 'pending',
+            },
+            {
+              id: '1-2',
+              chapter: 1,
+              number: 2,
+              title: 'T2',
+              status: 'passed',
+            },
           ],
         },
       ]);
@@ -323,8 +347,20 @@ describe('exerciseReducer', () => {
           {
             number: 1,
             exercises: [
-              { id: '1-1', chapter: 1, number: 1, status: 'pending' },
-              { id: '1-2', chapter: 1, number: 2, status: 'passed' },
+              {
+                id: '1-1',
+                chapter: 1,
+                number: 1,
+                title: 'T1',
+                status: 'pending',
+              },
+              {
+                id: '1-2',
+                chapter: 1,
+                number: 2,
+                title: 'T2',
+                status: 'passed',
+              },
             ],
           },
         ] as Chapter[],
@@ -389,7 +425,13 @@ describe('exerciseReducer', () => {
           {
             number: 1,
             exercises: [
-              { id: '1-1', chapter: 1, number: 1, status: 'pending' },
+              {
+                id: '1-1',
+                chapter: 1,
+                number: 1,
+                title: 'T1',
+                status: 'pending',
+              },
             ],
           },
         ] as Chapter[],
@@ -410,7 +452,13 @@ describe('exerciseReducer', () => {
           {
             number: 1,
             exercises: [
-              { id: '1-1', chapter: 1, number: 1, status: 'pending' },
+              {
+                id: '1-1',
+                chapter: 1,
+                number: 1,
+                title: 'T1',
+                status: 'pending',
+              },
             ],
           },
         ] as Chapter[],
@@ -431,8 +479,20 @@ describe('exerciseReducer', () => {
           {
             number: 1,
             exercises: [
-              { id: '1-1', chapter: 1, number: 1, status: 'pending' },
-              { id: '1-2', chapter: 1, number: 2, status: 'passed' },
+              {
+                id: '1-1',
+                chapter: 1,
+                number: 1,
+                title: 'T1',
+                status: 'pending',
+              },
+              {
+                id: '1-2',
+                chapter: 1,
+                number: 2,
+                title: 'T2',
+                status: 'passed',
+              },
             ],
           },
         ] as Chapter[],
