@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { Chapter, Exercise, ExerciseStatus } from '../../../shared/models';
+import { Chapter, Exercise } from '../../../shared/models';
 import {
   chaptersLoaded,
   loadChapters,
@@ -40,10 +40,13 @@ function upsertLoadedExercise(state: ExerciseState, exercise: Exercise) {
   );
 }
 
-function updateExerciseStatus(
+type ChapterExercise = Chapter['exercises'][number];
+
+/** Changes one exercise's entry in the chapters, e.g. its sidebar status. */
+function updateChapterExercise(
   chapters: Chapter[],
   exerciseId: string,
-  status: ExerciseStatus,
+  changes: Partial<ChapterExercise>,
 ): Chapter[] {
   return chapters.map((chapter) => {
     const index = chapter.exercises.findIndex(
@@ -55,7 +58,7 @@ function updateExerciseStatus(
     }
 
     const exercises = [...chapter.exercises];
-    exercises[index] = { ...exercises[index], status };
+    exercises[index] = { ...exercises[index], ...changes };
 
     return { ...chapter, exercises };
   });
@@ -106,16 +109,19 @@ export const exerciseReducer = createReducer(
       { id: state.id, changes: { submitting: true } },
       state,
     ),
-    chapters: updateExerciseStatus(state.chapters, state.id, 'pending'),
+    chapters: updateChapterExercise(state.chapters, state.id, {
+      status: 'pending',
+    }),
   })),
 
   on(exerciseSubmitted, (state, { exercise }) => {
     const entity = state.entities[exercise.id];
-    const chapters = updateExerciseStatus(
-      state.chapters,
-      exercise.id,
-      exercise.status,
-    );
+    // The submission has just been counted, so the chapters' copy of the
+    // exercise's stats follows; it keeps the old ones if none came back.
+    const chapters = updateChapterExercise(state.chapters, exercise.id, {
+      status: exercise.status,
+      ...(exercise.stats ? { stats: exercise.stats } : {}),
+    });
 
     if (!entity) {
       return { ...state, chapters };
@@ -137,11 +143,9 @@ export const exerciseReducer = createReducer(
     ),
     // Nothing was graded (e.g. rate limited), so put back the last known
     // status rather than losing a previous pass.
-    chapters: updateExerciseStatus(
-      state.chapters,
-      id,
-      state.entities[id]?.status ?? 'indeterminate',
-    ),
+    chapters: updateChapterExercise(state.chapters, id, {
+      status: state.entities[id]?.status ?? 'indeterminate',
+    }),
   })),
 
   on(loadChapters, (state) => ({

@@ -51,12 +51,20 @@
     <div class="top-row">
       <app-panel
         class="description-panel"
-        libScrollTopOnNavigation
         [heading]="exerciseHeading(exercise)"
         [headingLevel]="1"
         [loading]="exerciseLoading()"
       >
-        <app-exercise-description [description]="exercise.description" />
+        <!-- The description is what scrolls, not the panel around it. -->
+        <app-exercise-description
+          libScrollTopOnNavigation
+          [description]="exercise.description"
+        />
+
+        <!-- Left out when the counts couldn't be loaded. -->
+        @if (exercise.stats; as stats) {
+          <app-exercise-stats panel-footer [stats]="stats" />
+        }
       </app-panel>
 
       <app-panel class="code-panel">

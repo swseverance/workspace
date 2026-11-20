@@ -41,7 +41,7 @@
     },
     "emulate": {
       "continuous": true,
-      "command": "nx run ghreactions-functions:build:local && cp apps/ghreactions-functions/.secret.local dist/apps/ghreactions-functions/ && npm exec firebase-tools -- emulators:start --only functions --config apps/ghreactions-functions/firebase.json --project ghreactionsdev"
+      "command": "nx run ghreactions-functions:build:local && printf 'GHREACTIONS_TOKEN=%s\\nUPSTASH_REDIS_REST_TOKEN=%s\\n' \"$GHREACTIONS_TOKEN\" \"$UPSTASH_REDIS_REST_TOKEN\" > dist/apps/ghreactions-functions/.secret.local && npm exec firebase-tools -- emulators:start --only functions --config apps/ghreactions-functions/firebase.json --project ghreactionsdev"
     }
   }
 }

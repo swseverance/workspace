@@ -19,12 +19,39 @@
   font-weight: 600;
 }
 
+// With a footer, the panel has no padding below it: the footer's own
+// padding is the space there, and its bottom edge is the panel's.
+:host:has(.panel-footer:not(:empty)) {
+  padding-bottom: 0;
+}
+
+// The negative side margins run it out over the panel's padding, so its
+// border spans the panel.
+.panel-footer {
+  margin: 16px -16px 0;
+  padding: 12px 16px;
+  // The panel's own border colour, set per theme below.
+  border-top: 1px solid;
+
+  &:empty {
+    display: none;
+  }
+}
+
 :host-context(.tcpl-exercises-light-theme) {
   background: #fff;
   border-color: rgba(0, 0, 0, 0.06);
+
+  .panel-footer {
+    border-top-color: rgba(0, 0, 0, 0.06);
+  }
 }
 
 :host-context(.tcpl-exercises-dark-theme) {
   background: #262626;
   border-color: rgba(255, 255, 255, 0.08);
+
+  .panel-footer {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
 }

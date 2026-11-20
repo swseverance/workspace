@@ -50,6 +50,7 @@ const EXERCISE: Exercise = {
   compilationError: '',
   compilerWarnings: '',
   submissions: [],
+  stats: null,
 };
 
 const ENTITY: ExerciseEntity = {
@@ -68,6 +69,7 @@ const CHAPTERS: Chapter[] = [
         number: 1,
         title: 'T1',
         status: 'indeterminate',
+        stats: null,
       },
       {
         id: '1-2',
@@ -75,6 +77,7 @@ const CHAPTERS: Chapter[] = [
         number: 2,
         title: 'T2',
         status: 'passed',
+        stats: null,
       },
     ],
   },
@@ -296,6 +299,7 @@ describe('exerciseReducer', () => {
               number: 1,
               title: 'T1',
               status: 'pending',
+              stats: null,
             },
             {
               id: '1-2',
@@ -303,6 +307,7 @@ describe('exerciseReducer', () => {
               number: 2,
               title: 'T2',
               status: 'passed',
+              stats: null,
             },
           ],
         },
@@ -353,6 +358,7 @@ describe('exerciseReducer', () => {
                 number: 1,
                 title: 'T1',
                 status: 'pending',
+                stats: null,
               },
               {
                 id: '1-2',
@@ -360,6 +366,7 @@ describe('exerciseReducer', () => {
                 number: 2,
                 title: 'T2',
                 status: 'passed',
+                stats: null,
               },
             ],
           },
@@ -431,6 +438,7 @@ describe('exerciseReducer', () => {
                 number: 1,
                 title: 'T1',
                 status: 'pending',
+                stats: null,
               },
             ],
           },
@@ -458,6 +466,7 @@ describe('exerciseReducer', () => {
                 number: 1,
                 title: 'T1',
                 status: 'pending',
+                stats: null,
               },
             ],
           },
@@ -485,6 +494,7 @@ describe('exerciseReducer', () => {
                 number: 1,
                 title: 'T1',
                 status: 'pending',
+                stats: null,
               },
               {
                 id: '1-2',
@@ -492,6 +502,7 @@ describe('exerciseReducer', () => {
                 number: 2,
                 title: 'T2',
                 status: 'passed',
+                stats: null,
               },
             ],
           },

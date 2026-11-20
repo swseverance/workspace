@@ -1,9 +1,14 @@
+@use 'breakpoints' as bp;
+
 :host {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 16px;
-  max-width: 680px;
+  // A centred column; the text inside it stays left-aligned.
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
   padding: 16px 24px;
 }
 
@@ -18,4 +23,42 @@ ul {
 // The questions fill the column, like the text around them.
 .questions {
   align-self: stretch;
+}
+
+// What the tables' counts are; they're hidden on a phone, so this is too.
+.counts-note {
+  @include bp.mobile {
+    display: none;
+  }
+}
+
+// A chapter's exercises fill the column, like the text around them.
+.chapter {
+  align-self: stretch;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 8px;
+    border-bottom: 1px solid var(--tc-code-border);
+    text-align: left;
+  }
+
+  th {
+    font-weight: 600;
+    background: var(--tc-code-bg);
+  }
+
+  // Counts are right-aligned and line up digit for digit down a column.
+  .count {
+    width: 1%;
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+
+    // No room for them on a phone: the exercise's name gets the full width.
+    @include bp.mobile {
+      display: none;
+    }
+  }
 }
