@@ -41,6 +41,14 @@ export type ExerciseSubmission = {
   code: string;
 };
 
+/** How everyone's submissions to an exercise have fared. */
+export type ExerciseStats = {
+  /** Submissions that compiled. */
+  compiled: number;
+  /** Of those, the ones that passed every test. */
+  passed: number;
+};
+
 export type Exercise = {
   id: string;
   chapter: number;
@@ -61,12 +69,17 @@ export type Exercise = {
   compilerWarnings: string;
   /** The user's most recent submissions, newest first. */
   submissions: ExerciseSubmission[];
+  /** Null when the counts couldn't be loaded. */
+  stats: ExerciseStats | null;
 };
 
 export type Chapter = {
   number: number;
   exercises: Array<
-    Pick<Exercise, 'id' | 'chapter' | 'number' | 'suffix' | 'title' | 'status'>
+    Pick<
+      Exercise,
+      'id' | 'chapter' | 'number' | 'suffix' | 'title' | 'status' | 'stats'
+    >
   >;
 };
 

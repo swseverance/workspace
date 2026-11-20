@@ -6,14 +6,17 @@ import { ExerciseRecordTestResult } from '../../models/exercise-record';
 import {
   Chapter,
   ChaptersResponseBody,
+  ExerciseStats,
   ExerciseStatus,
 } from '../../shared/models';
 import { CHAPTERS } from '../exercises';
 import { computeExerciseStatus } from '../exercises/status';
 import { getExerciseRecordTestsByExerciseId } from '../firestore/exercise-records';
+import { getAllExerciseStats } from '../stats/exercise-stats';
 
 function toChapters(
   getStatus: (exercise: ExerciseSource) => ExerciseStatus,
+  getStats: (exercise: ExerciseSource) => ExerciseStats | null,
 ): Chapter[] {
   return CHAPTERS.map((chapter) => ({
     number: chapter.number,
@@ -24,6 +27,7 @@ function toChapters(
       suffix: exercise.suffix,
       title: exercise.title,
       status: getStatus(exercise),
+      stats: getStats(exercise),
     })),
   }));
 }
@@ -31,13 +35,25 @@ function toChapters(
 export async function getChaptersForUser(
   user: SessionUser | undefined,
 ): Promise<Chapter[]> {
-  const testsByExerciseId: Record<
-    string,
-    Record<string, ExerciseRecordTestResult>
-  > = user ? await getExerciseRecordTestsByExerciseId(user.uid) : {};
+  // Everyone's counts for every exercise come from one Redis command, so
+  // a page listing them all (the stats page) costs no more than this.
+  const [testsByExerciseId, stats]: [
+    Record<string, Record<string, ExerciseRecordTestResult>>,
+    Record<string, ExerciseStats> | null,
+  ] = await Promise.all([
+    user ? getExerciseRecordTestsByExerciseId(user.uid) : {},
+    getAllExerciseStats(),
+  ]);
 
-  return toChapters((exercise) =>
-    computeExerciseStatus(exercise.tests, testsByExerciseId[exercise.id] ?? {}),
+  return toChapters(
+    (exercise) =>
+      computeExerciseStatus(
+        exercise.tests,
+        testsByExerciseId[exercise.id] ?? {},
+      ),
+    // Null only when the counts couldn't be loaded; an exercise nobody has
+    // submitted counts as zero.
+    (exercise) => stats && (stats[exercise.id] ?? { compiled: 0, passed: 0 }),
   );
 }
 

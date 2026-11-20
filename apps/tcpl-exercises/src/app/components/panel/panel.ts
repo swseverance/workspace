@@ -20,6 +20,10 @@ import { SmartLoader } from '../smart-loader/smart-loader';
     <app-smart-loader [loading]="loading()">
       <nz-skeleton loader-skeleton [nzActive]="true" />
       <ng-content />
+      <!-- Inside the loader, so it gives way to the skeleton along with
+           the content it belongs to. Empty, and so hidden, unless
+           something is projected into it. -->
+      <div class="panel-footer"><ng-content select="[panel-footer]" /></div>
     </app-smart-loader>
   `,
   styleUrl: './panel.scss',
