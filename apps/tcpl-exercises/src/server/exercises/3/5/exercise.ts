@@ -10,6 +10,11 @@ const STRESS = Array.from({ length: 35 }, (_, i) => i + 2).flatMap((b) =>
   ),
 );
 
+// The largest negative int in every base. Its magnitude doesn't fit in an
+// int, and a way round that which works in base 2 or 16 can fail elsewhere.
+const INT_MIN = -2_147_483_648;
+const INT_MIN_BASES = Array.from({ length: 35 }, (_, i) => i + 2);
+
 export const exercise3_5: ExerciseSource = {
   id: '3-5',
   chapter: 3,
@@ -64,6 +69,14 @@ export const exercise3_5: ExerciseSource = {
       stdin: '2147483647 2\n-2147483648 2\n-2147483648 16\n2147483647 36\n',
       expectedStdout:
         '1'.repeat(31) + '\n-1' + '0'.repeat(31) + '\n-80000000\nzik0zj\n',
+    },
+    // The largest negative int in every base.
+    {
+      id: 'd22d9f93',
+      stdin: INT_MIN_BASES.map((b) => `${INT_MIN} ${b}\n`).join(''),
+      expectedStdout: INT_MIN_BASES.map((b) => `${INT_MIN.toString(b)}\n`).join(
+        '',
+      ),
     },
     // A last line with no newline.
     { id: '9c200b7c', stdin: '10 16\n255 16', expectedStdout: 'a\nff\n' },
