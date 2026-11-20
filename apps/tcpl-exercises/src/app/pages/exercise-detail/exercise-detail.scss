@@ -82,11 +82,28 @@
   }
 }
 
+// A column: the heading, the description, and the panel's footer (the
+// exercise's stats). The description takes the height left over and
+// scrolls within it, so the footer is always in view at the bottom.
 .description-panel {
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 
+  app-exercise-description {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    // Out over the panel's padding, so the scrollbar is at its edge.
+    margin-right: -16px;
+    padding-right: 16px;
+  }
+
+  // Stacked on mobile, the panel is as tall as its description.
   @include bp.mobile {
-    overflow-y: visible;
+    app-exercise-description {
+      flex: none;
+      overflow-y: visible;
+    }
   }
 }
 

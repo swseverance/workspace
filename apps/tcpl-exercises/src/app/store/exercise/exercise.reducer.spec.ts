@@ -50,6 +50,7 @@ const EXERCISE: Exercise = {
   compilationError: '',
   compilerWarnings: '',
   submissions: [],
+  stats: null,
 };
 
 const ENTITY: ExerciseEntity = {

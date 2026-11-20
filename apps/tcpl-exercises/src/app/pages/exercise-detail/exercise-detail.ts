@@ -22,6 +22,7 @@ import { map } from 'rxjs';
 import { Exercise } from '../../../shared/models';
 import { CodeEditor } from '../../components/code-editor/code-editor';
 import { ExerciseDescription } from '../../components/exercise-description/exercise-description';
+import { ExerciseStats } from '../../components/exercise-stats/exercise-stats';
 import { Panel } from '../../components/panel/panel';
 import { Submissions } from '../../components/submissions/submissions';
 import { TestCases } from '../../components/test-cases/test-cases';
@@ -43,6 +44,7 @@ import { NotFound } from '../not-found/not-found';
     VisibleText,
     Panel,
     ExerciseDescription,
+    ExerciseStats,
     Submissions,
     NotFound,
     ScrollTopOnNavigation,

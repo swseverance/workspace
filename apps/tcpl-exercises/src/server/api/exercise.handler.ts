@@ -9,6 +9,7 @@ import {
 import {
   DEFAULT_PROGRAM,
   Exercise,
+  ExerciseStats,
   ExerciseSubmission,
   ExerciseTestCase,
 } from '../../shared/models';
@@ -21,6 +22,10 @@ import {
   truncateGraded,
 } from '../firestore/exercise-records';
 import { gradeSubmission } from '../sandbox/run-c';
+import {
+  getExerciseStats,
+  recordCompiledSubmission,
+} from '../stats/exercise-stats';
 
 const STARTER_CODE = `#include <stdio.h>\n\nint main() {\n  return 0;\n}\n`;
 
@@ -37,6 +42,7 @@ function toExercise(
     compilerWarnings,
   }: Omit<ExerciseRecord, 'id'>,
   submissions: ExerciseSubmission[],
+  stats: ExerciseStats | null,
 ): Exercise {
   const { id, chapter, number, suffix, title, summary, description } = exercise;
 
@@ -105,6 +111,7 @@ function toExercise(
     compilationError,
     compilerWarnings,
     submissions,
+    stats,
   };
 }
 
@@ -112,12 +119,15 @@ export async function getExerciseForUser(
   exercise: ExerciseSource,
   user: SessionUser | undefined,
 ): Promise<Exercise> {
-  const [record, submissions] = user
-    ? await Promise.all([
-        getExerciseRecord(user.uid, exercise.id),
-        getExerciseSubmissions(user.uid, exercise.id),
-      ])
-    : [undefined, []];
+  const [[record, submissions], stats] = await Promise.all([
+    user
+      ? Promise.all([
+          getExerciseRecord(user.uid, exercise.id),
+          getExerciseSubmissions(user.uid, exercise.id),
+        ])
+      : [undefined, []],
+    getExerciseStats(exercise.id),
+  ]);
 
   return toExercise(
     exercise,
@@ -128,6 +138,7 @@ export async function getExerciseForUser(
       compilerWarnings: '',
     },
     submissions,
+    stats,
   );
 }
 
@@ -178,6 +189,14 @@ export const submitExerciseHandler: RequestHandler<
       ]),
     );
 
+    const status = computeExerciseStatus(exercise.tests, tests);
+
+    // Counted for everyone, signed in or not. A submission that didn't
+    // compile isn't counted, so its page shows the counts as they were.
+    const countingStats = compilationError
+      ? getExerciseStats(exercise.id)
+      : recordCompiledSubmission(exercise.id, status === 'passed');
+
     // Signed out: graded, but nothing is saved, so there's no history.
     if (!uid) {
       res.json(
@@ -188,28 +207,33 @@ export const submitExerciseHandler: RequestHandler<
             ...truncateGraded({ tests, compilationError, compilerWarnings }),
           },
           [],
+          await countingStats,
         ),
       );
       return;
     }
 
-    const { record, submission } = await saveExerciseRecordSubmission(
-      uid,
-      exercise.id,
-      code,
-      { tests, compilationError, compilerWarnings },
-      {
-        status: computeExerciseStatus(exercise.tests, tests),
-        passed: exercise.tests.filter((t) => tests[t.id]?.status === 'passed')
-          .length,
-        total: exercise.tests.length,
-      },
-    );
+    const [{ record, submission }, stats] = await Promise.all([
+      saveExerciseRecordSubmission(
+        uid,
+        exercise.id,
+        code,
+        { tests, compilationError, compilerWarnings },
+        {
+          status,
+          passed: exercise.tests.filter((t) => tests[t.id]?.status === 'passed')
+            .length,
+          total: exercise.tests.length,
+        },
+      ),
+      countingStats,
+    ]);
     res.json(
       toExercise(
         exercise,
         record,
         [submission, ...previousSubmissions].slice(0, SUBMISSION_HISTORY_LIMIT),
+        stats,
       ),
     );
   } catch (err) {
