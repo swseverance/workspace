@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '@org/ui';
@@ -6,6 +6,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { ExerciseNamePipe } from '../../pipes/exercise-name-pipe';
+import { PassRatePipe } from '../../pipes/pass-rate-pipe';
 import { ExerciseFacade } from '../../store/exercise/exercise.facade';
 
 /** The book's chapter titles, by chapter number. */
@@ -24,8 +25,10 @@ const CHAPTER_TITLES: Record<number, string> = {
   selector: 'app-home',
   imports: [
     AsyncPipe,
-    RouterLink,
+    DecimalPipe,
     ExerciseNamePipe,
+    PassRatePipe,
+    RouterLink,
     NzButtonModule,
     NzCollapseModule,
     NzTypographyModule,

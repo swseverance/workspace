@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { hmget, hincrby, hget, exec, loggerWarn } = vi.hoisted(() => ({
+const { hmget, hgetall, hincrby, hget, exec, loggerWarn } = vi.hoisted(() => ({
   hmget: vi.fn(),
+  hgetall: vi.fn(),
   hincrby: vi.fn(),
   hget: vi.fn(),
   exec: vi.fn(),
@@ -11,13 +12,17 @@ const { hmget, hincrby, hget, exec, loggerWarn } = vi.hoisted(() => ({
 // A package mock: the Angular unit-test builder rejects vi.mock on relative paths.
 vi.mock('@upstash/redis', () => ({
   Redis: {
-    fromEnv: () => ({ hmget, pipeline: () => ({ hincrby, hget, exec }) }),
+    fromEnv: () => ({
+      hmget,
+      hgetall,
+      pipeline: () => ({ hincrby, hget, exec }),
+    }),
   },
 }));
 
 vi.mock('firebase-functions/logger', () => ({ warn: loggerWarn }));
 
-const { getExerciseStats, recordCompiledSubmission } =
+const { getAllExerciseStats, getExerciseStats, recordCompiledSubmission } =
   await import('./exercise-stats');
 
 const KEY = 'proj:dev:tcpl:exercise-stats';
@@ -56,6 +61,35 @@ describe('getExerciseStats', () => {
     hmget.mockRejectedValue(new Error('down'));
 
     expect(await getExerciseStats('3-1')).toBeNull();
+    expect(loggerWarn).toHaveBeenCalled();
+  });
+});
+
+describe('getAllExerciseStats', () => {
+  it("reads every exercise's counts with one command", async () => {
+    hgetall.mockResolvedValue({
+      '3-1:compiled': 12,
+      '3-1:passed': 5,
+      '1-13a:compiled': 4,
+    });
+
+    expect(await getAllExerciseStats()).toEqual({
+      '3-1': { compiled: 12, passed: 5 },
+      '1-13a': { compiled: 4, passed: 0 },
+    });
+    expect(hgetall).toHaveBeenCalledExactlyOnceWith(KEY);
+  });
+
+  it('is empty before the first submission', async () => {
+    hgetall.mockResolvedValue(null);
+
+    expect(await getAllExerciseStats()).toEqual({});
+  });
+
+  it('gives null, and logs, when Redis fails', async () => {
+    hgetall.mockRejectedValue(new Error('down'));
+
+    expect(await getAllExerciseStats()).toBeNull();
     expect(loggerWarn).toHaveBeenCalled();
   });
 });

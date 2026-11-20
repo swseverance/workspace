@@ -1,11 +1,12 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { ExerciseStats as Stats } from '../../../shared/models';
+import { PassRatePipe } from '../../pipes/pass-rate-pipe';
 
 /** How everyone's submissions to an exercise have fared. */
 @Component({
   selector: 'app-exercise-stats',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, PassRatePipe],
   template: `
     <span class="stat" title="Submissions that passed every test">
       <span class="label">Accepted:</span>&ngsp;<strong>{{
@@ -19,7 +20,7 @@ import { ExerciseStats as Stats } from '../../../shared/models';
     </span>
     <span class="stat" title="Accepted, as a share of submitted">
       <span class="label">Percentage:</span>&ngsp;<strong>{{
-        percentage()
+        stats() | passRate
       }}</strong>
     </span>
     <!-- The rest of the page is the reader's own tests and submissions. -->
@@ -81,11 +82,4 @@ import { ExerciseStats as Stats } from '../../../shared/models';
 })
 export class ExerciseStats {
   stats = input.required<Stats>();
-
-  /** A dash until there is a submission to take a share of. */
-  protected readonly percentage = computed(() => {
-    const { compiled, passed } = this.stats();
-
-    return compiled > 0 ? `${Math.round((100 * passed) / compiled)}%` : '–';
-  });
 }

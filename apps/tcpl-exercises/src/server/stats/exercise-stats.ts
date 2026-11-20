@@ -40,6 +40,38 @@ export async function getExerciseStats(
 }
 
 /**
+ * Every exercise's counts, by exercise id, read with one command; an
+ * exercise nobody has submitted isn't in it. Null if Redis can't be
+ * reached.
+ */
+export async function getAllExerciseStats(): Promise<Record<
+  string,
+  ExerciseStats
+> | null> {
+  try {
+    const fields = (await redisProvider.get().hgetall(statsKey())) ?? {};
+    const stats: Record<string, ExerciseStats> = {};
+
+    for (const [field, value] of Object.entries(fields)) {
+      // An exercise id has no colon, so the last one starts the count's name.
+      const colon = field.lastIndexOf(':');
+      const exerciseId = field.slice(0, colon);
+      const count = field.slice(colon + 1);
+
+      if (count === 'compiled' || count === 'passed') {
+        stats[exerciseId] ??= { compiled: 0, passed: 0 };
+        stats[exerciseId][count] = toCount(value);
+      }
+    }
+
+    return stats;
+  } catch (err) {
+    logger.warn('[exercise-stats] read of all failed', err);
+    return null;
+  }
+}
+
+/**
  * Counts a submission that compiled, and whether it passed every test.
  * Returns the counts including it, or null if Redis can't be reached: a
  * submission is graded and saved whether or not it's counted.

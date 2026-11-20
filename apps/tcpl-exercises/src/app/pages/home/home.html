@@ -75,21 +75,51 @@
 
 <h2 nz-typography>All exercises</h2>
 
+<p class="counts-note" nz-typography>
+  The counts are for everyone: submissions that compiled, and how many of them
+  passed every test.
+</p>
+
 <!-- No @let for the chapters; see exercises.html. -->
 @for (chapter of (chapters$ | async) ?? []; track chapter.number) {
   <h3 nz-typography>
     Chapter {{ chapter.number }}: {{ chapterTitles[chapter.number] }}
   </h3>
 
-  <ul nz-typography>
-    @for (exercise of chapter.exercises; track exercise.id) {
-      <li>
-        <a [routerLink]="['/exercises', exercise.id]"
-          >{{ exercise | exerciseName }}: {{ exercise.title }}</a
-        >
-      </li>
-    }
-  </ul>
+  <!-- A plain table, not nz-table: its content projection breaks
+       hydration inside this @for ("Cannot read properties of null
+       (reading 'flags')"), leaving only the first chapter rendered. -->
+  <table class="chapter">
+    <thead>
+      <tr>
+        <th>Exercise</th>
+        <th class="count">Accepted</th>
+        <th class="count">Submitted</th>
+        <th class="count">Percentage</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (exercise of chapter.exercises; track exercise.id) {
+        <tr>
+          <td>
+            <a [routerLink]="['/exercises', exercise.id]"
+              >{{ exercise | exerciseName }}: {{ exercise.title }}</a
+            >
+          </td>
+          <!-- A dash when the counts couldn't be loaded. -->
+          <td class="count">
+            {{ exercise.stats ? (exercise.stats.passed | number) : '–' }}
+          </td>
+          <td class="count">
+            {{ exercise.stats ? (exercise.stats.compiled | number) : '–' }}
+          </td>
+          <td class="count">
+            {{ exercise.stats | passRate }}
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
 }
 
 <h2 nz-typography>Architecture</h2>
