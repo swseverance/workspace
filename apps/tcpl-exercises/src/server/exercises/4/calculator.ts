@@ -57,14 +57,20 @@ export type CalculatorOptions = {
   modulus?: boolean;
   /** 4-4: `?` print top, `d` duplicate, `s` swap top two, `c` clear. */
   stackCommands?: boolean;
+  /** 4-5: a word of lower-case letters is a command (sin, exp, pow, ...). */
+  functions?: boolean;
 };
 
 const isDigit = (c: string | null): boolean =>
   c !== null && c >= '0' && c <= '9';
 
+const isLower = (c: string | null): boolean =>
+  c !== null && c >= 'a' && c <= 'z';
+
 type Token =
   | { kind: 'eof' }
   | { kind: 'number'; text: string }
+  | { kind: 'name'; text: string }
   | { kind: 'op'; char: string };
 
 class Calculator {
@@ -95,6 +101,16 @@ class Calculator {
     let c = this.getch();
     while (c === ' ' || c === '\t') c = this.getch();
     if (c === null) return { kind: 'eof' };
+
+    if (this.options.functions && isLower(c)) {
+      let name = '';
+      while (isLower(c) && name.length < MAXOP - 1) {
+        name += c;
+        c = this.getch();
+      }
+      this.ungetch(c);
+      return { kind: 'name', text: name };
+    }
 
     const numberStart =
       isDigit(c) || c === '.' || (this.options.negativeNumbers && c === '-');
@@ -160,6 +176,19 @@ class Calculator {
     this.output += `error: unknown command ${char}\n`;
   }
 
+  // 4-5. WARNING: Math.sin/exp/pow can differ from C's libm in the last
+  // significant digit, so a generated test must never print a value these
+  // produce. Only name tokenising and the unknown-word path are safe to
+  // stress; feed sin/exp/pow a result you don't print, or not at all.
+  private mathfnc(name: string): void {
+    if (name === 'sin') this.push(Math.sin(this.pop()));
+    else if (name === 'exp') this.push(Math.exp(this.pop()));
+    else if (name === 'pow') {
+      const op2 = this.pop();
+      this.push(Math.pow(this.pop(), op2));
+    } else this.unknown(name);
+  }
+
   // 4-4 commands. `?` prints the top in the same format a newline does; `d`
   // duplicates it through push (so a full stack reports stack-full); `s`
   // swaps the top two; `c` clears. Each guards too-few elements like main.c.
@@ -193,6 +222,10 @@ class Calculator {
       if (token.kind === 'eof') break;
       if (token.kind === 'number') {
         this.push(cAtof(token.text));
+        continue;
+      }
+      if (token.kind === 'name') {
+        this.mathfnc(token.text);
         continue;
       }
       switch (token.char) {
