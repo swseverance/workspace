@@ -30,4 +30,4 @@ double atof(char s[])
 }
 ```
 
-Each input line holds one number. Print `atof` of it with `printf("%g\n", ...)`.
+Each input line holds one number and is at most 500 characters long. Print `atof` of it with `printf("%g\n", ...)`.
