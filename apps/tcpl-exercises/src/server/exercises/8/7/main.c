@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stddef.h> /* size_t, NULL */
-#include <stdint.h> /* intptr_t */
+#include <stdint.h> /* intptr_t, uintptr_t */
 #include <string.h>
 
 void *sbrk(intptr_t increment);
@@ -50,7 +50,8 @@ int main(void) {
       nblocks++;
     } else if (strncmp(line, "free static", 11) == 0)
       kr_free(notmine);
-    else if (sscanf(line, "free %d +%d", &i, &k) == 2 && i >= 0 && i < nblocks)
+    else if (sscanf(line, "free %d +%d", &i, &k) == 2 && i >= 0 &&
+             i < nblocks && blocks[i] != NULL)
       kr_free(blocks[i] + k);
     else if (sscanf(line, "free %d", &i) == 1 && i >= 0 && i < nblocks)
       kr_free(blocks[i]);
@@ -132,6 +133,10 @@ void kr_free(void *ap) {
 
   if (ap == NULL)
     return;
+  if ((uintptr_t)ap % sizeof(Header) != 0) { /* no block starts here */
+    printf("kr_free: bad pointer\n");
+    return;
+  }
   bp = (Header *)ap - 1; /* point to block header */
   if (arenalo == NULL || bp < arenalo || bp >= arenahi || bp->s.size == 0 ||
       bp->s.size > (unsigned)(arenahi - bp) || isfree(bp)) {

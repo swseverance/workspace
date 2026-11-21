@@ -22,7 +22,7 @@ int main(void) {
         push(num);
       else
         operate(token);
-    if (line[strlen(line) - 1] == '\n')
+    if (line[0] != '\0' && line[strlen(line) - 1] == '\n')
       printf("\t%.8g\n", pop());
   }
   return 0;

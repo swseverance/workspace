@@ -87,17 +87,17 @@ int getop(char s[]) {
         return EOF;
       li = 0;
     }
-    s[0] = c = line[li++];
+    s[0] = c = (unsigned char)line[li++];
   } while (c == ' ' || c == '\t');
   s[1] = '\0';
   if (!isdigit(c) && c != '.')
     return c; /* not a number */
   i = 0;
   if (isdigit(c)) /* collect integer part */
-    while (isdigit(s[++i] = c = line[li++]))
+    while (i < MAXOP - 1 && isdigit(s[++i] = c = (unsigned char)line[li++]))
       ;
   if (c == '.') /* collect fraction part */
-    while (isdigit(s[++i] = c = line[li++]))
+    while (i < MAXOP - 1 && isdigit(s[++i] = c = (unsigned char)line[li++]))
       ;
   s[i] = '\0';
   li--; /* give back the character after the number */

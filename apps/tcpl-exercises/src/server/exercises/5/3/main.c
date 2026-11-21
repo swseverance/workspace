@@ -8,7 +8,7 @@ char *strcat(char *s, const char *t);
 /* for each pair of lines s and t, print s with t added to the end */
 int main() {
   int len;
-  char s[2 * MAXLINE + 1], t[MAXLINE + 2]; /* s has room for t too */
+  char s[2 * (MAXLINE + 1) + 1], t[MAXLINE + 2]; /* s has room for t too */
 
   while ((len = getline(s, MAXLINE + 2)) > 0) {
     chop(s, len);

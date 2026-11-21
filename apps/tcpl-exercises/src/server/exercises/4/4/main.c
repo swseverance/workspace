@@ -8,6 +8,9 @@
 int getop(char[]);
 void push(double);
 double pop(void);
+void printtop(void);
+void duplicate(void);
+void swap(void);
 void clear(void);
 int getch(void);
 void ungetch(int);
@@ -16,7 +19,7 @@ void ungetch(int);
    (?), duplicate it (d), swap the top two (s) and clear the stack (c) */
 int main() {
   int type;
-  double op1, op2;
+  double op2;
   char s[MAXOP];
 
   while ((type = getop(s)) != EOF) {
@@ -41,21 +44,14 @@ int main() {
       else
         printf("error: zero divisor\n");
       break;
-    case '?': /* print the top element without popping it */
-      op2 = pop();
-      printf("\t%.8g\n", op2);
-      push(op2);
+    case '?':
+      printtop();
       break;
-    case 'd': /* duplicate the top element */
-      op2 = pop();
-      push(op2);
-      push(op2);
+    case 'd':
+      duplicate();
       break;
-    case 's': /* swap the top two elements */
-      op2 = pop();
-      op1 = pop();
-      push(op2);
-      push(op1);
+    case 's':
+      swap();
       break;
     case 'c':
       clear();
@@ -94,6 +90,34 @@ double pop(void) {
   }
 }
 
+/* printtop: print the top element without popping it */
+void printtop(void) {
+  if (sp > 0)
+    printf("\t%.8g\n", val[sp - 1]);
+  else
+    printf("error: stack empty\n");
+}
+
+/* duplicate: push a copy of the top element */
+void duplicate(void) {
+  if (sp > 0)
+    push(val[sp - 1]);
+  else
+    printf("error: stack empty\n");
+}
+
+/* swap: swap the top two elements */
+void swap(void) {
+  double temp;
+
+  if (sp > 1) {
+    temp = val[sp - 1];
+    val[sp - 1] = val[sp - 2];
+    val[sp - 2] = temp;
+  } else
+    printf("error: can't swap, fewer than two elements\n");
+}
+
 /* clear: empty the stack */
 void clear(void) {
   sp = 0;
@@ -110,10 +134,10 @@ int getop(char s[]) {
     return c; /* not a number */
   i = 0;
   if (isdigit(c)) /* collect integer part */
-    while (isdigit(s[++i] = c = getch()))
+    while (i < MAXOP - 1 && isdigit(s[++i] = c = getch()))
       ;
   if (c == '.') /* collect fraction part */
-    while (isdigit(s[++i] = c = getch()))
+    while (i < MAXOP - 1 && isdigit(s[++i] = c = getch()))
       ;
   s[i] = '\0';
   if (c != EOF)
@@ -123,8 +147,8 @@ int getop(char s[]) {
 
 #define BUFSIZE 100
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {

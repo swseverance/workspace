@@ -35,7 +35,7 @@ void printfile(FILE *fp, char *name) {
       lines = 0;
     }
     len = strlen(line);
-    if (line[len - 1] == '\n')
+    if (len > 0 && line[len - 1] == '\n')
       line[len - 1] = '\0';
     printf("%s\n", line);
     lines++;
