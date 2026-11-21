@@ -1,5 +1,15 @@
+import { redisProvider } from '@org/redis';
+import { Redis } from '@upstash/redis';
 import { Request, Response } from 'express';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 // Both limiters share this mock, so calls are told apart by their key.
 const { limit } = vi.hoisted(() => ({ limit: vi.fn() }));
@@ -12,9 +22,6 @@ vi.mock('@upstash/ratelimit', () => ({
   },
 }));
 
-// A package mock: the Angular unit-test builder rejects vi.mock on relative paths.
-vi.mock('@upstash/redis', () => ({ Redis: { fromEnv: () => ({}) } }));
-
 vi.mock('firebase-functions/logger', () => ({
   warn: loggerWarn,
 }));
@@ -25,6 +32,18 @@ const {
   SUBMIT_EXERCISE_LIMITS,
   submitExerciseRateLimitMiddleware,
 } = await import('./rate-limit');
+
+// The limiters only pass the client on to the mocked Ratelimit, so an empty
+// one will do. Spec files share their modules (the Angular unit-test builder
+// runs Vitest with isolate off), so it is taken back out afterwards rather
+// than left for the next spec to find.
+beforeAll(() => {
+  redisProvider.provide({} as Redis);
+});
+
+afterAll(() => {
+  redisProvider.reset();
+});
 
 function createRequest(uid?: string): Request {
   return (uid ? { user: { uid } } : {}) as Request;

@@ -2,14 +2,15 @@
 #define MAXLINE 1000 /* maximum input line size */
 
 /* swap: interchange x and y, which have type t; the block gives _z a
-   scope of its own */
+   scope of its own, and do-while makes the macro a single statement,
+   safe before an else */
 #define swap(t, x, y) \
-  {                   \
+  do {                \
     t _z;             \
-    _z = x;           \
-    x = y;            \
-    y = _z;           \
-  }
+    _z = (x);         \
+    (x) = (y);        \
+    (y) = _z;         \
+  } while (0)
 
 int getline(char line[], int max);
 int getints(char s[], int v[], int max);

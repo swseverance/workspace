@@ -49,8 +49,8 @@ int getline(char s[], int lim) {
 
 #define BUFSIZE (MAXLINE + 1) /* room for a whole line */
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {

@@ -3,11 +3,13 @@
 #include <ctype.h>
 
 #define MAXTOKEN 100
+#define MAXOUT 1000 /* longest description, + 1 */
 
 enum { NAME, PARENS, BRACKETS };
 
 void dcl(void);
 void dirdcl(void);
+void append(char *);
 int gettoken(void);
 int getch(void);
 void ungetch(int);
@@ -16,8 +18,9 @@ int tokentype;           /* type of last token */
 char token[MAXTOKEN];    /* last token string */
 char name[MAXTOKEN];     /* identifier name */
 char datatype[MAXTOKEN]; /* data type = char, int, etc. */
-char out[1000];
-int error;   /* 1 if the current line has an error */
+char out[MAXOUT];        /* description so far */
+int outlen;              /* its length */
+int error;               /* 1 if the current line has an error */
 int eol = 0; /* 1 once the current line's newline has been returned */
 
 /* convert declaration to words, recovering from errors: a line with an
@@ -27,6 +30,7 @@ int main(void) {
   while (eol = 0, gettoken() != EOF) { /* 1st token on line */
     error = 0;
     out[0] = '\0';
+    outlen = 0;
     if (tokentype == NAME) { /* is the datatype */
       strcpy(datatype, token);
       dcl(); /* parse rest of line */
@@ -52,7 +56,19 @@ void dcl(void) {
     ns++;
   dirdcl();
   while (ns-- > 0)
-    strcat(out, " pointer to");
+    append(" pointer to");
+}
+
+/* append: add s to the end of out; a description too long for out is
+   an error too */
+void append(char *s) {
+  int len = strlen(s);
+
+  if (outlen + len < MAXOUT) {
+    strcpy(out + outlen, s);
+    outlen += len;
+  } else
+    error = 1;
 }
 
 /* dirdcl: parse a direct declarator */
@@ -71,11 +87,11 @@ void dirdcl(void) {
     return;
   while ((type = gettoken()) == PARENS || type == BRACKETS)
     if (type == PARENS)
-      strcat(out, " function returning");
+      append(" function returning");
     else {
-      strcat(out, " array");
-      strcat(out, token);
-      strcat(out, " of");
+      append(" array");
+      append(token);
+      append(" of");
     }
 }
 
@@ -135,8 +151,8 @@ int gettoken(void) {
 
 #define BUFSIZE 100
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {

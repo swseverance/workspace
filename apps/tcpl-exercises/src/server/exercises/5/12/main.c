@@ -19,6 +19,8 @@ int main(int argc, char *argv[]) {
     else if ((*argv)[0] == '+')
       n = atoi(*argv + 1);
   }
+  if (n <= 0) /* no stops to speak of: fall back on the default */
+    n = TABINC;
 
   col = 0; /* column of the next character */
   nb = 0;  /* blanks waiting to be written */

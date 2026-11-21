@@ -13,14 +13,17 @@ int strncmp(const char *s, const char *t, size_t n);
 int main() {
   int len, n;
   char line[MAXLINE + 2], t[MAXLINE + 2], num[MAXLINE + 2];
-  char s[2 * MAXLINE + 1]; /* room for strncat */
+  char s[2 * (MAXLINE + 1) + 1]; /* room for strncat */
 
   while ((len = getline(line, MAXLINE + 2)) > 0) {
     chop(line, len);
     chop(t, getline(t, MAXLINE + 2));
     getline(num, MAXLINE + 2);
     for (n = 0, len = 0; num[len] >= '0' && num[len] <= '9'; len++)
-      n = 10 * n + (num[len] - '0');
+      if (n <= MAXLINE) /* a longer number can't matter, and may not fit */
+        n = 10 * n + (num[len] - '0');
+    if (n > MAXLINE + 1)
+      n = MAXLINE + 1; /* as long as any line, and strncpy's padding fits */
 
     reset(s, line, sizeof s);
     printf("%s\n", strncpy(s, t, n));

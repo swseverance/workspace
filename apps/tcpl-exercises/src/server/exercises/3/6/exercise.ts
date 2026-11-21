@@ -23,6 +23,12 @@ export const exercise3_6: ExerciseSource = {
     { id: 'a7902717', stdin: '12345 5\n', expectedStdout: '12345\n' },
     // Wider than the width: no padding, nothing cut off.
     { id: 'aaf18b6f', stdin: '123456 3\n', expectedStdout: '123456\n' },
+    // Either side of a power of ten, where the number of digits changes.
+    {
+      id: '880c7743',
+      stdin: '9 3\n10 3\n99 3\n100 3\n-10 4\n',
+      expectedStdout: '  9\n 10\n 99\n100\n -10\n',
+    },
     // Widths of 0 and 1.
     { id: 'abd946db', stdin: '7 0\n7 1\n', expectedStdout: '7\n7\n' },
     // The minus sign counts towards the width.

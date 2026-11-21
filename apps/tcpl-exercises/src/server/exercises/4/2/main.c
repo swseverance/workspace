@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #define MAXLINE 1000 /* maximum input line size */
+#define MAXEXP 1000  /* largest exponent worth keeping */
 
 int getline(char line[], int max);
 double atof(char s[]);
@@ -41,7 +42,8 @@ double atof(char s[]) {
     if (s[i] == '+' || s[i] == '-')
       i++;
     for (exp = 0; isdigit(s[i]); i++)
-      exp = 10 * exp + (s[i] - '0');
+      if (exp < MAXEXP) /* past this the result is 0 or infinite anyway */
+        exp = 10 * exp + (s[i] - '0');
     while (exp-- > 0)
       val = (esign > 0) ? val * 10 : val / 10;
   }

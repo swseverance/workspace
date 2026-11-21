@@ -53,13 +53,13 @@ int isnumber(char *s) {
 
   if (*s == '-')
     s++;
-  while (isdigit(*s)) {
+  while (isdigit((unsigned char)*s)) {
     s++;
     digits++;
   }
   if (*s == '.')
     s++;
-  while (isdigit(*s)) {
+  while (isdigit((unsigned char)*s)) {
     s++;
     digits++;
   }

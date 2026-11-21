@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     p = *argv + 1;
-    for (keyfield[nkeys] = 0; isdigit(*p); p++)
+    for (keyfield[nkeys] = 0; isdigit((unsigned char)*p); p++)
       keyfield[nkeys] = 10 * keyfield[nkeys] + (*p - '0');
     numeric[nkeys] = reverse[nkeys] = fold[nkeys] = dir[nkeys] = 0;
     for (; *p; p++)
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
 /* compare: compare lines s and t key by key, or whole if there are no
    keys */
 int compare(void *s, void *t) {
-  char fs[MAXLEN + 1], ft[MAXLEN + 1];
+  char fs[MAXLEN + 2], ft[MAXLEN + 2]; /* as big as readlines' line */
   int k, r;
 
   if (nkeys == 0)
@@ -181,15 +181,14 @@ int readlines(char *lineptr[], int maxlines) {
   char *p, line[MAXLEN + 2]; /* + newline and '\0' */
 
   nlines = 0;
-  while ((len = getline(line, MAXLEN + 2)) > 0)
+  while ((len = getline(line, MAXLEN + 2)) > 0) {
+    if (line[len - 1] == '\n')
+      line[--len] = '\0'; /* delete newline */
     if (nlines >= maxlines || (p = alloc(len + 1)) == NULL)
       return -1;
-    else {
-      if (line[len - 1] == '\n')
-        line[len - 1] = '\0'; /* delete newline */
-      strcpy(p, line);
-      lineptr[nlines++] = p;
-    }
+    strcpy(p, line);
+    lineptr[nlines++] = p;
+  }
   return nlines;
 }
 

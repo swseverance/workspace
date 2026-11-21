@@ -11,7 +11,8 @@ int main() {
     count[i] = 0;
 
   while ((c = getchar()) != EOF)
-    ++count[c];
+    if (c < NCHARS) /* leave out anything that isn't ASCII */
+      ++count[c];
 
   for (i = 0; i < NCHARS; ++i)
     if (count[i] > 0) {

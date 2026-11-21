@@ -1,6 +1,6 @@
 #include <stdlib.h> /* malloc, NULL */
 #include <fcntl.h>  /* open, creat, O_RDONLY, O_WRONLY */
-#include <unistd.h> /* read, write, lseek */
+#include <unistd.h> /* read, write, lseek, close */
 
 #define EOF (-1)
 #define BUFSIZ 1024
@@ -48,11 +48,15 @@ int main(int argc, char *argv[]) {
   char ch;
 
   while (--argc > 0)
-    if ((fp = fopen(*++argv, "r")) != NULL)
+    if ((fp = fopen(*++argv, "r")) != NULL) {
       while ((c = getc(fp)) != EOF) {
         ch = c;
         write(1, &ch, 1);
       }
+      close(fp->fd); /* done with the file: free its slot in _iob */
+      free(fp->base);
+      fp->flag.is_read = 0;
+    }
   return 0;
 }
 

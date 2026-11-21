@@ -53,7 +53,7 @@ void find(FILE *fp, char *name, char *pattern, int except, int number) {
   while (fgets(line, sizeof line, fp) != NULL) {
     lineno++;
     len = strlen(line);
-    if (line[len - 1] == '\n')
+    if (len > 0 && line[len - 1] == '\n')
       line[len - 1] = '\0';
     if ((strstr(line, pattern) != NULL) != except) {
       if (name != NULL)
