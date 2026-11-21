@@ -23,7 +23,7 @@ int main() {
 
 /* reverse: reverse string s in place; recursive */
 void reverse(char s[]) {
-  reverser(s, 0, strlen(s) - 1);
+  reverser(s, 0, (int)strlen(s) - 1);
 }
 
 /* reverser: reverse s[i]...s[j] by swapping the ends, then reversing

@@ -2,12 +2,13 @@
 
 /* verify that getchar() != EOF is 0 or 1 */
 int main() {
-  int c;
+  int v; /* the value of the expression */
 
-  while ((c = getchar()) != EOF)
-    printf("%d\n", c != EOF);
-  /* the loop has ended, so c is EOF */
-  printf("%d\n", c != EOF);
+  v = 1;
+  while (v == 1) {
+    v = getchar() != EOF;
+    printf("%d\n", v);
+  }
 
   return 0;
 }

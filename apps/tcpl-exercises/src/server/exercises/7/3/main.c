@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include <ctype.h>
 
 #define MAXLINE 1000 /* maximum input line size */
 #define MAXSPEC 100  /* longest conversion specification */

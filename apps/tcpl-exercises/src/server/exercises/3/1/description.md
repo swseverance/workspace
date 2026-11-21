@@ -16,7 +16,8 @@ int main() {
   int v[MAXN];
   int i, n, x;
 
-  scanf("%d", &n);
+  if (scanf("%d", &n) != 1 || n < 0 || n > MAXN)
+    return 1; /* no n, or one that v can't hold */
   for (i = 0; i < n; i++)
     scanf("%d", &v[i]);
 

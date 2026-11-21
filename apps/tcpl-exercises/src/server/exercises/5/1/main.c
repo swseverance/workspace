@@ -22,8 +22,8 @@ int main() {
    input isn't a number, or a positive value if it is
 
    A + or - not followed by a digit is pushed back with the character
-   after it. And a number right at the end of the input returns 1 rather
-   than c, which would be EOF and lose it. */
+   after it. And a number returns 1 rather than c, the character after
+   it, which could be EOF or '\0' and lose it. */
 int getint(int *pn) {
   int c, d, sign;
 
@@ -48,16 +48,15 @@ int getint(int *pn) {
   for (*pn = 0; isdigit(c); c = getch())
     *pn = 10 * *pn + (c - '0');
   *pn *= sign;
-  if (c == EOF)
-    return 1;
-  ungetch(c);
-  return c;
+  if (c != EOF)
+    ungetch(c);
+  return 1;
 }
 
 #define BUFSIZE 100
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {

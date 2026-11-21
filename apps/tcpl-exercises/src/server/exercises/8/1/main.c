@@ -4,7 +4,7 @@
 
 #define BUFSIZE 8192
 
-void filecopy(int ifd, int ofd);
+int filecopy(int ifd, int ofd);
 void error(char *msg, char *name);
 
 /* cat: concatenate files, using system calls instead of the standard
@@ -12,28 +12,36 @@ void error(char *msg, char *name);
 int main(int argc, char *argv[]) {
   int fd;
 
-  if (argc == 1) /* no args; copy standard input */
-    filecopy(0, 1);
-  else
-    while (--argc > 0)
+  if (argc == 1) { /* no args; copy standard input */
+    if (filecopy(0, 1) != 0) {
+      error("cat: error copying ", "standard input");
+      return 1;
+    }
+  } else
+    while (--argc > 0) {
       if ((fd = open(*++argv, O_RDONLY, 0)) == -1) {
         error("cat: can't open ", *argv);
         return 2;
-      } else {
-        filecopy(fd, 1);
-        close(fd);
       }
+      if (filecopy(fd, 1) != 0) {
+        error("cat: error copying ", *argv);
+        return 1;
+      }
+      close(fd);
+    }
   return 0;
 }
 
-/* filecopy: copy file descriptor ifd to ofd */
-void filecopy(int ifd, int ofd) {
+/* filecopy: copy file descriptor ifd to ofd; return 0, or -1 if a read
+   or write fails */
+int filecopy(int ifd, int ofd) {
   char buf[BUFSIZE];
   int n;
 
   while ((n = read(ifd, buf, BUFSIZE)) > 0)
     if (write(ofd, buf, n) != n)
-      error("cat: write error", "");
+      return -1;
+  return n; /* 0 at the end of the file, -1 on a read error */
 }
 
 /* error: print msg and name on the standard error */

@@ -4,7 +4,6 @@
 #include <string.h>
 
 #define MAXWORD 100
-#define MAXDISTINCT 20000 /* most distinct words */
 
 struct tnode { /* the tree node: */
   char *word;  /* points to the text */
@@ -18,8 +17,9 @@ void collect(struct tnode *);
 int bycount(const void *, const void *);
 int getword(char *, int);
 
-struct tnode *nodes[MAXDISTINCT]; /* every node, to sort by count */
-int nnodes = 0;
+struct tnode **nodes; /* every node, to sort by count */
+int nnodes = 0;       /* nodes in nodes[] */
+int ndistinct = 0;    /* nodes in the tree */
 
 /* print the distinct words, most frequent first */
 int main(void) {
@@ -29,6 +29,9 @@ int main(void) {
 
   while (getword(word, MAXWORD) != EOF)
     root = addtree(root, word);
+  nodes = (struct tnode **)malloc(ndistinct * sizeof(struct tnode *));
+  if (nodes == NULL)
+    return ndistinct > 0; /* no words, or no room to sort them */
   collect(root);
   qsort(nodes, nnodes, sizeof nodes[0], bycount);
   for (i = 0; i < nnodes; i++)
@@ -57,6 +60,7 @@ struct tnode *addtree(struct tnode *p, char *w) {
     p = talloc();
     p->word = strdup(w);
     p->count = 1;
+    ndistinct++;
     p->left = p->right = NULL;
   } else if ((cond = strcmp(w, p->word)) == 0)
     p->count++; /* repeated word */
@@ -71,8 +75,7 @@ struct tnode *addtree(struct tnode *p, char *w) {
 void collect(struct tnode *p) {
   if (p != NULL) {
     collect(p->left);
-    if (nnodes < MAXDISTINCT)
-      nodes[nnodes++] = p;
+    nodes[nnodes++] = p;
     collect(p->right);
   }
 }

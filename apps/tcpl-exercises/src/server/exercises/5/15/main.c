@@ -128,15 +128,14 @@ int readlines(char *lineptr[], int maxlines) {
   char *p, line[MAXLEN + 2]; /* + newline and '\0' */
 
   nlines = 0;
-  while ((len = getline(line, MAXLEN + 2)) > 0)
+  while ((len = getline(line, MAXLEN + 2)) > 0) {
+    if (line[len - 1] == '\n')
+      line[--len] = '\0'; /* delete newline */
     if (nlines >= maxlines || (p = alloc(len + 1)) == NULL)
       return -1;
-    else {
-      if (line[len - 1] == '\n')
-        line[len - 1] = '\0'; /* delete newline */
-      strcpy(p, line);
-      lineptr[nlines++] = p;
-    }
+    strcpy(p, line);
+    lineptr[nlines++] = p;
+  }
   return nlines;
 }
 

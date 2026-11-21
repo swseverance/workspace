@@ -74,13 +74,18 @@ int gettoken(void) {
       return tokentype = '(';
     }
   } else if (c == '[') {
-    for (*p++ = c; (*p++ = getch()) != ']';)
-      ;
+    for (*p++ = c; (c = getch()) != ']' && c != '\n' && c != EOF;)
+      if (p < token + MAXTOKEN - 2)
+        *p++ = c;
+    if (c == '\n')
+      ungetch(c); /* no ]: the line's end closes the brackets */
+    *p++ = ']';
     *p = '\0';
     return tokentype = BRACKETS;
   } else if (isalpha(c)) {
     for (*p++ = c; isalnum(c = getch());)
-      *p++ = c;
+      if (p < token + MAXTOKEN - 1)
+        *p++ = c;
     *p = '\0';
     if (c != EOF)
       ungetch(c);
@@ -91,8 +96,8 @@ int gettoken(void) {
 
 #define BUFSIZE 100
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {

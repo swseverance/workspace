@@ -37,6 +37,10 @@ int main(void) {
     } else if (isalpha(c) || c == '_') {
       getname(name, MAXWORD, c);
       printf("%s", (np = lookup(name)) != NULL ? np->defn : name);
+      while (isalnum(d = getch()) || d == '_') /* more than name holds */
+        putchar(d);
+      if (d != EOF)
+        ungetch(d);
     } else if (isdigit(c)) { /* a number: copy it whole */
       putchar(c);
       while (isalnum(d = getch()) || d == '_' || d == '.')
@@ -76,6 +80,11 @@ void directive(void) {
   }
   while (c == ' ' || c == '\t')
     c = getch();
+  if (!isalpha(c) && c != '_') { /* no name: ignore the line */
+    while (c != '\n' && c != EOF)
+      c = getch();
+    return;
+  }
   getname(name, MAXWORD, c);
   while ((c = getch()) == ' ' || c == '\t')
     ;
@@ -86,15 +95,15 @@ void directive(void) {
   install(name, text);
 }
 
-/* getname: read a name starting with c into s */
+/* getname: read a name starting with c into s, stopping early if s
+   fills up */
 int getname(char *s, int lim, int c) {
   char *w = s;
 
-  for (*w++ = c; isalnum(c = getch()) || c == '_';)
-    if (w < s + lim - 1)
-      *w++ = c;
+  for (*w++ = c; w < s + lim - 1 && (isalnum(c = getch()) || c == '_');)
+    *w++ = c;
   *w = '\0';
-  if (c != EOF)
+  if (w < s + lim - 1 && c != EOF) /* c came after the name */
     ungetch(c);
   return s[0];
 }
@@ -181,8 +190,8 @@ char *strdup(char *s) {
 
 #define BUFSIZE 100
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {

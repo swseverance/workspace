@@ -1,18 +1,20 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
-#define MAXSPEC 100 /* longest conversion specification */
-#define MAXWORD 1000
+#define MAXSPEC 100  /* longest conversion specification */
+#define MAXWORD 1000 /* longest string or run of characters read, + 1 */
 
 int minscanf(char *fmt, ...);
-int conversion(char *fmt);
+int conversion(char *fmt, int *width);
+char *setwidth(char *fmt, int width);
 
 /* read values with the format given as the argument, printing each */
 int main(int argc, char *argv[]) {
-  char *fmt, word[MAXWORD], c;
-  int i;
+  char *fmt, word[MAXWORD];
+  int i, width;
   unsigned u;
   float f;
 
@@ -21,7 +23,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   fmt = argv[1];
-  switch (conversion(fmt)) {
+  switch (conversion(fmt, &width)) {
   case 'd':
     while (minscanf(fmt, &i) == 1)
       printf("%d\n", i);
@@ -35,33 +37,59 @@ int main(int argc, char *argv[]) {
     while (minscanf(fmt, &f) == 1)
       printf("%g\n", f);
     break;
-  case 's':
+  case 's': /* word must hold the string: limit a width that's too big */
+    if (width == 0 || width > MAXWORD - 1)
+      if ((fmt = setwidth(fmt, MAXWORD - 1)) == NULL)
+        return 1;
     while (minscanf(fmt, word) == 1)
       printf("%s\n", word);
     break;
-  case 'c':
-    while (minscanf(fmt, &c) == 1)
-      printf("[%c]\n", c);
+  case 'c': /* reads width characters, 1 without one, and adds no '\0' */
+    if (width == 0)
+      width = 1;
+    else if (width > MAXWORD - 1) {
+      width = MAXWORD - 1;
+      if ((fmt = setwidth(fmt, width)) == NULL)
+        return 1;
+    }
+    while (minscanf(fmt, word) == 1)
+      printf("[%.*s]\n", width, word);
     break;
   }
   return 0;
 }
 
 /* conversion: the conversion character of fmt's first conversion other
-   than %%, or 0 */
-int conversion(char *fmt) {
+   than %%, or 0; *width is its field width, 0 if it has none */
+int conversion(char *fmt, int *width) {
   char *p;
 
   for (p = fmt; *p; p++)
     if (*p == '%') {
-      while (isdigit(*++p))
-        ;
+      for (*width = 0; isdigit((unsigned char)*++p);)
+        if (*width < MAXWORD) /* any more is too big for main already */
+          *width = 10 * *width + (*p - '0');
       if (*p == '\0')
         break;
       if (*p != '%')
         return *p;
     }
   return 0;
+}
+
+/* setwidth: a copy of fmt with its first conversion other than %% given
+   the field width width, or NULL if there's no room for the copy */
+char *setwidth(char *fmt, int width) {
+  char *p, *q, *copy;
+
+  for (p = fmt; *p != '%' || *(p + 1) == '%'; p++) /* find the conversion */
+    if (*p == '%')
+      p++;
+  for (q = p + 1; isdigit((unsigned char)*q); q++) /* skip its width */
+    ;
+  if ((copy = (char *)malloc(strlen(fmt) + MAXSPEC)) != NULL)
+    sprintf(copy, "%.*s%%%d%s", (int)(p - fmt), fmt, width, q);
+  return copy;
 }
 
 /* minscanf: minimal scanf with variable argument list; handles d o x f s
@@ -75,7 +103,7 @@ int minscanf(char *fmt, ...) {
   va_start(ap, fmt);
   n = 0; /* values assigned */
   for (p = fmt; *p; p++) {
-    if (isspace(*p)) { /* any amount of white space */
+    if (isspace((unsigned char)*p)) { /* any amount of white space */
       while (isspace(c = getchar()))
         ;
       if (c != EOF)
@@ -96,7 +124,7 @@ int minscanf(char *fmt, ...) {
     }
     s = spec; /* copy the specification: %, width, conversion */
     *s++ = '%';
-    while (isdigit(*++p))
+    while (isdigit((unsigned char)*++p))
       if (s < spec + MAXSPEC - 2)
         *s++ = *p;
     if (*p == '\0')

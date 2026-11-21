@@ -29,7 +29,7 @@ int main(void) {
   char word[MAXWORD];
 
   while (getword(word, MAXWORD) != EOF)
-    if (isalpha(word[0]) || word[0] == '_')
+    if (isalpha((unsigned char)word[0]) || word[0] == '_')
       if ((n = binsearch(word, keytab, NKEYS)) >= 0)
         keytab[n].count++;
   for (n = 0; n < NKEYS; n++)
@@ -120,8 +120,8 @@ int getword(char *word, int lim) {
 
 #define BUFSIZE 100
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {

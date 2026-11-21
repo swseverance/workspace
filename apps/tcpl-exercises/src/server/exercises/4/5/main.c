@@ -104,7 +104,7 @@ int getop(char s[]) {
   s[1] = '\0';
   i = 0;
   if (islower(c)) { /* collect a name */
-    while (islower(s[++i] = c = getch()))
+    while (i < MAXOP - 1 && islower(s[++i] = c = getch()))
       ;
     s[i] = '\0';
     if (c != EOF)
@@ -112,13 +112,12 @@ int getop(char s[]) {
     return NAME;
   }
   if (!isdigit(c) && c != '.')
-    return c; /* not a number */
-  i = 0;
+    return c;     /* not a number */
   if (isdigit(c)) /* collect integer part */
-    while (isdigit(s[++i] = c = getch()))
+    while (i < MAXOP - 1 && isdigit(s[++i] = c = getch()))
       ;
   if (c == '.') /* collect fraction part */
-    while (isdigit(s[++i] = c = getch()))
+    while (i < MAXOP - 1 && isdigit(s[++i] = c = getch()))
       ;
   s[i] = '\0';
   if (c != EOF)
@@ -128,8 +127,8 @@ int getop(char s[]) {
 
 #define BUFSIZE 100
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {

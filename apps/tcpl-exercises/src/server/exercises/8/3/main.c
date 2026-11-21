@@ -52,17 +52,20 @@ int main(void) {
   int c;
   char *s;
 
-  fp = fopen("out.txt", "w");
+  if ((fp = fopen("out.txt", "w")) == NULL)
+    return 1;
   while ((c = getchar()) != EOF)
     putc(c, fp);
   fclose(fp);
 
-  fp = fopen("out.txt", "a");
+  if ((fp = fopen("out.txt", "a")) == NULL)
+    return 1;
   for (s = "--\n"; *s; s++)
     putc(*s, fp);
   fclose(fp);
 
-  fp = fopen("out.txt", "r");
+  if ((fp = fopen("out.txt", "r")) == NULL)
+    return 1;
   while ((c = getc(fp)) != EOF)
     putchar(c);
   fclose(fp);

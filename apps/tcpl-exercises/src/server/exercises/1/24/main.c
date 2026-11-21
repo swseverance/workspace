@@ -37,9 +37,14 @@ int main() {
         else if (c == '\'')
           state = CHAR;
         else if (c == '(' || c == '[' || c == '{') {
-          open[depth] = c;
-          openline[depth] = line;
-          ++depth;
+          if (depth >= MAXDEPTH) {
+            printf("line %d: nesting too deep\n", line);
+            error = 1;
+          } else {
+            open[depth] = c;
+            openline[depth] = line;
+            ++depth;
+          }
         } else if (c == ')' || c == ']' || c == '}') {
           if (c == ')')
             want = '(';

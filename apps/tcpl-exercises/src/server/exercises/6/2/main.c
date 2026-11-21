@@ -3,9 +3,8 @@
 #include <ctype.h>
 #include <string.h>
 
-#define MAXWORD 101   /* longest name, + '\0' */
-#define MAXNAMES 5000 /* most distinct names */
-#define DEFLEN 6      /* characters compared by default */
+#define MAXWORD 101 /* longest name, + '\0' */
+#define DEFLEN 6    /* characters compared by default */
 
 struct tnode { /* the tree node: */
   char *word;  /* points to the name */
@@ -34,8 +33,9 @@ int binsearch(char *, struct key *, int);
 int getch(void);
 void ungetch(int);
 
-char *names[MAXNAMES]; /* the distinct names, in order */
-int nnames = 0;
+char **names;      /* the distinct names, in order */
+int nnames = 0;    /* names in names[] */
+int ndistinct = 0; /* names in the tree */
 
 /* print groups of names that are the same in their first n characters
    (6, or set with -n) but different after that */
@@ -47,11 +47,16 @@ int main(int argc, char *argv[]) {
   n = DEFLEN;
   if (argc > 1 && (*++argv)[0] == '-')
     n = atoi(*argv + 1);
+  if (n <= 0) /* not a length: use the default */
+    n = DEFLEN;
 
   while (getword(word, MAXWORD) != EOF)
-    if ((isalpha(word[0]) || word[0] == '_') &&
-        binsearch(word, keytab, NKEYS) < 0 && strlen(word) >= n)
+    if ((isalpha((unsigned char)word[0]) || word[0] == '_') &&
+        binsearch(word, keytab, NKEYS) < 0 && (int)strlen(word) >= n)
       root = addtree(root, word);
+  names = (char **)malloc(ndistinct * sizeof(char *));
+  if (names == NULL)
+    return ndistinct > 0; /* no names, or no room to list them */
   collect(root);
 
   for (i = 0; i < nnames; i = j) {
@@ -77,6 +82,7 @@ struct tnode *addtree(struct tnode *p, char *w) {
   if (p == NULL) { /* a new word has arrived */
     p = talloc();  /* make a new node */
     p->word = strdup(w);
+    ndistinct++;
     p->left = p->right = NULL;
   } else if ((cond = strcmp(w, p->word)) < 0)
     p->left = addtree(p->left, w);
@@ -89,8 +95,7 @@ struct tnode *addtree(struct tnode *p, char *w) {
 void collect(struct tnode *p) {
   if (p != NULL) {
     collect(p->left);
-    if (nnames < MAXNAMES)
-      names[nnames++] = p->word;
+    names[nnames++] = p->word;
     collect(p->right);
   }
 }
@@ -192,8 +197,8 @@ int getword(char *word, int lim) {
 
 #define BUFSIZE 100
 
-char buf[BUFSIZE]; /* buffer for ungetch */
-int bufp = 0;      /* next free position in buf */
+int buf[BUFSIZE]; /* buffer for ungetch */
+int bufp = 0;     /* next free position in buf */
 
 /* getch: get a (possibly pushed-back) character */
 int getch(void) {
