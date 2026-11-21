@@ -1,4 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { redisProvider } from '@org/redis';
+import { Redis } from '@upstash/redis';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { hmget, hgetall, hincrby, hget, exec, loggerWarn } = vi.hoisted(() => ({
   hmget: vi.fn(),
@@ -9,17 +11,6 @@ const { hmget, hgetall, hincrby, hget, exec, loggerWarn } = vi.hoisted(() => ({
   loggerWarn: vi.fn(),
 }));
 
-// A package mock: the Angular unit-test builder rejects vi.mock on relative paths.
-vi.mock('@upstash/redis', () => ({
-  Redis: {
-    fromEnv: () => ({
-      hmget,
-      hgetall,
-      pipeline: () => ({ hincrby, hget, exec }),
-    }),
-  },
-}));
-
 vi.mock('firebase-functions/logger', () => ({ warn: loggerWarn }));
 
 const { getAllExerciseStats, getExerciseStats, recordCompiledSubmission } =
@@ -27,10 +18,22 @@ const { getAllExerciseStats, getExerciseStats, recordCompiledSubmission } =
 
 const KEY = 'proj:dev:tcpl:exercise-stats';
 
+// Spec files share their modules (the Angular unit-test builder runs Vitest
+// with isolate off), so the provider may already hold another spec's client.
+// Providing the fake here, rather than mocking @upstash/redis, replaces it.
 beforeEach(() => {
   vi.resetAllMocks();
+  redisProvider.provide({
+    hmget,
+    hgetall,
+    pipeline: () => ({ hincrby, hget, exec }),
+  } as unknown as Redis);
   vi.stubEnv('PROJECT_ID', 'proj');
   vi.stubEnv('ENVIRONMENT_NAME', 'dev');
+});
+
+afterAll(() => {
+  redisProvider.reset();
 });
 
 describe('getExerciseStats', () => {
