@@ -55,6 +55,8 @@ export type CalculatorOptions = {
   negativeNumbers?: boolean;
   /** 4-3: the `%` operator (remainder, via C's `fmod`). */
   modulus?: boolean;
+  /** 4-4: `?` print top, `d` duplicate, `s` swap top two, `c` clear. */
+  stackCommands?: boolean;
 };
 
 const isDigit = (c: string | null): boolean =>
@@ -154,6 +156,37 @@ class Calculator {
     }
   }
 
+  private unknown(char: string): void {
+    this.output += `error: unknown command ${char}\n`;
+  }
+
+  // 4-4 commands. `?` prints the top in the same format a newline does; `d`
+  // duplicates it through push (so a full stack reports stack-full); `s`
+  // swaps the top two; `c` clears. Each guards too-few elements like main.c.
+  private printTop(): void {
+    const n = this.stack.length;
+    if (n > 0) this.output += `\t${formatG(this.stack[n - 1], 8)}\n`;
+    else this.output += 'error: stack empty\n';
+  }
+
+  private duplicate(): void {
+    const n = this.stack.length;
+    if (n > 0) this.push(this.stack[n - 1]);
+    else this.output += 'error: stack empty\n';
+  }
+
+  private swap(): void {
+    const n = this.stack.length;
+    if (n > 1) {
+      [this.stack[n - 1], this.stack[n - 2]] = [
+        this.stack[n - 2],
+        this.stack[n - 1],
+      ];
+    } else {
+      this.output += "error: can't swap, fewer than two elements\n";
+    }
+  }
+
   run(): string {
     for (;;) {
       const token = this.getop();
@@ -181,8 +214,24 @@ class Calculator {
           if (this.options.modulus) {
             this.divide((a, b) => a % b); // JS % matches C fmod for finite
           } else {
-            this.output += `error: unknown command ${token.char}\n`;
+            this.unknown(token.char);
           }
+          break;
+        case '?':
+          if (this.options.stackCommands) this.printTop();
+          else this.unknown(token.char);
+          break;
+        case 'd':
+          if (this.options.stackCommands) this.duplicate();
+          else this.unknown(token.char);
+          break;
+        case 's':
+          if (this.options.stackCommands) this.swap();
+          else this.unknown(token.char);
+          break;
+        case 'c':
+          if (this.options.stackCommands) this.stack.length = 0;
+          else this.unknown(token.char);
           break;
         case '\n': {
           // pop() first: it may append "error: stack empty"; folding the call
@@ -192,7 +241,7 @@ class Calculator {
           break;
         }
         default:
-          this.output += `error: unknown command ${token.char}\n`;
+          this.unknown(token.char);
           break;
       }
     }
